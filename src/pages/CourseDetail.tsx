@@ -88,10 +88,11 @@ export default function CourseDetail() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col cyber-bg">
         <Header />
-        <main className="flex-1 flex items-center justify-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        <main className="flex-1 flex items-center justify-center relative">
+          <div className="cyber-grid" />
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent shadow-[0_0_20px_hsl(var(--primary)/0.5)]" />
         </main>
         <Footer />
       </div>
@@ -100,12 +101,13 @@ export default function CourseDetail() {
 
   if (!course) {
     return (
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col cyber-bg">
         <Header />
-        <main className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold mb-4">Course Not Found</h1>
-            <Button asChild>
+        <main className="flex-1 flex items-center justify-center relative">
+          <div className="cyber-grid" />
+          <div className="text-center glass-card p-8 rounded-lg">
+            <h1 className="text-2xl font-bold mb-4 neon-text">Course Not Found</h1>
+            <Button variant="neon" asChild>
               <Link to="/courses">Back to Courses</Link>
             </Button>
           </div>
@@ -126,14 +128,21 @@ export default function CourseDetail() {
   );
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col cyber-bg">
       <Header />
       
-      <main className="flex-1">
+      <main className="flex-1 relative">
+        {/* Cyber grid overlay */}
+        <div className="cyber-grid" />
+        
         {/* Hero Section */}
-        <section className="bg-muted/30 border-b py-12">
-          <div className="container">
-            <Button variant="ghost" asChild className="mb-6">
+        <section className="relative py-12 border-b border-primary/20">
+          {/* Animated glow orbs */}
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-secondary/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1.5s' }} />
+          
+          <div className="container relative z-10">
+            <Button variant="ghost" asChild className="mb-6 hover:bg-primary/10 hover:text-primary transition-all">
               <Link to="/courses">
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 All Courses
@@ -144,13 +153,15 @@ export default function CourseDetail() {
               {/* Course Info */}
               <div className="lg:col-span-2">
                 <div className="flex items-center gap-3 mb-4">
-                  <Badge className={phaseMeta.colorClass}>
+                  <Badge className={`${phaseMeta.colorClass} shadow-[0_0_15px_currentColor/0.3]`}>
                     {phaseMeta.icon} {phaseMeta.label}
                   </Badge>
-                  <Badge variant="outline">Course {course.order_number}</Badge>
+                  <Badge variant="outline" className="border-primary/30 bg-primary/10">
+                    Course {course.order_number}
+                  </Badge>
                 </div>
 
-                <h1 className="text-3xl md:text-4xl font-display font-bold mb-4">
+                <h1 className="text-3xl md:text-4xl font-display font-bold mb-4 neon-text">
                   {course.title}
                 </h1>
 
@@ -160,16 +171,16 @@ export default function CourseDetail() {
 
                 {/* Stats */}
                 <div className="flex flex-wrap items-center gap-6 text-sm">
-                  <div className="flex items-center gap-2">
-                    <BookOpen className="h-4 w-4 text-muted-foreground" />
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20">
+                    <BookOpen className="h-4 w-4 text-primary" />
                     <span>{lessons?.length || 0} Lessons</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <MessageSquare className="h-4 w-4 text-muted-foreground" />
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-secondary/10 border border-secondary/20">
+                    <MessageSquare className="h-4 w-4 text-secondary" />
                     <span>AI Tutor Included</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Target className="h-4 w-4 text-muted-foreground" />
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-accent/10 border border-accent/20">
+                    <Target className="h-4 w-4 text-accent" />
                     <span>Course Project</span>
                   </div>
                 </div>
@@ -177,12 +188,12 @@ export default function CourseDetail() {
 
               {/* Purchase/Access Card */}
               <div>
-                <Card className="border-primary/20 shadow-lg">
+                <Card className="glass-card border-primary/30 shadow-[0_0_40px_hsl(var(--primary)/0.15)]">
                   <CardContent className="p-6">
                     {hasPurchased ? (
                       <>
                         <div className="flex items-center gap-2 text-success mb-4">
-                          <CheckCircle2 className="h-5 w-5" />
+                          <CheckCircle2 className="h-5 w-5 drop-shadow-[0_0_8px_hsl(var(--success))]" />
                           <span className="font-medium">You own this course</span>
                         </div>
                         
@@ -190,15 +201,21 @@ export default function CourseDetail() {
                         <div className="mb-6">
                           <div className="flex justify-between text-sm mb-2">
                             <span className="text-muted-foreground">Your Progress</span>
-                            <span className="font-medium">{progressPercent}%</span>
+                            <span className="font-medium text-primary">{progressPercent}%</span>
                           </div>
-                          <Progress value={progressPercent} className="h-2" />
+                          <div className="relative">
+                            <Progress value={progressPercent} className="h-2 bg-black/40" />
+                            <div 
+                              className="absolute top-0 left-0 h-full bg-gradient-to-r from-primary to-secondary rounded-full transition-all duration-500"
+                              style={{ width: `${progressPercent}%`, boxShadow: '0 0 15px hsl(var(--primary)/0.5)' }}
+                            />
+                          </div>
                           <p className="text-xs text-muted-foreground mt-2">
                             {progressData?.completedCount || 0} of {progressData?.lessonCount || 0} lessons completed
                           </p>
                         </div>
 
-                        <Button className="w-full" size="lg" asChild>
+                        <Button variant="neon" className="w-full" size="lg" asChild>
                           <Link to={`/courses/${course.id}/lessons/${lessons?.[0]?.id}`}>
                             <Play className="mr-2 h-4 w-4" />
                             {progressData?.completedCount ? 'Continue Learning' : 'Start Course'}
@@ -208,7 +225,7 @@ export default function CourseDetail() {
                     ) : (
                       <>
                         <div className="text-center mb-6">
-                          <div className="text-3xl font-bold text-foreground mb-2">
+                          <div className="text-3xl font-bold text-foreground mb-2 neon-text">
                             {formatPrice(course.price_cents)}
                           </div>
                           <p className="text-sm text-muted-foreground">
@@ -217,6 +234,7 @@ export default function CourseDetail() {
                         </div>
 
                         <Button 
+                          variant="neon"
                           className="w-full" 
                           size="lg" 
                           onClick={handlePurchase}
@@ -237,19 +255,19 @@ export default function CourseDetail() {
 
                         <ul className="mt-6 space-y-2 text-sm">
                           <li className="flex items-center gap-2">
-                            <CheckCircle2 className="h-4 w-4 text-success" />
+                            <CheckCircle2 className="h-4 w-4 text-success drop-shadow-[0_0_6px_hsl(var(--success))]" />
                             <span>Full access to all lessons</span>
                           </li>
                           <li className="flex items-center gap-2">
-                            <CheckCircle2 className="h-4 w-4 text-success" />
+                            <CheckCircle2 className="h-4 w-4 text-success drop-shadow-[0_0_6px_hsl(var(--success))]" />
                             <span>AI Tutor assistance</span>
                           </li>
                           <li className="flex items-center gap-2">
-                            <CheckCircle2 className="h-4 w-4 text-success" />
+                            <CheckCircle2 className="h-4 w-4 text-success drop-shadow-[0_0_6px_hsl(var(--success))]" />
                             <span>Course project with AI feedback</span>
                           </li>
                           <li className="flex items-center gap-2">
-                            <CheckCircle2 className="h-4 w-4 text-success" />
+                            <CheckCircle2 className="h-4 w-4 text-success drop-shadow-[0_0_6px_hsl(var(--success))]" />
                             <span>Discussion board access</span>
                           </li>
                         </ul>
@@ -263,12 +281,12 @@ export default function CourseDetail() {
         </section>
 
         {/* Course Content */}
-        <section className="py-12">
+        <section className="py-12 relative z-10">
           <div className="container">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Lessons List */}
               <div className="lg:col-span-2">
-                <h2 className="text-2xl font-semibold mb-6">Course Content</h2>
+                <h2 className="text-2xl font-display font-semibold mb-6 neon-text">Course Content</h2>
                 
                 <div className="space-y-3">
                   {lessons?.map((lesson, index) => {
@@ -278,17 +296,17 @@ export default function CourseDetail() {
                     return (
                       <Card 
                         key={lesson.id} 
-                        className={`border-border/50 ${isLocked ? 'opacity-75' : ''}`}
+                        className={`glass-card border-primary/20 transition-all duration-300 hover:border-primary/40 hover:shadow-[0_0_25px_hsl(var(--primary)/0.2)] ${isLocked ? 'opacity-60' : ''}`}
                       >
                         <CardContent className="p-4">
                           <div className="flex items-center gap-4">
                             {/* Lesson Number/Status */}
-                            <div className={`h-10 w-10 rounded-full flex items-center justify-center flex-shrink-0
+                            <div className={`h-10 w-10 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-300
                               ${isCompleted 
-                                ? 'bg-success text-success-foreground' 
+                                ? 'bg-success/20 text-success border border-success/30 shadow-[0_0_15px_hsl(var(--success)/0.4)]' 
                                 : isLocked 
-                                  ? 'bg-muted text-muted-foreground'
-                                  : 'bg-primary/10 text-primary'
+                                  ? 'bg-muted/50 text-muted-foreground border border-muted'
+                                  : 'bg-primary/20 text-primary border border-primary/30 shadow-[0_0_15px_hsl(var(--primary)/0.3)]'
                               }`}
                             >
                               {isCompleted ? (
@@ -305,10 +323,10 @@ export default function CourseDetail() {
                               <div className="flex items-center gap-2">
                                 <h3 className="font-medium truncate">{lesson.title}</h3>
                                 {lesson.type === 'video' && (
-                                  <Video className="h-4 w-4 text-muted-foreground" />
+                                  <Video className="h-4 w-4 text-secondary" />
                                 )}
                                 {lesson.type === 'quiz' && (
-                                  <Sparkles className="h-4 w-4 text-muted-foreground" />
+                                  <Sparkles className="h-4 w-4 text-accent" />
                                 )}
                               </div>
                               {lesson.duration_minutes && (
@@ -320,7 +338,7 @@ export default function CourseDetail() {
 
                             {/* Action */}
                             {!isLocked && (
-                              <Button variant="ghost" size="sm" asChild>
+                              <Button variant="outline" size="sm" asChild className="border-primary/30 hover:bg-primary/10 hover:border-primary/50 hover:shadow-[0_0_15px_hsl(var(--primary)/0.3)]">
                                 <Link to={`/courses/${course.id}/lessons/${lesson.id}`}>
                                   {isCompleted ? 'Review' : 'Start'}
                                   <ArrowRight className="ml-2 h-4 w-4" />
@@ -338,10 +356,10 @@ export default function CourseDetail() {
               {/* Sidebar */}
               <div className="space-y-6">
                 {/* Textbook Card */}
-                <Card className="border-amber-500/20 bg-amber-500/5">
+                <Card className="glass-card border-amber-500/30 hover:border-amber-500/50 hover:shadow-[0_0_25px_rgba(245,158,11,0.2)] transition-all duration-300">
                   <CardHeader>
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <BookText className="h-5 w-5 text-amber-600" />
+                    <CardTitle className="text-lg flex items-center gap-2 font-display">
+                      <BookText className="h-5 w-5 text-amber-500 drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]" />
                       Interactive Textbook
                     </CardTitle>
                   </CardHeader>
@@ -349,7 +367,7 @@ export default function CourseDetail() {
                     <p className="text-sm text-muted-foreground mb-4">
                       Read the course material in our interactive textbook format with page-turning animations.
                     </p>
-                    <Button variant="outline" className="w-full" asChild>
+                    <Button variant="outline" className="w-full border-amber-500/30 hover:bg-amber-500/10 hover:border-amber-500/50 hover:shadow-[0_0_15px_rgba(245,158,11,0.3)]" asChild>
                       <Link to={`/courses/${course.id}/textbook`}>
                         <BookText className="mr-2 h-4 w-4" />
                         Open Textbook
@@ -357,12 +375,13 @@ export default function CourseDetail() {
                     </Button>
                   </CardContent>
                 </Card>
+
                 {/* Project Card */}
                 {course.project_title && (
-                  <Card className="border-accent/20 bg-accent/5">
+                  <Card className="glass-card border-accent/30 hover:border-accent/50 hover:shadow-[0_0_25px_hsl(var(--accent)/0.2)] transition-all duration-300">
                     <CardHeader>
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <Target className="h-5 w-5 text-accent" />
+                      <CardTitle className="text-lg flex items-center gap-2 font-display">
+                        <Target className="h-5 w-5 text-accent drop-shadow-[0_0_8px_hsl(var(--accent)/0.5)]" />
                         Course Project
                       </CardTitle>
                     </CardHeader>
@@ -372,7 +391,7 @@ export default function CourseDetail() {
                         {course.project_description}
                       </p>
                       {hasPurchased && (
-                        <Button variant="outline" className="w-full" asChild>
+                        <Button variant="outline" className="w-full border-accent/30 hover:bg-accent/10 hover:border-accent/50 hover:shadow-[0_0_15px_hsl(var(--accent)/0.3)]" asChild>
                           <Link to={`/courses/${course.id}/project`}>
                             <FileText className="mr-2 h-4 w-4" />
                             View Project
@@ -385,10 +404,10 @@ export default function CourseDetail() {
 
                 {/* Discussion Question */}
                 {course.discussion_question && (
-                  <Card className="border-secondary/20 bg-secondary/5">
+                  <Card className="glass-card border-secondary/30 hover:border-secondary/50 hover:shadow-[0_0_25px_hsl(var(--secondary)/0.2)] transition-all duration-300">
                     <CardHeader>
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <MessageSquare className="h-5 w-5 text-secondary" />
+                      <CardTitle className="text-lg flex items-center gap-2 font-display">
+                        <MessageSquare className="h-5 w-5 text-secondary drop-shadow-[0_0_8px_hsl(var(--secondary)/0.5)]" />
                         Discussion Question
                       </CardTitle>
                     </CardHeader>
@@ -397,7 +416,7 @@ export default function CourseDetail() {
                         {course.discussion_question}
                       </p>
                       {hasPurchased && (
-                        <Button variant="outline" className="w-full" asChild>
+                        <Button variant="outline" className="w-full border-secondary/30 hover:bg-secondary/10 hover:border-secondary/50 hover:shadow-[0_0_15px_hsl(var(--secondary)/0.3)]" asChild>
                           <Link to={`/courses/${course.id}/discussions`}>
                             Join Discussion
                           </Link>
@@ -409,10 +428,10 @@ export default function CourseDetail() {
 
                 {/* Plug and Play Asset */}
                 {course.plug_and_play_asset && hasPurchased && (
-                  <Card className="border-primary/20 bg-primary/5">
+                  <Card className="glass-card border-primary/30 hover:border-primary/50 hover:shadow-[0_0_25px_hsl(var(--primary)/0.2)] transition-all duration-300">
                     <CardHeader>
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <Download className="h-5 w-5 text-primary" />
+                      <CardTitle className="text-lg flex items-center gap-2 font-display">
+                        <Download className="h-5 w-5 text-primary drop-shadow-[0_0_8px_hsl(var(--primary)/0.5)]" />
                         Bonus Resource
                       </CardTitle>
                     </CardHeader>
@@ -420,7 +439,7 @@ export default function CourseDetail() {
                       <p className="text-sm text-muted-foreground mb-4">
                         Download your plug-and-play asset for this course.
                       </p>
-                      <Button variant="outline" className="w-full">
+                      <Button variant="outline" className="w-full border-primary/30 hover:bg-primary/10 hover:border-primary/50 hover:shadow-[0_0_15px_hsl(var(--primary)/0.3)]">
                         <Download className="mr-2 h-4 w-4" />
                         Download Asset
                       </Button>
