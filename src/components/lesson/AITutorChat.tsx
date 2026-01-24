@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Card } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Bot, Send, User, Sparkles, X, Minimize2, Maximize2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -145,25 +144,25 @@ export function AITutorChat({
 
   if (isMinimized) {
     return (
-      <Card 
-        className="fixed bottom-4 right-4 z-50 w-72 shadow-lg border-primary/20 bg-background cursor-pointer"
+      <div 
+        className="fixed bottom-4 right-4 z-50 w-72 glass-card cursor-pointer shadow-[0_0_30px_rgba(168,85,247,0.3)] border-primary/30"
         onClick={() => setIsMinimized(false)}
       >
         <div className="p-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-              <Bot className="h-4 w-4 text-primary" />
+            <div className="h-8 w-8 rounded-full bg-cyan-500/20 flex items-center justify-center shadow-[0_0_15px_rgba(34,211,238,0.4)]">
+              <Bot className="h-4 w-4 text-cyan-400" />
             </div>
-            <span className="font-medium">AI Tutor</span>
+            <span className="font-display font-medium text-cyan-300">AI Tutor</span>
           </div>
           <div className="flex items-center gap-1">
-            <Button variant="ghost" size="icon" className="h-6 w-6">
+            <Button variant="ghost" size="icon" className="h-6 w-6 hover:bg-primary/20">
               <Maximize2 className="h-4 w-4" />
             </Button>
             <Button 
               variant="ghost" 
               size="icon" 
-              className="h-6 w-6"
+              className="h-6 w-6 hover:bg-destructive/20"
               onClick={(e) => {
                 e.stopPropagation();
                 onClose();
@@ -173,20 +172,20 @@ export function AITutorChat({
             </Button>
           </div>
         </div>
-      </Card>
+      </div>
     );
   }
 
   return (
-    <Card className="fixed bottom-4 right-4 z-50 w-96 h-[500px] shadow-lg border-primary/20 bg-background flex flex-col">
+    <div className="fixed bottom-4 right-4 z-50 w-96 h-[500px] glass-card shadow-[0_0_40px_rgba(168,85,247,0.3)] border-primary/30 flex flex-col">
       {/* Header */}
-      <div className="p-4 border-b flex items-center justify-between flex-shrink-0">
+      <div className="p-4 border-b border-primary/20 flex items-center justify-between flex-shrink-0 bg-black/20">
         <div className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-            <Bot className="h-4 w-4 text-primary" />
+          <div className="h-8 w-8 rounded-full bg-cyan-500/20 flex items-center justify-center shadow-[0_0_15px_rgba(34,211,238,0.4)]">
+            <Bot className="h-4 w-4 text-cyan-400" />
           </div>
           <div>
-            <h3 className="font-medium">AI Tutor</h3>
+            <h3 className="font-display font-medium text-cyan-300">AI Tutor</h3>
             <p className="text-xs text-muted-foreground">Ask me anything about this lesson</p>
           </div>
         </div>
@@ -194,7 +193,7 @@ export function AITutorChat({
           <Button 
             variant="ghost" 
             size="icon" 
-            className="h-8 w-8"
+            className="h-8 w-8 hover:bg-primary/20"
             onClick={() => setIsMinimized(true)}
           >
             <Minimize2 className="h-4 w-4" />
@@ -202,7 +201,7 @@ export function AITutorChat({
           <Button 
             variant="ghost" 
             size="icon" 
-            className="h-8 w-8"
+            className="h-8 w-8 hover:bg-destructive/20"
             onClick={onClose}
           >
             <X className="h-4 w-4" />
@@ -214,10 +213,10 @@ export function AITutorChat({
       <ScrollArea className="flex-1 p-4" ref={scrollRef}>
         {messages.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-center p-4">
-            <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+            <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center mb-4 shadow-[0_0_20px_rgba(168,85,247,0.4)]">
               <Sparkles className="h-6 w-6 text-primary" />
             </div>
-            <h4 className="font-medium mb-2">Welcome to AI Tutor!</h4>
+            <h4 className="font-display font-medium mb-2 text-cyan-300">Welcome to AI Tutor!</h4>
             <p className="text-sm text-muted-foreground">
               I'm here to help you understand this lesson. Ask me any questions about the material, concepts, or how to apply them to your business.
             </p>
@@ -236,8 +235,8 @@ export function AITutorChat({
                   className={cn(
                     'h-8 w-8 rounded-full flex items-center justify-center flex-shrink-0',
                     message.role === 'user'
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted'
+                      ? 'bg-primary/30 text-primary shadow-[0_0_10px_rgba(168,85,247,0.4)]'
+                      : 'bg-cyan-500/20 text-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.3)]'
                   )}
                 >
                   {message.role === 'user' ? (
@@ -250,15 +249,15 @@ export function AITutorChat({
                   className={cn(
                     'rounded-lg px-3 py-2 max-w-[80%] text-sm',
                     message.role === 'user'
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted'
+                      ? 'bg-primary/20 text-foreground border border-primary/30'
+                      : 'bg-cyan-500/10 text-foreground border border-cyan-500/20'
                   )}
                 >
                   {message.content || (
                     <span className="inline-flex gap-1">
-                      <span className="h-2 w-2 rounded-full bg-current animate-bounce" style={{ animationDelay: '0ms' }} />
-                      <span className="h-2 w-2 rounded-full bg-current animate-bounce" style={{ animationDelay: '150ms' }} />
-                      <span className="h-2 w-2 rounded-full bg-current animate-bounce" style={{ animationDelay: '300ms' }} />
+                      <span className="h-2 w-2 rounded-full bg-cyan-400 animate-bounce" style={{ animationDelay: '0ms' }} />
+                      <span className="h-2 w-2 rounded-full bg-cyan-400 animate-bounce" style={{ animationDelay: '150ms' }} />
+                      <span className="h-2 w-2 rounded-full bg-cyan-400 animate-bounce" style={{ animationDelay: '300ms' }} />
                     </span>
                   )}
                 </div>
@@ -269,18 +268,19 @@ export function AITutorChat({
       </ScrollArea>
 
       {/* Input */}
-      <div className="p-4 border-t flex-shrink-0">
+      <div className="p-4 border-t border-primary/20 flex-shrink-0 bg-black/20">
         <div className="flex gap-2">
           <Textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Ask a question..."
-            className="min-h-[40px] max-h-[100px] resize-none"
+            className="min-h-[40px] max-h-[100px] resize-none bg-black/30 border-primary/30 focus:border-primary placeholder:text-muted-foreground/50"
             rows={1}
           />
           <Button
             size="icon"
+            variant="neon"
             onClick={sendMessage}
             disabled={!input.trim() || isLoading}
           >
@@ -288,6 +288,6 @@ export function AITutorChat({
           </Button>
         </div>
       </div>
-    </Card>
+    </div>
   );
 }

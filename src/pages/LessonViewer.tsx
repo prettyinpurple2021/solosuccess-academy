@@ -76,12 +76,14 @@ export default function LessonViewer() {
   // Redirect to auth if not authenticated
   if (!isAuthenticated && !isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <Lock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <h1 className="text-2xl font-bold mb-2">Sign In Required</h1>
-          <p className="text-muted-foreground mb-4">Please sign in to access this lesson.</p>
-          <Button asChild>
+      <div className="min-h-screen cyber-bg flex items-center justify-center">
+        <div className="glass-card p-8 text-center max-w-md mx-4">
+          <div className="h-16 w-16 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-4 shadow-[0_0_20px_rgba(168,85,247,0.4)]">
+            <Lock className="h-8 w-8 text-primary" />
+          </div>
+          <h1 className="text-2xl font-display font-bold mb-2 neon-text">Sign In Required</h1>
+          <p className="text-muted-foreground mb-6">Please sign in to access this lesson.</p>
+          <Button asChild variant="neon">
             <Link to="/auth">Sign In</Link>
           </Button>
         </div>
@@ -92,8 +94,8 @@ export default function LessonViewer() {
   // Loading state
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      <div className="min-h-screen cyber-bg flex items-center justify-center">
+        <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent shadow-[0_0_20px_rgba(168,85,247,0.6)]" />
       </div>
     );
   }
@@ -101,12 +103,14 @@ export default function LessonViewer() {
   // Check purchase status
   if (!hasPurchased) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <Lock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <h1 className="text-2xl font-bold mb-2">Course Not Purchased</h1>
-          <p className="text-muted-foreground mb-4">You need to purchase this course to access the lessons.</p>
-          <Button asChild>
+      <div className="min-h-screen cyber-bg flex items-center justify-center">
+        <div className="glass-card p-8 text-center max-w-md mx-4">
+          <div className="h-16 w-16 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-4 shadow-[0_0_20px_rgba(168,85,247,0.4)]">
+            <Lock className="h-8 w-8 text-primary" />
+          </div>
+          <h1 className="text-2xl font-display font-bold mb-2 neon-text">Course Not Purchased</h1>
+          <p className="text-muted-foreground mb-6">You need to purchase this course to access the lessons.</p>
+          <Button asChild variant="neon">
             <Link to={`/courses/${courseId}`}>View Course</Link>
           </Button>
         </div>
@@ -117,11 +121,11 @@ export default function LessonViewer() {
   // Lesson not found
   if (!currentLesson) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-2">Lesson Not Found</h1>
-          <p className="text-muted-foreground mb-4">This lesson doesn't exist.</p>
-          <Button asChild>
+      <div className="min-h-screen cyber-bg flex items-center justify-center">
+        <div className="glass-card p-8 text-center max-w-md mx-4">
+          <h1 className="text-2xl font-display font-bold mb-2 neon-text">Lesson Not Found</h1>
+          <p className="text-muted-foreground mb-6">This lesson doesn't exist.</p>
+          <Button asChild variant="neon">
             <Link to={`/courses/${courseId}`}>Back to Course</Link>
           </Button>
         </div>
@@ -130,17 +134,17 @@ export default function LessonViewer() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col cyber-bg">
       {/* Top Navigation Bar */}
-      <header className="h-14 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex items-center px-4 gap-4 sticky top-0 z-40">
+      <header className="h-14 border-b border-primary/20 bg-black/60 backdrop-blur-xl flex items-center px-4 gap-4 sticky top-0 z-40 shadow-[0_4px_20px_rgba(168,85,247,0.15)]">
         {/* Mobile Sidebar Toggle */}
         <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
           <SheetTrigger asChild>
-            <Button variant="ghost" size="icon" className="lg:hidden">
+            <Button variant="ghost" size="icon" className="lg:hidden hover:bg-primary/20">
               <Menu className="h-5 w-5" />
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="p-0 w-80">
+          <SheetContent side="left" className="p-0 w-80 bg-black/90 backdrop-blur-xl border-r border-primary/30">
             <LessonSidebar
               lessons={lessons || []}
               currentLessonId={lessonId || ''}
@@ -151,26 +155,26 @@ export default function LessonViewer() {
         </Sheet>
 
         {/* Back to Course */}
-        <Button variant="ghost" size="sm" asChild className="gap-2">
+        <Button variant="ghost" size="sm" asChild className="gap-2 hover:bg-primary/20 hover:text-primary">
           <Link to={`/courses/${courseId}`}>
             <ArrowLeft className="h-4 w-4" />
-            <span className="hidden sm:inline">{course?.title}</span>
+            <span className="hidden sm:inline font-display">{course?.title}</span>
           </Link>
         </Button>
 
-        <Separator orientation="vertical" className="h-6" />
+        <Separator orientation="vertical" className="h-6 bg-primary/30" />
 
         {/* Lesson Title */}
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium truncate">{currentLesson.title}</p>
+          <p className="text-sm font-medium truncate text-cyan-300">{currentLesson.title}</p>
         </div>
 
         {/* AI Tutor Button */}
         <Button
-          variant={showAITutor ? 'default' : 'outline'}
+          variant={showAITutor ? 'neon' : 'outline'}
           size="sm"
           onClick={() => setShowAITutor(true)}
-          className="gap-2"
+          className="gap-2 border-cyan-500/50 hover:border-cyan-400"
         >
           <Bot className="h-4 w-4" />
           <span className="hidden sm:inline">AI Tutor</span>
@@ -180,7 +184,7 @@ export default function LessonViewer() {
       <div className="flex-1 flex">
         {/* Desktop Sidebar */}
         <aside className="hidden lg:block w-80 flex-shrink-0">
-          <div className="sticky top-14 h-[calc(100vh-3.5rem)]">
+          <div className="sticky top-14 h-[calc(100vh-3.5rem)] bg-black/40 backdrop-blur-xl border-r border-primary/20">
             <LessonSidebar
               lessons={lessons || []}
               currentLessonId={lessonId || ''}
@@ -193,52 +197,54 @@ export default function LessonViewer() {
         {/* Main Content */}
         <main className="flex-1 overflow-auto">
           <div className="max-w-4xl mx-auto p-6 md:p-8 lg:p-12">
-            <LessonContent lesson={currentLesson} />
+            <div className="glass-card p-6 md:p-8">
+              <LessonContent lesson={currentLesson} />
 
-            {/* Completion & Navigation */}
-            <div className="mt-12 pt-8 border-t space-y-6">
-              {/* Mark Complete Button */}
-              <div className="flex justify-center">
-                <Button
-                  variant={isCompleted ? 'outline' : 'default'}
-                  size="lg"
-                  onClick={handleMarkComplete}
-                  disabled={markComplete.isPending}
-                  className="gap-2"
-                >
-                  <CheckCircle2 className={`h-5 w-5 ${isCompleted ? 'text-success' : ''}`} />
-                  {isCompleted ? 'Mark as Incomplete' : 'Mark as Complete'}
-                </Button>
-              </div>
+              {/* Completion & Navigation */}
+              <div className="mt-12 pt-8 border-t border-primary/20 space-y-6">
+                {/* Mark Complete Button */}
+                <div className="flex justify-center">
+                  <Button
+                    variant={isCompleted ? 'outline' : 'neon'}
+                    size="lg"
+                    onClick={handleMarkComplete}
+                    disabled={markComplete.isPending}
+                    className="gap-2"
+                  >
+                    <CheckCircle2 className={`h-5 w-5 ${isCompleted ? 'text-green-400' : ''}`} />
+                    {isCompleted ? 'Mark as Incomplete' : 'Mark as Complete'}
+                  </Button>
+                </div>
 
-              {/* Navigation */}
-              <div className="flex items-center justify-between gap-4">
-                {prevLesson ? (
-                  <Button variant="outline" asChild className="gap-2">
-                    <Link to={`/courses/${courseId}/lessons/${prevLesson.id}`}>
-                      <ArrowLeft className="h-4 w-4" />
-                      <span className="hidden sm:inline">Previous:</span> {prevLesson.title}
-                    </Link>
-                  </Button>
-                ) : (
-                  <div />
-                )}
+                {/* Navigation */}
+                <div className="flex items-center justify-between gap-4">
+                  {prevLesson ? (
+                    <Button variant="outline" asChild className="gap-2 border-primary/30 hover:border-primary hover:bg-primary/10">
+                      <Link to={`/courses/${courseId}/lessons/${prevLesson.id}`}>
+                        <ArrowLeft className="h-4 w-4" />
+                        <span className="hidden sm:inline">Previous:</span> {prevLesson.title}
+                      </Link>
+                    </Button>
+                  ) : (
+                    <div />
+                  )}
 
-                {nextLesson ? (
-                  <Button asChild className="gap-2">
-                    <Link to={`/courses/${courseId}/lessons/${nextLesson.id}`}>
-                      <span className="hidden sm:inline">Next:</span> {nextLesson.title}
-                      <ArrowRight className="h-4 w-4" />
-                    </Link>
-                  </Button>
-                ) : (
-                  <Button asChild className="gap-2">
-                    <Link to={`/courses/${courseId}`}>
-                      Complete Course
-                      <CheckCircle2 className="h-4 w-4" />
-                    </Link>
-                  </Button>
-                )}
+                  {nextLesson ? (
+                    <Button asChild variant="neon" className="gap-2">
+                      <Link to={`/courses/${courseId}/lessons/${nextLesson.id}`}>
+                        <span className="hidden sm:inline">Next:</span> {nextLesson.title}
+                        <ArrowRight className="h-4 w-4" />
+                      </Link>
+                    </Button>
+                  ) : (
+                    <Button asChild variant="neon" className="gap-2">
+                      <Link to={`/courses/${courseId}`}>
+                        Complete Course
+                        <CheckCircle2 className="h-4 w-4" />
+                      </Link>
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
           </div>

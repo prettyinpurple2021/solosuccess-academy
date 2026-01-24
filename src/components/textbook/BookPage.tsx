@@ -17,11 +17,11 @@ interface BookPageProps {
 }
 
 const HIGHLIGHT_COLORS: Record<string, string> = {
-  yellow: 'bg-yellow-200/70',
-  green: 'bg-green-200/70',
-  blue: 'bg-blue-200/70',
-  pink: 'bg-pink-200/70',
-  purple: 'bg-purple-200/70',
+  yellow: 'bg-yellow-400/40',
+  green: 'bg-green-400/40',
+  blue: 'bg-blue-400/40',
+  pink: 'bg-pink-400/40',
+  purple: 'bg-purple-400/40',
 };
 
 export const BookPage = forwardRef<HTMLDivElement, BookPageProps>(
@@ -113,7 +113,7 @@ export const BookPage = forwardRef<HTMLDivElement, BookPageProps>(
                 className={cn(
                   "rounded px-0.5 transition-colors",
                   hlClass,
-                  hasNote && "border-b-2 border-current cursor-help"
+                  hasNote && "border-b-2 border-primary cursor-help"
                 )}
                 title={hasNote ? `Note: ${segment.highlight.note}` : undefined}
               >
@@ -125,28 +125,28 @@ export const BookPage = forwardRef<HTMLDivElement, BookPageProps>(
           // Handle different markdown-like elements
           if (line.startsWith('# ')) {
             return (
-              <h1 key={key} className="text-2xl font-bold mb-4 text-foreground">
+              <h1 key={key} className="text-2xl font-display font-bold mb-4 text-cyan-300">
                 {wrapWithHighlight(line.slice(2))}
               </h1>
             );
           }
           if (line.startsWith('## ')) {
             return (
-              <h2 key={key} className="text-xl font-semibold mb-3 text-foreground">
+              <h2 key={key} className="text-xl font-display font-semibold mb-3 text-primary">
                 {wrapWithHighlight(line.slice(3))}
               </h2>
             );
           }
           if (line.startsWith('### ')) {
             return (
-              <h3 key={key} className="text-lg font-medium mb-2 text-foreground">
+              <h3 key={key} className="text-lg font-display font-medium mb-2 text-purple-300">
                 {wrapWithHighlight(line.slice(4))}
               </h3>
             );
           }
           if (line.startsWith('- ')) {
             return (
-              <li key={key} className="ml-4 mb-1 text-foreground/90">
+              <li key={key} className="ml-4 mb-1 text-foreground/90 list-disc">
                 {wrapWithHighlight(line.slice(2))}
               </li>
             );
@@ -166,17 +166,18 @@ export const BookPage = forwardRef<HTMLDivElement, BookPageProps>(
     return (
       <div
         ref={ref}
-        className="w-full h-full bg-gradient-to-br from-amber-50 to-orange-50 dark:from-stone-900 dark:to-stone-800 p-8 flex flex-col shadow-[inset_-4px_0_10px_rgba(0,0,0,0.1)]"
+        className="w-full h-full bg-gradient-to-br from-slate-900 via-purple-950/30 to-slate-900 p-8 flex flex-col border border-primary/20"
         style={{
           backgroundImage: `
-            linear-gradient(to right, rgba(0,0,0,0.02) 1px, transparent 1px),
-            linear-gradient(90deg, transparent 95%, rgba(139,69,19,0.1) 100%)
+            linear-gradient(to right, rgba(168,85,247,0.05) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(168,85,247,0.05) 1px, transparent 1px)
           `,
+          backgroundSize: '20px 20px',
         }}
       >
         {/* Chapter header */}
-        <div className="flex items-center justify-between mb-4 pb-2 border-b border-amber-200 dark:border-stone-700">
-          <span className="text-sm font-medium text-amber-800 dark:text-amber-200">
+        <div className="flex items-center justify-between mb-4 pb-2 border-b border-primary/30">
+          <span className="text-sm font-display font-medium text-cyan-400">
             {page.chapter.title}
           </span>
           {onBookmark && (
@@ -185,8 +186,8 @@ export const BookPage = forwardRef<HTMLDivElement, BookPageProps>(
               size="icon"
               onClick={onBookmark}
               className={cn(
-                "h-8 w-8",
-                isBookmarked && "text-amber-600"
+                "h-8 w-8 hover:bg-primary/20",
+                isBookmarked && "text-primary"
               )}
             >
               <Bookmark className={cn("h-4 w-4", isBookmarked && "fill-current")} />
@@ -197,15 +198,15 @@ export const BookPage = forwardRef<HTMLDivElement, BookPageProps>(
         {/* Page content */}
         <div 
           ref={contentRef}
-          className="flex-1 overflow-auto prose prose-sm dark:prose-invert max-w-none select-text"
+          className="flex-1 overflow-auto prose prose-sm prose-invert max-w-none select-text"
           onMouseUp={handleMouseUp}
         >
           {renderedContent}
 
           {/* Embedded Quiz */}
           {page.embedded_quiz && (
-            <div className="mt-6 p-4 bg-white/50 dark:bg-stone-800/50 rounded-lg border border-amber-200 dark:border-stone-600">
-              <h4 className="font-semibold mb-3 text-foreground">Quick Check</h4>
+            <div className="mt-6 p-4 bg-black/40 rounded-lg border border-primary/30 shadow-[0_0_20px_rgba(168,85,247,0.1)]">
+              <h4 className="font-display font-semibold mb-3 text-cyan-300">Quick Check</h4>
               <p className="mb-4 text-foreground/90">{page.embedded_quiz.question}</p>
               
               <RadioGroup
@@ -217,9 +218,9 @@ export const BookPage = forwardRef<HTMLDivElement, BookPageProps>(
                   <div
                     key={idx}
                     className={cn(
-                      "flex items-center space-x-2 p-2 rounded",
-                      showResult && idx === page.embedded_quiz!.correctAnswer && "bg-green-100 dark:bg-green-900/30",
-                      showResult && quizAnswer === idx && idx !== page.embedded_quiz!.correctAnswer && "bg-red-100 dark:bg-red-900/30"
+                      "flex items-center space-x-2 p-2 rounded border border-transparent transition-all",
+                      showResult && idx === page.embedded_quiz!.correctAnswer && "bg-green-500/20 border-green-500/30",
+                      showResult && quizAnswer === idx && idx !== page.embedded_quiz!.correctAnswer && "bg-red-500/20 border-red-500/30"
                     )}
                   >
                     <RadioGroupItem value={idx.toString()} id={`option-${pageIndex}-${idx}`} />
@@ -227,25 +228,27 @@ export const BookPage = forwardRef<HTMLDivElement, BookPageProps>(
                       {option}
                     </Label>
                     {showResult && idx === page.embedded_quiz!.correctAnswer && (
-                      <CheckCircle className="h-4 w-4 text-green-600" />
+                      <CheckCircle className="h-4 w-4 text-green-400" />
                     )}
                     {showResult && quizAnswer === idx && idx !== page.embedded_quiz!.correctAnswer && (
-                      <XCircle className="h-4 w-4 text-red-600" />
+                      <XCircle className="h-4 w-4 text-red-400" />
                     )}
                   </div>
                 ))}
               </RadioGroup>
 
               {!showResult && quizAnswer !== null && (
-                <Button onClick={handleQuizSubmit} className="mt-4" size="sm">
+                <Button onClick={handleQuizSubmit} className="mt-4" size="sm" variant="neon">
                   Check Answer
                 </Button>
               )}
 
               {showResult && page.embedded_quiz.explanation && (
                 <p className={cn(
-                  "mt-4 text-sm p-2 rounded",
-                  isCorrect ? "bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-200" : "bg-amber-50 text-amber-800 dark:bg-amber-900/20 dark:text-amber-200"
+                  "mt-4 text-sm p-2 rounded border",
+                  isCorrect 
+                    ? "bg-green-500/10 text-green-300 border-green-500/30" 
+                    : "bg-primary/10 text-primary border-primary/30"
                 )}>
                   {page.embedded_quiz.explanation}
                 </p>
@@ -255,9 +258,9 @@ export const BookPage = forwardRef<HTMLDivElement, BookPageProps>(
         </div>
 
         {/* Page number */}
-        <div className="mt-4 pt-2 border-t border-amber-200 dark:border-stone-700 text-center">
-          <span className="text-sm text-amber-700 dark:text-amber-300">
-            Page {pageIndex + 1} of {totalPages}
+        <div className="mt-4 pt-2 border-t border-primary/30 text-center">
+          <span className="text-sm text-cyan-400">
+            Page <span className="text-primary font-bold">{pageIndex + 1}</span> of {totalPages}
           </span>
         </div>
       </div>
