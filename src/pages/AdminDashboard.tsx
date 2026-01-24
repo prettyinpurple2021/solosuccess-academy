@@ -8,6 +8,7 @@ import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { LessonList } from '@/components/admin/LessonList';
 import { CourseEditor } from '@/components/admin/CourseEditor';
+import { TextbookEditor } from '@/components/admin/TextbookEditor';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsAdmin, useAdminCourses, useUpdateCourse } from '@/hooks/useAdmin';
 import { useToast } from '@/hooks/use-toast';
@@ -19,7 +20,8 @@ import {
   EyeOff,
   Users,
   DollarSign,
-  Plus
+  Plus,
+  BookText
 } from 'lucide-react';
 
 export default function AdminDashboard() {
@@ -30,6 +32,7 @@ export default function AdminDashboard() {
   const { toast } = useToast();
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
   const [isCreatingCourse, setIsCreatingCourse] = useState(false);
+  const [activeTab, setActiveTab] = useState('courses');
 
   const isLoading = authLoading || adminLoading;
 
@@ -68,6 +71,11 @@ export default function AdminDashboard() {
   };
 
   const selectedCourse = courses?.find(c => c.id === selectedCourseId);
+
+  const handleManageCourse = (courseId: string, tab: string) => {
+    setSelectedCourseId(courseId);
+    setActiveTab(tab);
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -141,11 +149,15 @@ export default function AdminDashboard() {
             </Card>
           </div>
 
-          <Tabs defaultValue="courses" className="space-y-6">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
             <TabsList>
               <TabsTrigger value="courses">Courses</TabsTrigger>
               <TabsTrigger value="lessons" disabled={!selectedCourseId}>
                 Lessons {selectedCourse && `(${selectedCourse.title})`}
+              </TabsTrigger>
+              <TabsTrigger value="textbook" disabled={!selectedCourseId}>
+                <BookText className="h-4 w-4 mr-2" />
+                Textbook
               </TabsTrigger>
             </TabsList>
 
@@ -220,11 +232,19 @@ export default function AdminDashboard() {
                                 )}
                               </Button>
                               <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleManageCourse(course.id, 'lessons')}
+                              >
+                                Lessons
+                              </Button>
+                              <Button
                                 variant="default"
                                 size="sm"
-                                onClick={() => setSelectedCourseId(course.id)}
+                                onClick={() => handleManageCourse(course.id, 'textbook')}
                               >
-                                Manage Lessons
+                                <BookText className="mr-2 h-4 w-4" />
+                                Textbook
                               </Button>
                             </div>
                           </div>
@@ -244,11 +264,34 @@ export default function AdminDashboard() {
                       <h2 className="text-xl font-semibold">{selectedCourse?.title}</h2>
                       <p className="text-sm text-muted-foreground">{selectedCourse?.description}</p>
                     </div>
-                    <Button variant="outline" onClick={() => setSelectedCourseId(null)}>
+                    <Button variant="outline" onClick={() => {
+                      setSelectedCourseId(null);
+                      setActiveTab('courses');
+                    }}>
                       Back to Courses
                     </Button>
                   </div>
                   <LessonList courseId={selectedCourseId} />
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="textbook">
+              {selectedCourseId && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h2 className="text-xl font-semibold">{selectedCourse?.title} - Textbook</h2>
+                      <p className="text-sm text-muted-foreground">Manage interactive textbook content</p>
+                    </div>
+                    <Button variant="outline" onClick={() => {
+                      setSelectedCourseId(null);
+                      setActiveTab('courses');
+                    }}>
+                      Back to Courses
+                    </Button>
+                  </div>
+                  <TextbookEditor courseId={selectedCourseId} />
                 </div>
               )}
             </TabsContent>
