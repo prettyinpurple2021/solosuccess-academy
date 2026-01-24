@@ -82,14 +82,15 @@ export default function Settings() {
   // Auth check
   if (!isAuthenticated && !authLoading) {
     return (
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col cyber-bg">
         <Header />
-        <main className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <Lock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h1 className="text-2xl font-bold mb-2">Sign In Required</h1>
+        <main className="flex-1 flex items-center justify-center relative">
+          <div className="cyber-grid" />
+          <div className="text-center glass-card p-8 rounded-lg relative z-10">
+            <Lock className="h-12 w-12 text-primary mx-auto mb-4 drop-shadow-[0_0_15px_hsl(var(--primary)/0.5)]" />
+            <h1 className="text-2xl font-display font-bold mb-2 neon-text">Sign In Required</h1>
             <p className="text-muted-foreground mb-4">Please sign in to access settings.</p>
-            <Button asChild>
+            <Button variant="neon" asChild>
               <Link to="/auth">Sign In</Link>
             </Button>
           </div>
@@ -102,10 +103,11 @@ export default function Settings() {
   // Loading
   if (authLoading || profileLoading) {
     return (
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col cyber-bg">
         <Header />
-        <main className="flex-1 flex items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <main className="flex-1 flex items-center justify-center relative">
+          <div className="cyber-grid" />
+          <Loader2 className="h-10 w-10 animate-spin text-primary drop-shadow-[0_0_20px_hsl(var(--primary)/0.5)]" />
         </main>
         <Footer />
       </div>
@@ -113,19 +115,25 @@ export default function Settings() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col cyber-bg">
       <Header />
 
-      <main className="flex-1 py-8">
-        <div className="container max-w-3xl">
-          <h1 className="text-3xl font-bold mb-8">Settings</h1>
+      <main className="flex-1 py-8 relative">
+        <div className="cyber-grid" />
+        
+        {/* Animated glow orbs */}
+        <div className="absolute top-20 left-1/4 w-80 h-80 bg-primary/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-20 right-1/4 w-80 h-80 bg-secondary/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1.5s' }} />
+        
+        <div className="container max-w-3xl relative z-10">
+          <h1 className="text-3xl font-display font-bold mb-8 neon-text">Settings</h1>
 
           <div className="space-y-6">
             {/* Appearance */}
-            <Card>
+            <Card className="glass-card border-primary/30 hover:border-primary/50 hover:shadow-[0_0_30px_hsl(var(--primary)/0.15)] transition-all duration-300">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Monitor className="h-5 w-5" />
+                <CardTitle className="flex items-center gap-2 font-display">
+                  <Monitor className="h-5 w-5 text-primary drop-shadow-[0_0_8px_hsl(var(--primary)/0.5)]" />
                   Appearance
                 </CardTitle>
                 <CardDescription>
@@ -134,7 +142,7 @@ export default function Settings() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <Label>Theme</Label>
+                  <Label className="text-foreground/80">Theme</Label>
                   <RadioGroup
                     value={theme}
                     onValueChange={setTheme}
@@ -142,26 +150,26 @@ export default function Settings() {
                   >
                     <Label
                       htmlFor="light"
-                      className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer [&:has([data-state=checked])]:border-primary"
+                      className="flex flex-col items-center justify-between rounded-md border-2 border-primary/20 bg-black/40 backdrop-blur-sm p-4 hover:bg-primary/10 hover:border-primary/40 cursor-pointer transition-all duration-300 [&:has([data-state=checked])]:border-primary [&:has([data-state=checked])]:shadow-[0_0_20px_hsl(var(--primary)/0.3)]"
                     >
                       <RadioGroupItem value="light" id="light" className="sr-only" />
-                      <Sun className="h-6 w-6 mb-2" />
+                      <Sun className="h-6 w-6 mb-2 text-amber-400" />
                       <span className="text-sm font-medium">Light</span>
                     </Label>
                     <Label
                       htmlFor="dark"
-                      className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer [&:has([data-state=checked])]:border-primary"
+                      className="flex flex-col items-center justify-between rounded-md border-2 border-primary/20 bg-black/40 backdrop-blur-sm p-4 hover:bg-primary/10 hover:border-primary/40 cursor-pointer transition-all duration-300 [&:has([data-state=checked])]:border-primary [&:has([data-state=checked])]:shadow-[0_0_20px_hsl(var(--primary)/0.3)]"
                     >
                       <RadioGroupItem value="dark" id="dark" className="sr-only" />
-                      <Moon className="h-6 w-6 mb-2" />
+                      <Moon className="h-6 w-6 mb-2 text-primary" />
                       <span className="text-sm font-medium">Dark</span>
                     </Label>
                     <Label
                       htmlFor="system"
-                      className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer [&:has([data-state=checked])]:border-primary"
+                      className="flex flex-col items-center justify-between rounded-md border-2 border-primary/20 bg-black/40 backdrop-blur-sm p-4 hover:bg-primary/10 hover:border-primary/40 cursor-pointer transition-all duration-300 [&:has([data-state=checked])]:border-primary [&:has([data-state=checked])]:shadow-[0_0_20px_hsl(var(--primary)/0.3)]"
                     >
                       <RadioGroupItem value="system" id="system" className="sr-only" />
-                      <Monitor className="h-6 w-6 mb-2" />
+                      <Monitor className="h-6 w-6 mb-2 text-secondary" />
                       <span className="text-sm font-medium">System</span>
                     </Label>
                   </RadioGroup>
@@ -170,10 +178,10 @@ export default function Settings() {
             </Card>
 
             {/* Notifications */}
-            <Card>
+            <Card className="glass-card border-secondary/30 hover:border-secondary/50 hover:shadow-[0_0_30px_hsl(var(--secondary)/0.15)] transition-all duration-300">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Bell className="h-5 w-5" />
+                <CardTitle className="flex items-center gap-2 font-display">
+                  <Bell className="h-5 w-5 text-secondary drop-shadow-[0_0_8px_hsl(var(--secondary)/0.5)]" />
                   Notifications
                 </CardTitle>
                 <CardDescription>
@@ -181,7 +189,7 @@ export default function Settings() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between p-3 rounded-lg bg-black/30 border border-secondary/10 hover:border-secondary/30 transition-all duration-300">
                   <div className="space-y-0.5">
                     <Label htmlFor="email-notifications" className="text-base">
                       Email Notifications
@@ -195,10 +203,11 @@ export default function Settings() {
                     checked={profile?.email_notifications ?? true}
                     onCheckedChange={(checked) => handleNotificationChange('emailNotifications', checked)}
                     disabled={updateNotifications.isPending}
+                    className="data-[state=checked]:bg-secondary data-[state=checked]:shadow-[0_0_10px_hsl(var(--secondary)/0.5)]"
                   />
                 </div>
 
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between p-3 rounded-lg bg-black/30 border border-secondary/10 hover:border-secondary/30 transition-all duration-300">
                   <div className="space-y-0.5">
                     <Label htmlFor="course-updates" className="text-base">
                       Course Updates
@@ -212,10 +221,11 @@ export default function Settings() {
                     checked={profile?.course_updates ?? true}
                     onCheckedChange={(checked) => handleNotificationChange('courseUpdates', checked)}
                     disabled={updateNotifications.isPending}
+                    className="data-[state=checked]:bg-secondary data-[state=checked]:shadow-[0_0_10px_hsl(var(--secondary)/0.5)]"
                   />
                 </div>
 
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between p-3 rounded-lg bg-black/30 border border-secondary/10 hover:border-secondary/30 transition-all duration-300">
                   <div className="space-y-0.5">
                     <Label htmlFor="discussion-replies" className="text-base">
                       Discussion Replies
@@ -229,16 +239,17 @@ export default function Settings() {
                     checked={profile?.discussion_replies ?? true}
                     onCheckedChange={(checked) => handleNotificationChange('discussionReplies', checked)}
                     disabled={updateNotifications.isPending}
+                    className="data-[state=checked]:bg-secondary data-[state=checked]:shadow-[0_0_10px_hsl(var(--secondary)/0.5)]"
                   />
                 </div>
               </CardContent>
             </Card>
 
             {/* Account & Security */}
-            <Card>
+            <Card className="glass-card border-accent/30 hover:border-accent/50 hover:shadow-[0_0_30px_hsl(var(--accent)/0.15)] transition-all duration-300">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Shield className="h-5 w-5" />
+                <CardTitle className="flex items-center gap-2 font-display">
+                  <Shield className="h-5 w-5 text-accent drop-shadow-[0_0_8px_hsl(var(--accent)/0.5)]" />
                   Account & Security
                 </CardTitle>
                 <CardDescription>
@@ -247,9 +258,9 @@ export default function Settings() {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-2">
-                  <Label>Email Address</Label>
-                  <div className="flex items-center gap-2 p-3 rounded-md bg-muted">
-                    <Mail className="h-4 w-4 text-muted-foreground" />
+                  <Label className="text-foreground/80">Email Address</Label>
+                  <div className="flex items-center gap-2 p-3 rounded-lg bg-black/40 border border-accent/20">
+                    <Mail className="h-4 w-4 text-accent" />
                     <span className="text-sm">{user?.email}</span>
                   </div>
                   <p className="text-xs text-muted-foreground">
@@ -258,12 +269,12 @@ export default function Settings() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Password</Label>
+                  <Label className="text-foreground/80">Password</Label>
                   <Button
                     variant="outline"
                     onClick={handlePasswordReset}
                     disabled={isResettingPassword}
-                    className="w-full sm:w-auto"
+                    className="w-full sm:w-auto border-accent/30 hover:bg-accent/10 hover:border-accent/50 hover:shadow-[0_0_15px_hsl(var(--accent)/0.3)] transition-all duration-300"
                   >
                     {isResettingPassword ? (
                       <>
