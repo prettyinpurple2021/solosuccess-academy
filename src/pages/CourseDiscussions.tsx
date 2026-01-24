@@ -25,14 +25,15 @@ export default function CourseDiscussions() {
   // Auth check
   if (!isAuthenticated && !authLoading) {
     return (
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col cyber-bg">
         <Header />
-        <main className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <Lock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h1 className="text-2xl font-bold mb-2">Sign In Required</h1>
+        <main className="flex-1 flex items-center justify-center relative">
+          <div className="cyber-grid" />
+          <div className="text-center glass-card p-8 rounded-lg relative z-10">
+            <Lock className="h-12 w-12 text-primary mx-auto mb-4 drop-shadow-[0_0_15px_hsl(var(--primary)/0.5)]" />
+            <h1 className="text-2xl font-display font-bold mb-2 neon-text">Sign In Required</h1>
             <p className="text-muted-foreground mb-4">Please sign in to access discussions.</p>
-            <Button asChild>
+            <Button variant="neon" asChild>
               <Link to="/auth">Sign In</Link>
             </Button>
           </div>
@@ -45,10 +46,11 @@ export default function CourseDiscussions() {
   // Loading
   if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col cyber-bg">
         <Header />
-        <main className="flex-1 flex items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <main className="flex-1 flex items-center justify-center relative">
+          <div className="cyber-grid" />
+          <Loader2 className="h-10 w-10 animate-spin text-primary drop-shadow-[0_0_20px_hsl(var(--primary)/0.5)]" />
         </main>
         <Footer />
       </div>
@@ -58,14 +60,15 @@ export default function CourseDiscussions() {
   // Purchase check
   if (!hasPurchased) {
     return (
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col cyber-bg">
         <Header />
-        <main className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <Lock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h1 className="text-2xl font-bold mb-2">Course Not Purchased</h1>
+        <main className="flex-1 flex items-center justify-center relative">
+          <div className="cyber-grid" />
+          <div className="text-center glass-card p-8 rounded-lg relative z-10">
+            <Lock className="h-12 w-12 text-primary mx-auto mb-4 drop-shadow-[0_0_15px_hsl(var(--primary)/0.5)]" />
+            <h1 className="text-2xl font-display font-bold mb-2 neon-text">Course Not Purchased</h1>
             <p className="text-muted-foreground mb-4">Purchase this course to join the discussion.</p>
-            <Button asChild>
+            <Button variant="neon" asChild>
               <Link to={`/courses/${courseId}`}>View Course</Link>
             </Button>
           </div>
@@ -78,12 +81,13 @@ export default function CourseDiscussions() {
   // Course not found
   if (!course) {
     return (
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col cyber-bg">
         <Header />
-        <main className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold mb-4">Course Not Found</h1>
-            <Button asChild>
+        <main className="flex-1 flex items-center justify-center relative">
+          <div className="cyber-grid" />
+          <div className="text-center glass-card p-8 rounded-lg relative z-10">
+            <h1 className="text-2xl font-display font-bold mb-4 neon-text">Course Not Found</h1>
+            <Button variant="neon" asChild>
               <Link to="/courses">Back to Courses</Link>
             </Button>
           </div>
@@ -94,13 +98,19 @@ export default function CourseDiscussions() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col cyber-bg">
       <Header />
       
-      <main className="flex-1 py-8">
-        <div className="container max-w-4xl">
+      <main className="flex-1 py-8 relative">
+        <div className="cyber-grid" />
+        
+        {/* Animated glow orbs */}
+        <div className="absolute top-20 left-1/4 w-80 h-80 bg-secondary/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-20 right-1/4 w-80 h-80 bg-primary/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1.5s' }} />
+        
+        <div className="container max-w-4xl relative z-10">
           {/* Back navigation */}
-          <Button variant="ghost" asChild className="mb-6">
+          <Button variant="ghost" asChild className="mb-6 hover:bg-primary/10 hover:text-primary transition-all">
             <Link to={`/courses/${courseId}`}>
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to {course.title}
@@ -111,8 +121,8 @@ export default function CourseDiscussions() {
           <div className="flex items-start justify-between mb-8">
             <div>
               <div className="flex items-center gap-2 mb-2">
-                <MessageSquare className="h-6 w-6 text-secondary" />
-                <h1 className="text-2xl font-display font-bold">Discussion Board</h1>
+                <MessageSquare className="h-6 w-6 text-secondary drop-shadow-[0_0_10px_hsl(var(--secondary)/0.5)]" />
+                <h1 className="text-2xl font-display font-bold neon-text">Discussion Board</h1>
               </div>
               <p className="text-muted-foreground">
                 {course.discussion_question || 'Share your questions, insights, and connect with fellow founders.'}
@@ -120,7 +130,7 @@ export default function CourseDiscussions() {
             </div>
 
             {!showCreateForm && (
-              <Button onClick={() => setShowCreateForm(true)}>
+              <Button variant="neon" onClick={() => setShowCreateForm(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 New Discussion
               </Button>
@@ -142,7 +152,7 @@ export default function CourseDiscussions() {
           {/* Discussion list */}
           {discussionsLoading ? (
             <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              <Loader2 className="h-10 w-10 animate-spin text-primary drop-shadow-[0_0_20px_hsl(var(--primary)/0.5)]" />
             </div>
           ) : (
             <DiscussionList discussions={discussions || []} courseId={courseId!} />

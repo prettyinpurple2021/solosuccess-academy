@@ -46,14 +46,15 @@ export default function DiscussionDetail() {
   // Auth check
   if (!isAuthenticated && !authLoading) {
     return (
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col cyber-bg">
         <Header />
-        <main className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <Lock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h1 className="text-2xl font-bold mb-2">Sign In Required</h1>
+        <main className="flex-1 flex items-center justify-center relative">
+          <div className="cyber-grid" />
+          <div className="text-center glass-card p-8 rounded-lg relative z-10">
+            <Lock className="h-12 w-12 text-primary mx-auto mb-4 drop-shadow-[0_0_15px_hsl(var(--primary)/0.5)]" />
+            <h1 className="text-2xl font-display font-bold mb-2 neon-text">Sign In Required</h1>
             <p className="text-muted-foreground mb-4">Please sign in to view this discussion.</p>
-            <Button asChild>
+            <Button variant="neon" asChild>
               <Link to="/auth">Sign In</Link>
             </Button>
           </div>
@@ -66,10 +67,11 @@ export default function DiscussionDetail() {
   // Loading
   if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col cyber-bg">
         <Header />
-        <main className="flex-1 flex items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <main className="flex-1 flex items-center justify-center relative">
+          <div className="cyber-grid" />
+          <Loader2 className="h-10 w-10 animate-spin text-primary drop-shadow-[0_0_20px_hsl(var(--primary)/0.5)]" />
         </main>
         <Footer />
       </div>
@@ -79,14 +81,15 @@ export default function DiscussionDetail() {
   // Purchase check
   if (!hasPurchased) {
     return (
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col cyber-bg">
         <Header />
-        <main className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <Lock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h1 className="text-2xl font-bold mb-2">Course Not Purchased</h1>
+        <main className="flex-1 flex items-center justify-center relative">
+          <div className="cyber-grid" />
+          <div className="text-center glass-card p-8 rounded-lg relative z-10">
+            <Lock className="h-12 w-12 text-primary mx-auto mb-4 drop-shadow-[0_0_15px_hsl(var(--primary)/0.5)]" />
+            <h1 className="text-2xl font-display font-bold mb-2 neon-text">Course Not Purchased</h1>
             <p className="text-muted-foreground mb-4">Purchase this course to view discussions.</p>
-            <Button asChild>
+            <Button variant="neon" asChild>
               <Link to={`/courses/${courseId}`}>View Course</Link>
             </Button>
           </div>
@@ -99,12 +102,13 @@ export default function DiscussionDetail() {
   // Discussion not found
   if (!discussion) {
     return (
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col cyber-bg">
         <Header />
-        <main className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold mb-4">Discussion Not Found</h1>
-            <Button asChild>
+        <main className="flex-1 flex items-center justify-center relative">
+          <div className="cyber-grid" />
+          <div className="text-center glass-card p-8 rounded-lg relative z-10">
+            <h1 className="text-2xl font-display font-bold mb-4 neon-text">Discussion Not Found</h1>
+            <Button variant="neon" asChild>
               <Link to={`/courses/${courseId}/discussions`}>Back to Discussions</Link>
             </Button>
           </div>
@@ -117,13 +121,19 @@ export default function DiscussionDetail() {
   const isAuthor = discussion.user_id === user?.id;
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col cyber-bg">
       <Header />
       
-      <main className="flex-1 py-8">
-        <div className="container max-w-4xl">
+      <main className="flex-1 py-8 relative">
+        <div className="cyber-grid" />
+        
+        {/* Animated glow orbs */}
+        <div className="absolute top-20 left-1/4 w-80 h-80 bg-secondary/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-20 right-1/4 w-80 h-80 bg-primary/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1.5s' }} />
+        
+        <div className="container max-w-4xl relative z-10">
           {/* Back navigation */}
-          <Button variant="ghost" asChild className="mb-6">
+          <Button variant="ghost" asChild className="mb-6 hover:bg-primary/10 hover:text-primary transition-all">
             <Link to={`/courses/${courseId}/discussions`}>
               <ArrowLeft className="mr-2 h-4 w-4" />
               All Discussions
@@ -131,21 +141,21 @@ export default function DiscussionDetail() {
           </Button>
 
           {/* Discussion */}
-          <Card className="mb-8">
+          <Card className="mb-8 glass-card border-secondary/30 hover:border-secondary/50 hover:shadow-[0_0_30px_hsl(var(--secondary)/0.15)] transition-all duration-300">
             <CardHeader>
               <div className="flex items-start gap-4">
-                <Avatar className="h-12 w-12">
+                <Avatar className="h-12 w-12 border-2 border-secondary/30 shadow-[0_0_15px_hsl(var(--secondary)/0.3)]">
                   <AvatarImage src={discussion.profiles?.avatar_url || undefined} />
-                  <AvatarFallback>
+                  <AvatarFallback className="bg-secondary/20 text-secondary">
                     {discussion.profiles?.display_name?.charAt(0).toUpperCase() || 'U'}
                   </AvatarFallback>
                 </Avatar>
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start gap-2 flex-wrap">
-                    <h1 className="text-xl font-bold">{discussion.title}</h1>
+                    <h1 className="text-xl font-display font-bold">{discussion.title}</h1>
                     {discussion.is_pinned && (
-                      <Badge variant="secondary">
+                      <Badge variant="secondary" className="bg-secondary/20 border border-secondary/30 text-secondary shadow-[0_0_10px_hsl(var(--secondary)/0.3)]">
                         <Pin className="h-3 w-3 mr-1" />
                         Pinned
                       </Badge>
@@ -167,7 +177,7 @@ export default function DiscussionDetail() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="text-destructive hover:text-destructive"
+                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
                     onClick={handleDelete}
                     disabled={deleteDiscussion.isPending}
                   >
@@ -184,13 +194,14 @@ export default function DiscussionDetail() {
 
           {/* Comments */}
           <div>
-            <h2 className="text-lg font-semibold mb-4">
-              Responses ({comments?.length || 0})
+            <h2 className="text-lg font-display font-semibold mb-4 flex items-center gap-2">
+              <span className="text-secondary drop-shadow-[0_0_8px_hsl(var(--secondary)/0.5)]">Responses</span>
+              <span className="text-muted-foreground">({comments?.length || 0})</span>
             </h2>
 
             {commentsLoading ? (
               <div className="flex items-center justify-center py-8">
-                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                <Loader2 className="h-8 w-8 animate-spin text-primary drop-shadow-[0_0_15px_hsl(var(--primary)/0.5)]" />
               </div>
             ) : (
               <CommentList
