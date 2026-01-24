@@ -1,389 +1,240 @@
 
-
-# SoloSuccess Academy - AI Learning Management System
+# Plan: Seed All Courses and Lessons for SoloSuccess Academy
 
 ## Overview
 
-Building a full-featured AI-powered Learning Management System (LMS) for SoloSuccess Academy. The platform will guide solo founders through 10 comprehensive courses, culminating in a professional portfolio website and 20-minute pitch presentation.
+All 10 courses already exist in the database and are published. This plan will populate each course with its complete lesson structure based on your curriculum. We'll create **74 total lessons** across 10 courses, properly categorized by lesson type.
 
 ---
 
-## Architecture
+## Current State
+
+| Course # | Title | Phase | Course ID | Status |
+|----------|-------|-------|-----------|--------|
+| 1 | The Solo Singularity | initialization | c13d40f5-cb40-4e7a-9814-2936e690da51 | Published, 0 lessons |
+| 2 | Signal in the Noise | initialization | 6006c8d3-0af8-4725-bbc9-d8615036f987 | Published, 0 lessons |
+| 3 | Neon Identity | initialization | 55697b91-b21a-4574-8134-e252c914ae88 | Published, 0 lessons |
+| 4 | The Ghost Machine | orchestration | 61ae9cd4-a735-44cc-ae7d-57be4546abac | Published, 0 lessons |
+| 5 | The Infinite Loop | orchestration | e1ebab59-e163-4876-a51b-3288a140504e | Published, 0 lessons |
+| 6 | Digital Gravity | orchestration | 3f9f583e-6166-4b36-9c13-4df137a94f2e | Published, 0 lessons |
+| 7 | Zero-Point Energy | orchestration | c7989fd2-afdb-410f-bd6d-15c8ff57d745 | Published, 0 lessons |
+| 8 | The Neuro-Link | launch | 2cddde3a-77bc-4ced-9a23-dc06e4bff296 | Published, 0 lessons |
+| 9 | Future State | launch | 3f327e10-9968-4a0a-bcdc-bcd9a6dbb462 | Published, 0 lessons |
+| 10 | The Final Transmission | launch | 91192f0e-3f15-4880-bfda-38d7ebfa1362 | Published, 0 lessons |
+
+---
+
+## Implementation Approach
+
+I'll create a **curriculum seed utility** that will:
+1. Define all lesson data in a structured format
+2. Bulk insert lessons using the Supabase client
+3. Map lesson types correctly (text, video, quiz, assignment, worksheet, activity)
+
+### Lesson Type Mapping
+
+Based on your curriculum, lessons will be categorized as:
+
+| Curriculum Description | Database Type |
+|------------------------|---------------|
+| Regular lessons (tutorials, guides) | `text` |
+| Quiz / Assessment / Exam | `quiz` |
+| Assignment / Exercise | `assignment` |
+| Setup / Walkthrough (hands-on) | `activity` |
+
+---
+
+## Phase 1: Initialization Courses (Lessons 1-22)
+
+### Course 1: The Solo Singularity – Mindset & Vision (7 lessons)
+
+| Order | Title | Type | Description |
+|-------|-------|------|-------------|
+| 1 | The "Company of One" Philosophy | text | Why you don't need a co-founder or VC funding. The math behind high-margin, low-stress solo businesses. |
+| 2 | The $0 Budget Manifesto | text | How to view "resourcefulness" as your primary currency. Introduction to "Vibe Coding" and AI leverage. |
+| 3 | Inventorying Your "Unfair Advantage" | text | A guided audit to find unique skills and assets you possess that competitors can't copy. |
+| 4 | The Myth of the MVP | text | Why "Minimum" doesn't mean "Broken." Redefining MVP as the "Maximum Value Product" you can ship in 48 hours. |
+| 5 | Time Hacking for the Solo Founder | text | Mastering the "4-Hour Focus" technique to get more done in a morning than most teams do in a week. |
+| 6 | Setup: The Vision Board Protocol | activity | Walkthrough of setting up the provided Notion Template to track your long-term goals. |
+| 7 | Quiz – The Founder Type Assessment | quiz | A graded assessment to identify your entrepreneurial style (Builder, Seller, or Orchestrator). |
+
+### Course 2: Signal in the Noise – AI Market Intelligence (7 lessons)
+
+| Order | Title | Type | Description |
+|-------|-------|------|-------------|
+| 1 | Introduction to Social Listening | text | How to use Reddit, X, and Discord to eavesdrop on your customers' complaints before building. |
+| 2 | The AI Scraper Agent | text | Tutorial on using free AI web scrapers to gather data on what's selling in your niche. |
+| 3 | Validating Without Building | text | Techniques to test if people will pay using "Smoke Tests" and landing pages. |
+| 4 | The "Blue Ocean" Detection Method | text | How to spot gaps in the market where competition is irrelevant. |
+| 5 | Generating AI User Personas | text | Prompt engineering guide to create a "Virtual Customer" you can chat with. |
+| 6 | Assignment – The 10-Idea Sprint | assignment | Rapid-fire exercise to generate 10 business ideas and filter to the single best one. |
+| 7 | Quiz – Market Viability Check | quiz | A pass/fail checklist to ensure you aren't building a product nobody wants. |
+
+### Course 3: Neon Identity – AI-Powered Branding (8 lessons)
+
+| Order | Title | Type | Description |
+|-------|-------|------|-------------|
+| 1 | Color Psychology & Cyberpunk Aesthetics | text | How to choose colors that trigger specific emotions using the "SoloSuccess" neon palette. |
+| 2 | AI Logo Generation Workshop | text | Step-by-step guide to using Midjourney/DALL-E to create pro-level logos for free. |
+| 3 | Establishing Brand Voice | text | How to teach ChatGPT to write like you so all your marketing sounds consistent. |
+| 4 | Typography That Converts | text | Selecting the right fonts for readability and style without expensive licenses. |
+| 5 | Building the Visual Language | text | Creating a cohesive "look and feel" across website, social media, and emails. |
+| 6 | Assignment – The "3-Second Rule" Test | assignment | Create a header image and test if a stranger can understand your business in 3 seconds. |
+| 7 | Trust Signals & Social Proof | text | How to design badges, testimonials, and "As Seen On" banners to build credibility. |
+| 8 | Quiz – Design Principles 101 | quiz | Test your eye for design on spacing, contrast, and hierarchy. |
+
+---
+
+## Phase 2: Orchestration Courses (Lessons 23-56)
+
+### Course 4: The Ghost Machine – Workflow Automation (9 lessons)
+
+| Order | Title | Type | Description |
+|-------|-------|------|-------------|
+| 1 | Introduction to No-Code Automation | text | The basics of connecting apps (Zapier/Make) so data moves automatically. |
+| 2 | The Unified Inbox System | text | How to funnel emails, DMs, and support tickets into one place. |
+| 3 | Automating Your Calendar | text | Setting up auto-scheduling links so you never ask "What time works?" again. |
+| 4 | Building a Free CRM | text | Using Notion or Airtable to track every customer interaction without Salesforce. |
+| 5 | The "If This, Then That" Logic | text | Mapping out complex logic trees to handle customer requests automatically. |
+| 6 | Assignment – Map Your First Workflow | assignment | Draw a diagram of your first automated process and share for feedback. |
+| 7 | Automating Customer Onboarding | text | How to deliver your product and welcome emails instantly after purchase. |
+| 8 | Troubleshooting the Machine | text | What to do when your automations break (and how to fix them quickly). |
+| 9 | Quiz – Logic & Efficiency | quiz | Scenarios to test if you can identify the most efficient way to automate. |
+
+### Course 5: The Infinite Loop – The Content Multiplier (8 lessons)
+
+| Order | Title | Type | Description |
+|-------|-------|------|-------------|
+| 1 | The "Pillar Content" Strategy | text | How to focus on creating one high-quality piece of content per week. |
+| 2 | AI Repurposing Workflows | text | Using AI to slice your Pillar Content into tweets, shorts, LinkedIn posts, and emails. |
+| 3 | Designing Templates for Speed | text | Creating Canva templates so you just drag-and-drop text. |
+| 4 | Automated Scheduling | text | Setting up tools to post your content at optimal times automatically. |
+| 5 | Writing Hooks That Stop the Scroll | text | The psychology of the "first 3 seconds" and how to write headlines that force clicks. |
+| 6 | Assignment – The "1-Hour Month" Challenge | assignment | Plan and schedule an entire month of content in a single 1-hour sitting. |
+| 7 | Analytics: Measuring What Matters | text | Which metrics lead to money (Clicks/Conversions) vs. vanity metrics (Likes). |
+| 8 | Quiz – Platform Algorithms | quiz | Test your knowledge on what different social platforms prioritize in 2026. |
+
+### Course 6: Digital Gravity – Attracting Your Audience (7 lessons)
+
+| Order | Title | Type | Description |
+|-------|-------|------|-------------|
+| 1 | Traffic vs. Audience | text | Understanding the difference between renting eyes (Ads) and owning them (Email List). |
+| 2 | Creating Irresistible Lead Magnets | text | How to build a free tool or guide so good people feel guilty they didn't pay. |
+| 3 | Building Your First Email List | text | Technical setup of a newsletter and how to get your first 100 subscribers. |
+| 4 | Cold Outreach That Feels Warm | text | How to DM potential partners or clients without sounding like a spam bot. |
+| 5 | Assignment – Draft Your Welcome Sequence | assignment | Write the first 3 emails a new subscriber receives to turn them into a fan. |
+| 6 | SEO Basics for the Solo Founder | text | Simple tweaks to your website to make Google send you free traffic. |
+| 7 | Quiz – Funnel Mechanics | quiz | Diagnose a "broken" funnel and identify where the customers are dropping off. |
+
+### Course 7: Zero-Point Energy – Financial Bootstrapping (6 lessons)
+
+| Order | Title | Type | Description |
+|-------|-------|------|-------------|
+| 1 | The "Profit First" Mindset | text | Solo business accounting—ensuring you get paid before expenses eat your cash. |
+| 2 | The Art of the Barter | text | How to trade your skills for services you need (e.g., coding for legal advice). |
+| 3 | The Free-Tier Tech Stack | text | Curated list of best free software for startups (and when to switch to paid). |
+| 4 | Pricing Your Services | text | How to calculate your hourly worth and price for sustainability, not cheapness. |
+| 5 | Assignment – The Expense Audit | assignment | Review current spending and cut $100/month of useless subscriptions. |
+| 6 | Quiz – Financial Literacy | quiz | Real-world math problems involving margins, churn, and burn rate. |
+
+---
+
+## Phase 3: Launch Sequence Courses (Lessons 57-74)
+
+### Course 8: The Neuro-Link – Psychology of Sales (8 lessons)
+
+| Order | Title | Type | Description |
+|-------|-------|------|-------------|
+| 1 | Reframing Sales | text | Changing your mindset from "taking money" to "solving problems." |
+| 2 | The Psychology of "No" | text | Why people say no (fear, confusion, timing) and how to address each one. |
+| 3 | Copywriting Frameworks (AIDA) | text | Learning the Attention-Interest-Desire-Action formula for sales pages. |
+| 4 | Handling Objections | text | Pre-writing answers to "It's too expensive" or "I don't have time." |
+| 5 | Assignment – The Offer Rewrite | assignment | Take a boring product description and rewrite it using persuasion techniques. |
+| 6 | The Follow-Up Protocol | text | How to follow up with leads without being annoying (the "magic email" script). |
+| 7 | Closing: Contracts & Invoices | text | The mechanics of actually getting money into your bank account. |
+| 8 | Quiz – Persuasion Tactics | quiz | Identify which psychological trigger is being used in sales examples. |
+
+### Course 9: Future State – Strategic Roadmapping (7 lessons)
+
+| Order | Title | Type | Description |
+|-------|-------|------|-------------|
+| 1 | Setting OKRs (Objectives & Key Results) | text | How to set goals that are ambitious but measurable (e.g., "Hit $5k MRR"). |
+| 2 | Pivot vs. Persevere | text | A decision matrix to help you know when to quit or double down. |
+| 3 | Scaling: When to Spend Money | text | Identifying the exact moment to hire a freelancer or pay for ads. |
+| 4 | Risk Management & Backups | text | Protecting your digital assets—backups, security, and owning your platform. |
+| 5 | Assignment – The "Pre-Mortem" | assignment | Write a story about how your business failed in 2027, then prevent it today. |
+| 6 | Continuous Learning | text | How to stay ahead of AI trends so your business doesn't become obsolete. |
+| 7 | Quiz – Strategic Thinking | quiz | Strategy scenarios where you must choose the best long-term move. |
+
+### Course 10: The Final Transmission – Storytelling & Pitch (11 lessons)
+
+| Order | Title | Type | Description |
+|-------|-------|------|-------------|
+| 1 | The Hero's Journey Structure | text | How to structure your pitch so you are the guide and the customer is the hero. |
+| 2 | Data Visualization | text | Making your numbers look sexy and easy to understand on slides. |
+| 3 | Slide Design for Non-Designers | text | Rules for font size, images, and bullet points for professional decks. |
+| 4 | Public Speaking Presence | text | Tips for lighting, audio, and camera eye contact for your recorded pitch. |
+| 5 | The "Ask" | text | Clearly defining what you want from the viewer (Invest? Buy? Join?). |
+| 6 | Portfolio Assembly | text | Step-by-step guide to linking Projects 1–9 into your final portfolio website. |
+| 7 | Assignment – The Elevator Pitch | assignment | Record a 30-second version of your pitch. |
+| 8 | Tech Setup: Recording | text | How to use free software (OBS/Loom) to record high-quality presentations. |
+| 9 | Editing Your Pitch | text | Basic cuts and transitions to make your video flow smoothly. |
+| 10 | Hosting & Sharing | text | Where to upload your portfolio for maximum visibility. |
+| 11 | Final Exam – The Solo Founder Certification | quiz | Comprehensive exam covering key concepts from all 10 courses. |
+
+---
+
+## Technical Implementation
+
+### File to Create
+
+**`src/lib/curriculumData.ts`** - Contains all lesson definitions as a typed data structure
+
+### Seeding Approach
+
+I'll create an admin utility page or button that:
+1. Reads all course IDs from the database
+2. Matches them with the curriculum data
+3. Bulk inserts all lessons for each course
+4. Sets all lessons as `is_published: true` by default
+
+### Code Structure
 
 ```text
-+------------------------------------------+
-|              Frontend (React)            |
-+------------------------------------------+
-|  Landing Page  |  Auth  |  Dashboard     |
-|  Course View   |  Lessons  |  Projects   |
-|  AI Tutor Chat |  Discussions | Progress |
-+------------------------------------------+
-              |
-              v
-+------------------------------------------+
-|          Lovable Cloud Backend           |
-+------------------------------------------+
-|  Supabase Database (PostgreSQL)          |
-|  - Users & Profiles                      |
-|  - Courses, Lessons, Progress            |
-|  - Projects & Submissions                |
-|  - Discussions & Comments                |
-|  - AI Chat History                       |
-+------------------------------------------+
-|  Edge Functions                          |
-|  - AI Tutor (streaming chat)             |
-|  - Project Feedback                      |
-|  - Quiz Generation                       |
-+------------------------------------------+
-|  Storage (Assets & Media)                |
-+------------------------------------------+
+src/lib/curriculumData.ts
+├── Interface definitions for curriculum structure
+├── Phase 1 courses array (3 courses, 22 lessons)
+├── Phase 2 courses array (4 courses, 30 lessons)
+├── Phase 3 courses array (3 courses, 22 lessons)
+└── Helper function to get lessons by course title
 ```
 
 ---
 
-## Database Schema
+## Summary
 
-### Core Tables
+| Phase | Courses | Total Lessons |
+|-------|---------|---------------|
+| Initialization | 3 | 22 |
+| Orchestration | 4 | 30 |
+| Launch | 3 | 22 |
+| **Total** | **10** | **74** |
 
-**profiles** - Extended user information
-- id (FK to auth.users)
-- display_name
-- avatar_url
-- bio
-- current_course_id
-- created_at, updated_at
+### Lesson Type Distribution
 
-**user_roles** - Role-based access control
-- id, user_id (FK)
-- role (enum: admin, student)
-
-**courses** - The 10 academy courses
-- id, order_number
-- title, description, phase
-- plug_and_play_asset
-- discussion_question
-- project_title, project_description
-- is_published
-
-**lessons** - Individual lessons per course
-- id, course_id (FK)
-- order_number, title, type (text/video/quiz/assignment)
-- content (markdown), video_url
-- duration_minutes
-
-**user_progress** - Track completion
-- id, user_id, lesson_id
-- completed, completed_at
-- quiz_score, notes
-
-**course_projects** - Student project submissions
-- id, user_id, course_id
-- submission_content, file_urls
-- ai_feedback, ai_feedback_at
-- status (draft/submitted/reviewed)
-- submitted_at
-
-**discussions** - Course discussion threads
-- id, course_id, user_id
-- title, content
-- is_pinned, created_at
-
-**discussion_comments** - Replies to discussions
-- id, discussion_id, user_id
-- content, parent_comment_id
-- created_at
-
-**ai_chat_sessions** - AI tutor conversations
-- id, user_id, course_id, lesson_id
-- created_at
-
-**ai_chat_messages** - Individual messages
-- id, session_id, role (user/assistant)
-- content, created_at
+| Type | Count | Description |
+|------|-------|-------------|
+| text | 52 | Regular instructional lessons |
+| quiz | 10 | Assessments and exams |
+| assignment | 10 | Hands-on exercises |
+| activity | 2 | Interactive walkthroughs |
 
 ---
 
-## Feature Breakdown
+## Files to Create/Modify
 
-### Phase 1: Foundation
+1. **Create**: `src/lib/curriculumData.ts` - Structured curriculum data
+2. **Modify**: `src/pages/AdminDashboard.tsx` - Add "Seed Curriculum" button
+3. **Create**: `src/components/admin/SeedCurriculumButton.tsx` - Admin utility to bulk insert lessons
 
-1. **Authentication System**
-   - Email/password signup and login
-   - User profile management
-   - Session persistence
-   - Protected routes
-
-2. **Landing Page**
-   - Hero section with value proposition
-   - Course overview (10 courses, 3 phases)
-   - Testimonials/social proof section
-   - Call-to-action for signup
-
-3. **Dashboard**
-   - Welcome message with current progress
-   - Course roadmap visualization
-   - Continue where you left off
-   - Overall completion percentage
-
-### Phase 2: Course Experience
-
-4. **Course Catalog**
-   - Grid/list of all 10 courses by phase
-   - Progress indicators per course
-   - Lock/unlock based on prerequisites
-   - Course cards with thumbnails
-
-5. **Course Detail Page**
-   - Course overview and objectives
-   - Lesson list with completion status
-   - Plug-and-Play asset download
-   - Discussion question highlight
-   - Project requirements
-
-6. **Lesson Viewer**
-   - Text content with markdown rendering
-   - Embedded video player
-   - Progress auto-save
-   - Mark complete button
-   - Previous/Next navigation
-
-7. **Quiz System**
-   - Multiple choice questions
-   - AI-generated quiz content
-   - Score tracking
-   - Retry capability
-
-### Phase 3: AI Features
-
-8. **AI Tutor Chat**
-   - Streaming chat interface
-   - Context-aware (knows current course/lesson)
-   - Conversation history
-   - Suggested questions
-   - Available on every lesson
-
-9. **AI Project Feedback**
-   - Submit project work
-   - AI analyzes against rubric
-   - Detailed feedback with suggestions
-   - Iterate and resubmit
-
-10. **AI Quiz Generation**
-    - Generate practice quizzes per lesson
-    - Adaptive difficulty
-    - Explanations for answers
-
-### Phase 4: Community
-
-11. **Discussion Boards**
-    - Thread per course
-    - Create new discussions
-    - Reply to threads
-    - Upvote/like system
-    - Instructor pinned posts
-
-### Phase 5: Progress & Portfolio
-
-12. **Progress Tracking**
-    - Visual course completion
-    - Time spent analytics
-    - Achievement badges
-    - Certificate of completion
-
-13. **Portfolio Builder** (Course 10)
-    - Aggregate all 9 project submissions
-    - Generate portfolio website preview
-    - Export/download capability
-
----
-
-## File Structure
-
-```text
-src/
-  components/
-    layout/
-      Header.tsx
-      Sidebar.tsx
-      Footer.tsx
-      ProtectedRoute.tsx
-    landing/
-      Hero.tsx
-      CoursePreview.tsx
-      Testimonials.tsx
-    dashboard/
-      ProgressOverview.tsx
-      CourseRoadmap.tsx
-      RecentActivity.tsx
-    courses/
-      CourseCard.tsx
-      CourseList.tsx
-      LessonList.tsx
-      LessonContent.tsx
-      VideoPlayer.tsx
-    ai/
-      AiTutor.tsx
-      ChatMessage.tsx
-      ChatInput.tsx
-      ProjectFeedback.tsx
-      QuizGenerator.tsx
-    discussions/
-      DiscussionList.tsx
-      DiscussionThread.tsx
-      CommentForm.tsx
-    projects/
-      ProjectSubmission.tsx
-      ProjectList.tsx
-      FeedbackDisplay.tsx
-    ui/
-      (existing shadcn components)
-  pages/
-    Index.tsx (Landing)
-    Auth.tsx
-    Dashboard.tsx
-    Courses.tsx
-    CourseDetail.tsx
-    Lesson.tsx
-    Projects.tsx
-    Discussions.tsx
-    Profile.tsx
-  hooks/
-    useAuth.ts
-    useCourses.ts
-    useProgress.ts
-    useAiChat.ts
-    useDiscussions.ts
-  lib/
-    courseData.ts (curriculum content)
-    utils.ts
-  integrations/
-    supabase/
-      client.ts
-      types.ts
-
-supabase/
-  functions/
-    ai-tutor/index.ts
-    ai-project-feedback/index.ts
-    ai-quiz-generator/index.ts
-  config.toml
-```
-
----
-
-## Course Data Structure
-
-All 10 courses from your curriculum will be seeded:
-
-**Phase 1: Initialization (Identity and Intel)**
-1. The Solo Singularity - Mindset and Vision (6 lessons)
-2. Signal in the Noise - AI Market Intelligence (7 lessons)
-3. Neon Identity - AI-Powered Branding (8 lessons)
-
-**Phase 2: Orchestration (Building the Machine)**
-4. The Ghost Machine - Workflow Automation (9 lessons)
-5. The Infinite Loop - Content Multiplier (8 lessons)
-6. Digital Gravity - Attracting Your Audience (7 lessons)
-7. Zero-Point Energy - Financial Bootstrapping (6 lessons)
-
-**Phase 3: Launch Sequence (Sales and Future)**
-8. The Neuro-Link - Psychology of Sales (8 lessons)
-9. Future State - Strategic Roadmapping (7 lessons)
-10. The Final Transmission - Storytelling and Pitch (11 lessons)
-
-Each course includes:
-- Lesson content (text and video placeholders)
-- Plug-and-Play downloadable asset
-- Discussion question
-- Course project with AI feedback
-
----
-
-## Edge Functions
-
-### ai-tutor
-- Streaming chat using Lovable AI Gateway
-- System prompt with course context
-- Maintains conversation history
-- Answers questions about lesson material
-
-### ai-project-feedback
-- Analyzes project submissions
-- Returns structured feedback
-- Scores against rubric
-- Provides improvement suggestions
-
-### ai-quiz-generator
-- Generates quiz questions from lesson content
-- Multiple choice format
-- Returns correct answers with explanations
-
----
-
-## UI/UX Design
-
-**Theme**: Cyberpunk/tech aesthetic matching "SoloSuccess" branding
-- Dark mode primary with neon accents
-- Purple/cyan color palette
-- Modern typography
-- Animated progress indicators
-
-**Responsive Design**
-- Mobile-first approach
-- Collapsible sidebar on tablet/mobile
-- Touch-friendly interactions
-
----
-
-## Technical Considerations
-
-### RLS Policies
-All tables will have Row Level Security:
-- Users can only see their own progress/submissions
-- Public read access for courses and lessons
-- Discussions visible to all authenticated users
-- Admin role for content management
-
-### Performance
-- Lazy load video content
-- Paginate discussions
-- Cache course data with React Query
-- Optimistic updates for progress
-
-### Security
-- JWT validation on edge functions
-- Input sanitization on submissions
-- Rate limiting on AI endpoints
-
----
-
-## Implementation Order
-
-1. Enable Lovable Cloud
-2. Set up database schema with migrations
-3. Implement authentication flow
-4. Build landing page
-5. Create dashboard with progress tracking
-6. Build course catalog and detail pages
-7. Implement lesson viewer (text + video)
-8. Add AI tutor chat (streaming)
-9. Build project submission system
-10. Add AI project feedback
-11. Implement quiz system with AI generation
-12. Build discussion boards
-13. Add portfolio builder for Course 10
-14. Polish UI and add animations
-15. Seed all curriculum content
-
----
-
-## Estimated Scope
-
-- **Pages**: 10 main pages
-- **Components**: 30+ custom components
-- **Database Tables**: 11 tables
-- **Edge Functions**: 3 AI-powered functions
-- **Lessons to Seed**: 77 lessons across 10 courses
-
-This will be a comprehensive, production-ready LMS that guides solo founders from mindset to portfolio.
-
+All lessons will be inserted with their descriptions as content placeholders, ready for future expansion with full lesson content, videos, and interactive elements.
