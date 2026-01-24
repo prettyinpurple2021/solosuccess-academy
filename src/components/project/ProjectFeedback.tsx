@@ -37,33 +37,33 @@ export function ProjectFeedback({ project }: ProjectFeedbackProps) {
   };
 
   return (
-    <Card className="border-primary/20 bg-gradient-to-b from-primary/5 to-transparent">
-      <CardHeader>
+    <div className="glass-card border-success/30 overflow-hidden">
+      <div className="p-6 border-b border-success/20">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-              <Sparkles className="h-5 w-5 text-primary" />
+          <div className="flex items-center gap-3">
+            <div className="h-12 w-12 rounded-full bg-success/20 flex items-center justify-center shadow-[0_0_20px_hsl(var(--success)/0.3)]">
+              <Sparkles className="h-6 w-6 text-success" style={{ filter: 'drop-shadow(0 0 5px hsl(var(--success)))' }} />
             </div>
             <div>
-              <CardTitle className="text-lg">AI Feedback</CardTitle>
-              <CardDescription className="flex items-center gap-2">
+              <h3 className="text-lg font-semibold text-success" style={{ textShadow: '0 0 10px hsl(var(--success)/0.5)' }}>AI Feedback</h3>
+              <p className="text-sm text-muted-foreground flex items-center gap-2">
                 <Calendar className="h-3 w-3" />
                 {project.ai_feedback_at && formatDate(project.ai_feedback_at)}
-              </CardDescription>
+              </p>
             </div>
           </div>
-          <Badge className="bg-success/10 text-success border-success/30">
+          <Badge className="bg-success/20 text-success border-success/30 shadow-[0_0_10px_hsl(var(--success)/0.3)]">
             <CheckCircle2 className="h-3 w-3 mr-1" />
             Reviewed
           </Badge>
         </div>
-      </CardHeader>
-      <CardContent>
+      </div>
+      <div className="p-6">
         <div 
-          className="prose prose-invert max-w-none text-foreground"
+          className="prose prose-invert max-w-none text-foreground prose-headings:text-primary prose-strong:text-foreground prose-li:text-muted-foreground"
           dangerouslySetInnerHTML={{ __html: formatFeedback(project.ai_feedback) }}
         />
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

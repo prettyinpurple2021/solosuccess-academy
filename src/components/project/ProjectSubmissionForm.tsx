@@ -208,35 +208,39 @@ export function ProjectSubmissionForm({ course, userId }: ProjectSubmissionFormP
   return (
     <div className="space-y-6">
       {/* Project Info */}
-      <Card className="border-accent/20 bg-accent/5">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-xl">{course.project_title}</CardTitle>
+      <div className="glass-card border-accent/30 bg-accent/5 overflow-hidden">
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-xl font-semibold neon-text">{course.project_title}</h3>
             {project?.status && (
-              <Badge variant={
-                project.status === 'reviewed' ? 'default' :
-                project.status === 'submitted' ? 'secondary' : 'outline'
-              }>
+              <Badge 
+                variant={project.status === 'reviewed' ? 'default' : project.status === 'submitted' ? 'secondary' : 'outline'}
+                className={
+                  project.status === 'reviewed' 
+                    ? 'bg-success/20 text-success border-success/30 shadow-[0_0_10px_hsl(var(--success)/0.3)]' 
+                    : project.status === 'submitted'
+                    ? 'bg-secondary/20 text-secondary border-secondary/30 shadow-[0_0_10px_hsl(var(--secondary)/0.3)]'
+                    : 'border-muted-foreground/30'
+                }
+              >
                 {project.status === 'reviewed' && <CheckCircle2 className="h-3 w-3 mr-1" />}
                 {project.status.charAt(0).toUpperCase() + project.status.slice(1)}
               </Badge>
             )}
           </div>
-          <CardDescription className="text-base">
-            {course.project_description}
-          </CardDescription>
-        </CardHeader>
-      </Card>
+          <p className="text-muted-foreground">{course.project_description}</p>
+        </div>
+      </div>
 
       {/* Submission Form */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Your Submission</CardTitle>
-          <CardDescription>
+      <div className="glass-card border-primary/30 overflow-hidden">
+        <div className="p-6 border-b border-primary/20">
+          <h3 className="text-lg font-semibold neon-text">Your Submission</h3>
+          <p className="text-sm text-muted-foreground mt-1">
             Write your project submission below. You can also attach files to support your work.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
+          </p>
+        </div>
+        <div className="p-6 space-y-6">
           {/* Text Input */}
           <div>
             <Textarea
@@ -249,7 +253,7 @@ Include:
 • Key decisions and rationale
 • Results and outcomes
 • Lessons learned"
-              className="min-h-[300px] resize-y"
+              className="min-h-[300px] resize-y bg-background/50 border-primary/30 focus:border-primary focus:ring-primary/30 transition-all"
               disabled={isSubmitted}
             />
             <p className="text-xs text-muted-foreground mt-2">
@@ -260,13 +264,14 @@ Include:
           {/* File Upload */}
           <div>
             <div className="flex items-center justify-between mb-3">
-              <label className="text-sm font-medium">Attachments</label>
+              <label className="text-sm font-medium text-foreground">Attachments</label>
               {!isSubmitted && (
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={isUploading}
+                  className="border-secondary/50 hover:border-secondary hover:bg-secondary/10 hover:text-secondary transition-all"
                 >
                   <Upload className="h-4 w-4 mr-2" />
                   Upload Files
@@ -285,7 +290,7 @@ Include:
 
             {isUploading && (
               <div className="mb-3">
-                <Progress value={uploadProgress} className="h-2" />
+                <Progress value={uploadProgress} className="h-2" style={{ boxShadow: '0 0 10px hsl(var(--primary)/0.5)' }} />
                 <p className="text-xs text-muted-foreground mt-1">Uploading...</p>
               </div>
             )}
@@ -295,14 +300,14 @@ Include:
                 {fileUrls.map((url, index) => (
                   <div
                     key={index}
-                    className="flex items-center gap-2 p-2 rounded-lg bg-muted/50 border"
+                    className="flex items-center gap-2 p-3 rounded-lg bg-background/30 border border-primary/20 hover:border-primary/40 transition-all group"
                   >
-                    {getFileIcon(url)}
+                    <div className="text-primary">{getFileIcon(url)}</div>
                     <a
                       href={url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex-1 text-sm truncate hover:underline"
+                      className="flex-1 text-sm truncate hover:text-primary transition-colors"
                     >
                       {getFileName(url)}
                     </a>
@@ -310,7 +315,7 @@ Include:
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-6 w-6"
+                        className="h-6 w-6 opacity-0 group-hover:opacity-100 hover:bg-destructive/20 hover:text-destructive transition-all"
                         onClick={() => handleRemoveFile(url)}
                       >
                         <X className="h-3 w-3" />
@@ -320,7 +325,7 @@ Include:
                 ))}
               </div>
             ) : (
-              <div className="text-sm text-muted-foreground border border-dashed rounded-lg p-4 text-center">
+              <div className="text-sm text-muted-foreground border border-dashed border-primary/30 rounded-lg p-6 text-center bg-background/20">
                 No files attached. Upload PDFs, documents, or images to support your submission.
               </div>
             )}
@@ -328,11 +333,12 @@ Include:
 
           {/* Actions */}
           {!isSubmitted && (
-            <div className="flex flex-wrap items-center gap-3 pt-4 border-t">
+            <div className="flex flex-wrap items-center gap-3 pt-4 border-t border-primary/20">
               <Button
                 variant="outline"
                 onClick={handleSaveDraft}
                 disabled={saveDraft.isPending}
+                className="border-muted-foreground/50 hover:border-primary hover:bg-primary/10 hover:text-primary transition-all"
               >
                 {saveDraft.isPending ? (
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -342,6 +348,7 @@ Include:
                 Save Draft
               </Button>
               <Button
+                variant="neon"
                 onClick={handleSubmit}
                 disabled={submitProject.isPending || requestFeedback.isPending || !content.trim()}
               >
@@ -357,22 +364,22 @@ Include:
 
           {/* Re-submit option */}
           {isSubmitted && (
-            <div className="pt-4 border-t">
+            <div className="pt-4 border-t border-primary/20">
               <Button
                 variant="outline"
                 onClick={() => {
                   // Allow re-editing
                   setContent(project?.submission_content || '');
                 }}
-                className="w-full"
+                className="w-full border-secondary/50 hover:border-secondary hover:bg-secondary/10 hover:text-secondary transition-all group"
               >
-                <Sparkles className="h-4 w-4 mr-2" />
+                <Sparkles className="h-4 w-4 mr-2 group-hover:animate-pulse" style={{ filter: 'drop-shadow(0 0 5px hsl(var(--secondary)))' }} />
                 Request New Feedback
               </Button>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }

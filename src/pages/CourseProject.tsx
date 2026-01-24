@@ -22,14 +22,18 @@ export default function CourseProject() {
   // Auth check
   if (!isAuthenticated && !authLoading) {
     return (
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col cyber-bg">
+        <div className="cyber-grid absolute inset-0" />
         <Header />
-        <main className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <Lock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h1 className="text-2xl font-bold mb-2">Sign In Required</h1>
-            <p className="text-muted-foreground mb-4">Please sign in to access this project.</p>
-            <Button asChild>
+        <main className="flex-1 flex items-center justify-center relative">
+          <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-primary/20 rounded-full blur-3xl animate-pulse" />
+          <div className="glass-card p-8 text-center border-secondary/30 relative z-10">
+            <div className="h-16 w-16 rounded-full bg-secondary/20 flex items-center justify-center mx-auto mb-4 shadow-[0_0_20px_hsl(var(--secondary)/0.3)]">
+              <Lock className="h-8 w-8 text-secondary" />
+            </div>
+            <h1 className="text-2xl font-bold mb-2 neon-text">Sign In Required</h1>
+            <p className="text-muted-foreground mb-6">Please sign in to access this project.</p>
+            <Button asChild variant="neon">
               <Link to="/auth">Sign In</Link>
             </Button>
           </div>
@@ -42,10 +46,15 @@ export default function CourseProject() {
   // Loading
   if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col cyber-bg">
+        <div className="cyber-grid absolute inset-0" />
         <Header />
-        <main className="flex-1 flex items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <main className="flex-1 flex items-center justify-center relative">
+          <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-primary/20 rounded-full blur-3xl animate-pulse" />
+          <div className="glass-card p-8 relative z-10">
+            <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" style={{ filter: 'drop-shadow(0 0 10px hsl(var(--primary)))' }} />
+            <p className="text-muted-foreground mt-4">Loading project...</p>
+          </div>
         </main>
         <Footer />
       </div>
@@ -55,14 +64,18 @@ export default function CourseProject() {
   // Purchase check
   if (!hasPurchased) {
     return (
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col cyber-bg">
+        <div className="cyber-grid absolute inset-0" />
         <Header />
-        <main className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <Lock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h1 className="text-2xl font-bold mb-2">Course Not Purchased</h1>
-            <p className="text-muted-foreground mb-4">Purchase this course to access the project.</p>
-            <Button asChild>
+        <main className="flex-1 flex items-center justify-center relative">
+          <div className="absolute top-1/4 right-1/4 w-64 h-64 bg-secondary/20 rounded-full blur-3xl animate-pulse" />
+          <div className="glass-card p-8 text-center border-warning/30 relative z-10">
+            <div className="h-16 w-16 rounded-full bg-warning/20 flex items-center justify-center mx-auto mb-4 shadow-[0_0_20px_hsl(var(--warning)/0.3)]">
+              <Lock className="h-8 w-8 text-warning" />
+            </div>
+            <h1 className="text-2xl font-bold mb-2 neon-text">Course Not Purchased</h1>
+            <p className="text-muted-foreground mb-6">Purchase this course to access the project.</p>
+            <Button asChild variant="neon">
               <Link to={`/courses/${courseId}`}>View Course</Link>
             </Button>
           </div>
@@ -75,12 +88,14 @@ export default function CourseProject() {
   // Course not found
   if (!course) {
     return (
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col cyber-bg">
+        <div className="cyber-grid absolute inset-0" />
         <Header />
-        <main className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold mb-4">Course Not Found</h1>
-            <Button asChild>
+        <main className="flex-1 flex items-center justify-center relative">
+          <div className="absolute bottom-1/4 left-1/3 w-64 h-64 bg-destructive/20 rounded-full blur-3xl animate-pulse" />
+          <div className="glass-card p-8 text-center border-destructive/30 relative z-10">
+            <h1 className="text-2xl font-bold mb-4 text-destructive">Course Not Found</h1>
+            <Button asChild variant="neon">
               <Link to="/courses">Back to Courses</Link>
             </Button>
           </div>
@@ -93,13 +108,15 @@ export default function CourseProject() {
   // No project for this course
   if (!course.project_title) {
     return (
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col cyber-bg">
+        <div className="cyber-grid absolute inset-0" />
         <Header />
-        <main className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold mb-2">No Project Available</h1>
-            <p className="text-muted-foreground mb-4">This course doesn't have a project assignment yet.</p>
-            <Button asChild>
+        <main className="flex-1 flex items-center justify-center relative">
+          <div className="absolute top-1/3 right-1/4 w-64 h-64 bg-muted/20 rounded-full blur-3xl animate-pulse" />
+          <div className="glass-card p-8 text-center relative z-10">
+            <h1 className="text-2xl font-bold mb-2 neon-text">No Project Available</h1>
+            <p className="text-muted-foreground mb-6">This course doesn't have a project assignment yet.</p>
+            <Button asChild variant="neon">
               <Link to={`/courses/${courseId}`}>Back to Course</Link>
             </Button>
           </div>
@@ -110,13 +127,18 @@ export default function CourseProject() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col cyber-bg">
+      <div className="cyber-grid absolute inset-0" />
       <Header />
       
-      <main className="flex-1 py-8">
-        <div className="container max-w-4xl">
+      <main className="flex-1 py-8 relative">
+        {/* Animated glow orbs */}
+        <div className="absolute top-20 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-20 right-1/4 w-80 h-80 bg-secondary/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+        
+        <div className="container max-w-4xl relative z-10">
           {/* Back navigation */}
-          <Button variant="ghost" asChild className="mb-6">
+          <Button variant="ghost" asChild className="mb-6 hover:bg-primary/10 hover:text-primary transition-all">
             <Link to={`/courses/${courseId}`}>
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to {course.title}
