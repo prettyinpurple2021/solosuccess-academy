@@ -15,6 +15,7 @@ import CourseDiscussions from "./pages/CourseDiscussions";
 import DiscussionDetail from "./pages/DiscussionDetail";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
+import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -39,6 +40,7 @@ const App = () => (
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/courses" element={<Courses />} />
             <Route path="/courses/:courseId" element={<CourseDetail />} />
             <Route path="/courses/:courseId/lessons/:lessonId" element={<LessonViewer />} />
