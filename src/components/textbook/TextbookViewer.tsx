@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, useCallback } from 'react';
+import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react';
 import HTMLFlipBook from 'react-pageflip';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,10 +9,15 @@ import {
   useTextbookBookmark, 
   useUpdateBookmark,
   useTextbookSearch,
+  useTextbookHighlights,
+  useCreateHighlight,
   TextbookPage,
   TextbookChapter 
 } from '@/hooks/useTextbook';
 import { BookPage } from './BookPage';
+import { HighlightToolbar } from './HighlightToolbar';
+import { HighlightsPanel } from './HighlightsPanel';
+import { NoteDialog } from './NoteDialog';
 import { 
   ChevronLeft, 
   ChevronRight, 
@@ -38,17 +43,47 @@ const PageWrapper = React.forwardRef<HTMLDivElement, { children: React.ReactNode
 );
 PageWrapper.displayName = 'PageWrapper';
 
+interface TextSelection {
+  text: string;
+  startOffset: number;
+  endOffset: number;
+  rect: DOMRect;
+  pageId: string;
+}
+
 export function TextbookViewer({ courseId, courseName }: TextbookViewerProps) {
   const bookRef = useRef<any>(null);
   const [currentPage, setCurrentPage] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
+  const [selection, setSelection] = useState<TextSelection | null>(null);
+  const [noteDialogOpen, setNoteDialogOpen] = useState(false);
   
   const { data: pages, isLoading } = useAllTextbookPages(courseId);
   const { data: bookmark } = useTextbookBookmark(courseId);
   const updateBookmark = useUpdateBookmark();
   const { data: searchResults } = useTextbookSearch(courseId, isSearching ? searchQuery : '');
+  const createHighlight = useCreateHighlight();
   const { toast } = useToast();
+
+  // Get all page IDs for fetching highlights
+  const pageIds = useMemo(() => pages?.map(p => p.id) || [], [pages]);
+  const { data: highlights = [] } = useTextbookHighlights(pageIds);
+
+  // Create a map of page contents for the highlights panel
+  const pageContents = useMemo(() => {
+    const map: Record<string, string> = {};
+    pages?.forEach(p => {
+      map[p.id] = p.content;
+    });
+    return map;
+  }, [pages]);
+
+  // Get highlights for current page
+  const currentPageHighlights = useMemo(() => {
+    if (!pages?.[currentPage]) return [];
+    return highlights.filter(h => h.page_id === pages[currentPage].id);
+  }, [highlights, pages, currentPage]);
 
   // Go to bookmarked page on load
   useEffect(() => {
@@ -62,8 +97,20 @@ export function TextbookViewer({ courseId, courseName }: TextbookViewerProps) {
     }
   }, [bookmark, pages]);
 
+  // Clear selection when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (selection && !(e.target as Element).closest('.highlight-toolbar')) {
+        setSelection(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [selection]);
+
   const handleFlip = useCallback((e: any) => {
     setCurrentPage(e.data);
+    setSelection(null); // Clear selection on page flip
   }, []);
 
   const goToPrev = () => {
@@ -76,6 +123,13 @@ export function TextbookViewer({ courseId, courseName }: TextbookViewerProps) {
 
   const goToPage = (pageIndex: number) => {
     bookRef.current?.pageFlip()?.turnToPage(pageIndex);
+  };
+
+  const goToPageById = (pageId: string) => {
+    const pageIndex = pages?.findIndex(p => p.id === pageId);
+    if (pageIndex !== undefined && pageIndex >= 0) {
+      goToPage(pageIndex);
+    }
   };
 
   const handleBookmark = async () => {
@@ -115,6 +169,64 @@ export function TextbookViewer({ courseId, courseName }: TextbookViewerProps) {
     }
   };
 
+  const handleTextSelect = (data: { text: string; startOffset: number; endOffset: number; rect: DOMRect }) => {
+    if (!pages?.[currentPage]) return;
+    setSelection({
+      ...data,
+      pageId: pages[currentPage].id,
+    });
+  };
+
+  const handleHighlight = async (color: string) => {
+    if (!selection) return;
+
+    try {
+      await createHighlight.mutateAsync({
+        pageId: selection.pageId,
+        startOffset: selection.startOffset,
+        endOffset: selection.endOffset,
+        color,
+      });
+      setSelection(null);
+      window.getSelection()?.removeAllRanges();
+      toast({ title: 'Text highlighted!' });
+    } catch (error: any) {
+      toast({
+        title: 'Failed to highlight',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleAddNote = () => {
+    if (!selection) return;
+    setNoteDialogOpen(true);
+  };
+
+  const handleSaveNote = async (color: string, note: string) => {
+    if (!selection) return;
+
+    try {
+      await createHighlight.mutateAsync({
+        pageId: selection.pageId,
+        startOffset: selection.startOffset,
+        endOffset: selection.endOffset,
+        color,
+        note: note || undefined,
+      });
+      setSelection(null);
+      window.getSelection()?.removeAllRanges();
+      toast({ title: note ? 'Note saved!' : 'Text highlighted!' });
+    } catch (error: any) {
+      toast({
+        title: 'Failed to save',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
+  };
+
   // Group pages by chapter for table of contents
   const tableOfContents = pages?.reduce((acc, page, index) => {
     const chapterId = page.chapter.id;
@@ -148,8 +260,6 @@ export function TextbookViewer({ courseId, courseName }: TextbookViewerProps) {
       </div>
     );
   }
-
-  const isBookmarked = bookmark?.page_id === pages[currentPage]?.id;
 
   return (
     <div className="flex flex-col items-center">
@@ -235,6 +345,13 @@ export function TextbookViewer({ courseId, courseName }: TextbookViewerProps) {
               </div>
             </SheetContent>
           </Sheet>
+
+          {/* Highlights Panel */}
+          <HighlightsPanel 
+            highlights={highlights} 
+            pageContents={pageContents}
+            onNavigateToPage={goToPageById}
+          />
         </div>
 
         <h2 className="text-lg font-semibold text-center flex-1">{courseName}</h2>
@@ -281,8 +398,10 @@ export function TextbookViewer({ courseId, courseName }: TextbookViewerProps) {
                 page={page}
                 pageIndex={index}
                 totalPages={pages.length}
+                highlights={highlights.filter(h => h.page_id === page.id)}
                 isBookmarked={bookmark?.page_id === page.id}
                 onBookmark={handleBookmark}
+                onTextSelect={index === currentPage ? handleTextSelect : undefined}
               />
             </PageWrapper>
           ))}
@@ -308,6 +427,29 @@ export function TextbookViewer({ courseId, courseName }: TextbookViewerProps) {
           <ChevronRight className="h-4 w-4 ml-2" />
         </Button>
       </div>
+
+      {/* Highlight Toolbar - appears on text selection */}
+      {selection && (
+        <div className="highlight-toolbar">
+          <HighlightToolbar
+            position={{
+              x: selection.rect.left + selection.rect.width / 2,
+              y: selection.rect.top - 10,
+            }}
+            onHighlight={handleHighlight}
+            onAddNote={handleAddNote}
+            onClose={() => setSelection(null)}
+          />
+        </div>
+      )}
+
+      {/* Note Dialog */}
+      <NoteDialog
+        open={noteDialogOpen}
+        onOpenChange={setNoteDialogOpen}
+        selectedText={selection?.text || ''}
+        onSave={handleSaveNote}
+      />
     </div>
   );
 }

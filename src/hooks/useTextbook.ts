@@ -259,6 +259,34 @@ export function useCreateHighlight() {
   });
 }
 
+// Update highlight (for adding/editing notes)
+export function useUpdateHighlight() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      highlightId,
+      updates,
+    }: {
+      highlightId: string;
+      updates: { note?: string | null; color?: string };
+    }) => {
+      const { data, error } = await supabase
+        .from('user_textbook_highlights')
+        .update(updates)
+        .eq('id', highlightId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['textbook-highlights'] });
+    },
+  });
+}
+
 // Delete highlight
 export function useDeleteHighlight() {
   const queryClient = useQueryClient();

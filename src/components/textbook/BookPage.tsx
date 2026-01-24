@@ -1,4 +1,4 @@
-import React, { forwardRef, useState } from 'react';
+import React, { forwardRef, useState, useRef, useEffect, useMemo } from 'react';
 import { TextbookPage, TextbookChapter, EmbeddedQuiz, TextbookHighlight } from '@/hooks/useTextbook';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -13,13 +13,22 @@ interface BookPageProps {
   highlights?: TextbookHighlight[];
   isBookmarked?: boolean;
   onBookmark?: () => void;
-  onHighlight?: (startOffset: number, endOffset: number) => void;
+  onTextSelect?: (selection: { text: string; startOffset: number; endOffset: number; rect: DOMRect }) => void;
 }
 
+const HIGHLIGHT_COLORS: Record<string, string> = {
+  yellow: 'bg-yellow-200/70',
+  green: 'bg-green-200/70',
+  blue: 'bg-blue-200/70',
+  pink: 'bg-pink-200/70',
+  purple: 'bg-purple-200/70',
+};
+
 export const BookPage = forwardRef<HTMLDivElement, BookPageProps>(
-  ({ page, pageIndex, totalPages, highlights = [], isBookmarked, onBookmark, onHighlight }, ref) => {
+  ({ page, pageIndex, totalPages, highlights = [], isBookmarked, onBookmark, onTextSelect }, ref) => {
     const [quizAnswer, setQuizAnswer] = useState<number | null>(null);
     const [showResult, setShowResult] = useState(false);
+    const contentRef = useRef<HTMLDivElement>(null);
 
     const handleQuizSubmit = () => {
       setShowResult(true);
@@ -27,31 +36,132 @@ export const BookPage = forwardRef<HTMLDivElement, BookPageProps>(
 
     const isCorrect = page.embedded_quiz && quizAnswer === page.embedded_quiz.correctAnswer;
 
-    // Apply highlights to content
-    const renderContent = () => {
-      let content = page.content;
+    // Handle text selection
+    const handleMouseUp = () => {
+      if (!onTextSelect) return;
       
-      // Simple markdown-like rendering
-      const lines = content.split('\n');
-      return lines.map((line, i) => {
-        if (line.startsWith('# ')) {
-          return <h1 key={i} className="text-2xl font-bold mb-4 text-foreground">{line.slice(2)}</h1>;
-        }
-        if (line.startsWith('## ')) {
-          return <h2 key={i} className="text-xl font-semibold mb-3 text-foreground">{line.slice(3)}</h2>;
-        }
-        if (line.startsWith('### ')) {
-          return <h3 key={i} className="text-lg font-medium mb-2 text-foreground">{line.slice(4)}</h3>;
-        }
-        if (line.startsWith('- ')) {
-          return <li key={i} className="ml-4 mb-1 text-foreground/90">{line.slice(2)}</li>;
-        }
-        if (line.trim() === '') {
-          return <br key={i} />;
-        }
-        return <p key={i} className="mb-2 text-foreground/90 leading-relaxed">{line}</p>;
+      const selection = window.getSelection();
+      if (!selection || selection.isCollapsed) return;
+
+      const selectedText = selection.toString().trim();
+      if (!selectedText || selectedText.length < 3) return;
+
+      // Get range and check if it's within our content
+      const range = selection.getRangeAt(0);
+      if (!contentRef.current?.contains(range.commonAncestorContainer)) return;
+
+      // Calculate offset within content
+      const contentText = page.content;
+      const startOffset = contentText.indexOf(selectedText);
+      
+      if (startOffset === -1) return;
+      
+      const endOffset = startOffset + selectedText.length;
+      const rect = range.getBoundingClientRect();
+
+      onTextSelect({
+        text: selectedText,
+        startOffset,
+        endOffset,
+        rect,
       });
     };
+
+    // Apply highlights to content - memoized for performance
+    const renderedContent = useMemo(() => {
+      const content = page.content;
+      
+      // Sort highlights by start offset
+      const sortedHighlights = [...highlights].sort((a, b) => a.start_offset - b.start_offset);
+      
+      // Build segments with highlights
+      const segments: { text: string; highlight?: TextbookHighlight }[] = [];
+      let lastEnd = 0;
+
+      for (const hl of sortedHighlights) {
+        if (hl.start_offset > lastEnd) {
+          segments.push({ text: content.substring(lastEnd, hl.start_offset) });
+        }
+        segments.push({ 
+          text: content.substring(hl.start_offset, hl.end_offset), 
+          highlight: hl 
+        });
+        lastEnd = hl.end_offset;
+      }
+
+      if (lastEnd < content.length) {
+        segments.push({ text: content.substring(lastEnd) });
+      }
+
+      if (segments.length === 0) {
+        segments.push({ text: content });
+      }
+
+      // Render segments
+      return segments.map((segment, segIdx) => {
+        const lines = segment.text.split('\n');
+        
+        return lines.map((line, lineIdx) => {
+          const key = `${segIdx}-${lineIdx}`;
+          const hlClass = segment.highlight ? HIGHLIGHT_COLORS[segment.highlight.color] || HIGHLIGHT_COLORS.yellow : '';
+          const hasNote = segment.highlight?.note;
+          
+          const wrapWithHighlight = (content: React.ReactNode) => {
+            if (!segment.highlight) return content;
+            return (
+              <span 
+                className={cn(
+                  "rounded px-0.5 transition-colors",
+                  hlClass,
+                  hasNote && "border-b-2 border-current cursor-help"
+                )}
+                title={hasNote ? `Note: ${segment.highlight.note}` : undefined}
+              >
+                {content}
+              </span>
+            );
+          };
+
+          // Handle different markdown-like elements
+          if (line.startsWith('# ')) {
+            return (
+              <h1 key={key} className="text-2xl font-bold mb-4 text-foreground">
+                {wrapWithHighlight(line.slice(2))}
+              </h1>
+            );
+          }
+          if (line.startsWith('## ')) {
+            return (
+              <h2 key={key} className="text-xl font-semibold mb-3 text-foreground">
+                {wrapWithHighlight(line.slice(3))}
+              </h2>
+            );
+          }
+          if (line.startsWith('### ')) {
+            return (
+              <h3 key={key} className="text-lg font-medium mb-2 text-foreground">
+                {wrapWithHighlight(line.slice(4))}
+              </h3>
+            );
+          }
+          if (line.startsWith('- ')) {
+            return (
+              <li key={key} className="ml-4 mb-1 text-foreground/90">
+                {wrapWithHighlight(line.slice(2))}
+              </li>
+            );
+          }
+          if (line.trim() === '') {
+            return <br key={key} />;
+          }
+          return (
+            <p key={key} className="mb-2 text-foreground/90 leading-relaxed">
+              {wrapWithHighlight(line)}
+            </p>
+          );
+        });
+      });
+    }, [page.content, highlights]);
 
     return (
       <div
@@ -85,8 +195,12 @@ export const BookPage = forwardRef<HTMLDivElement, BookPageProps>(
         </div>
 
         {/* Page content */}
-        <div className="flex-1 overflow-auto prose prose-sm dark:prose-invert max-w-none">
-          {renderContent()}
+        <div 
+          ref={contentRef}
+          className="flex-1 overflow-auto prose prose-sm dark:prose-invert max-w-none select-text"
+          onMouseUp={handleMouseUp}
+        >
+          {renderedContent}
 
           {/* Embedded Quiz */}
           {page.embedded_quiz && (
