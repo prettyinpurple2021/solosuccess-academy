@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTheme } from 'next-themes';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { useAuth } from '@/hooks/useAuth';
+import { useProfile, useUpdateNotificationPreferences } from '@/hooks/useProfile';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { 
@@ -25,14 +26,11 @@ import {
 
 export default function Settings() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { data: profile, isLoading: profileLoading } = useProfile(user?.id);
   const { theme, setTheme } = useTheme();
   const { toast } = useToast();
   const [isResettingPassword, setIsResettingPassword] = useState(false);
-  
-  // Local state for notification preferences (UI only for now)
-  const [emailNotifications, setEmailNotifications] = useState(true);
-  const [courseUpdates, setCourseUpdates] = useState(true);
-  const [discussionReplies, setDiscussionReplies] = useState(true);
+  const updateNotifications = useUpdateNotificationPreferences();
 
   const handlePasswordReset = async () => {
     if (!user?.email) return;
@@ -60,6 +58,27 @@ export default function Settings() {
     }
   };
 
+  const handleNotificationChange = async (
+    field: 'emailNotifications' | 'courseUpdates' | 'discussionReplies',
+    value: boolean
+  ) => {
+    if (!user?.id) return;
+    
+    try {
+      await updateNotifications.mutateAsync({
+        userId: user.id,
+        [field]: value,
+      });
+      toast({ title: 'Preferences saved' });
+    } catch (error: any) {
+      toast({
+        title: 'Failed to save',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
+  };
+
   // Auth check
   if (!isAuthenticated && !authLoading) {
     return (
@@ -81,7 +100,7 @@ export default function Settings() {
   }
 
   // Loading
-  if (authLoading) {
+  if (authLoading || profileLoading) {
     return (
       <div className="min-h-screen flex flex-col">
         <Header />
@@ -173,8 +192,9 @@ export default function Settings() {
                   </div>
                   <Switch
                     id="email-notifications"
-                    checked={emailNotifications}
-                    onCheckedChange={setEmailNotifications}
+                    checked={profile?.email_notifications ?? true}
+                    onCheckedChange={(checked) => handleNotificationChange('emailNotifications', checked)}
+                    disabled={updateNotifications.isPending}
                   />
                 </div>
 
@@ -189,8 +209,9 @@ export default function Settings() {
                   </div>
                   <Switch
                     id="course-updates"
-                    checked={courseUpdates}
-                    onCheckedChange={setCourseUpdates}
+                    checked={profile?.course_updates ?? true}
+                    onCheckedChange={(checked) => handleNotificationChange('courseUpdates', checked)}
+                    disabled={updateNotifications.isPending}
                   />
                 </div>
 
@@ -205,8 +226,9 @@ export default function Settings() {
                   </div>
                   <Switch
                     id="discussion-replies"
-                    checked={discussionReplies}
-                    onCheckedChange={setDiscussionReplies}
+                    checked={profile?.discussion_replies ?? true}
+                    onCheckedChange={(checked) => handleNotificationChange('discussionReplies', checked)}
+                    disabled={updateNotifications.isPending}
                   />
                 </div>
               </CardContent>
