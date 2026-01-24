@@ -223,9 +223,9 @@ export default function AdminDashboard() {
                         className="glass-card border-primary/20 hover:border-primary/40 transition-all group"
                       >
                         <div className="p-4">
-                          <div className="flex items-center gap-4">
+                          <div className="flex flex-col lg:flex-row lg:items-center gap-4">
                             <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-1">
+                              <div className="flex flex-wrap items-center gap-2 mb-1">
                                 <h3 className="font-semibold truncate group-hover:text-primary transition-colors">{course.title}</h3>
                                 <Badge 
                                   variant={course.is_published ? 'default' : 'secondary'}
@@ -249,7 +249,7 @@ export default function AdminDashboard() {
                               </p>
                             </div>
 
-                            <div className="flex items-center gap-2">
+                            <div className="flex flex-wrap items-center gap-2 shrink-0">
                               <Button
                                 variant="outline"
                                 size="sm"
