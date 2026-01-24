@@ -14,10 +14,10 @@ export default function Textbook() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col cyber-bg">
         <Header />
         <main className="flex-1 flex items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent shadow-[0_0_20px_rgba(168,85,247,0.6)]" />
         </main>
         <Footer />
       </div>
@@ -26,16 +26,18 @@ export default function Textbook() {
 
   if (!course) {
     return (
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col cyber-bg">
         <Header />
         <main className="flex-1 flex flex-col items-center justify-center">
-          <h1 className="text-2xl font-bold mb-4">Course not found</h1>
-          <Button asChild>
-            <Link to="/courses">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Courses
-            </Link>
-          </Button>
+          <div className="glass-card p-8 text-center max-w-md">
+            <h1 className="text-2xl font-display font-bold mb-4 neon-text">Course not found</h1>
+            <Button asChild variant="neon">
+              <Link to="/courses">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Courses
+              </Link>
+            </Button>
+          </div>
         </main>
         <Footer />
       </div>
@@ -43,14 +45,14 @@ export default function Textbook() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-amber-50/50 to-background dark:from-stone-900/50">
+    <div className="min-h-screen flex flex-col cyber-bg">
       <Header />
 
       <main className="flex-1 py-8">
         <div className="container">
           {/* Back Link */}
           <div className="mb-6">
-            <Button variant="ghost" asChild>
+            <Button variant="ghost" asChild className="hover:bg-primary/20 hover:text-primary">
               <Link to={`/courses/${courseId}`}>
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back to Course

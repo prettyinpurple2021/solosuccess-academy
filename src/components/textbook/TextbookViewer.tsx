@@ -245,16 +245,18 @@ export function TextbookViewer({ courseId, courseName }: TextbookViewerProps) {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-[600px]">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent shadow-[0_0_20px_rgba(168,85,247,0.6)]" />
       </div>
     );
   }
 
   if (!pages?.length) {
     return (
-      <div className="flex flex-col items-center justify-center h-[600px] text-center">
-        <BookOpen className="h-16 w-16 text-muted-foreground mb-4" />
-        <h3 className="text-xl font-semibold mb-2">No content yet</h3>
+      <div className="glass-card flex flex-col items-center justify-center h-[600px] text-center">
+        <div className="h-20 w-20 rounded-full bg-primary/20 flex items-center justify-center mb-4 shadow-[0_0_30px_rgba(168,85,247,0.4)]">
+          <BookOpen className="h-10 w-10 text-primary" />
+        </div>
+        <h3 className="text-xl font-display font-semibold mb-2 neon-text">No content yet</h3>
         <p className="text-muted-foreground">
           This textbook doesn't have any pages yet.
         </p>
@@ -265,30 +267,30 @@ export function TextbookViewer({ courseId, courseName }: TextbookViewerProps) {
   return (
     <div className="flex flex-col items-center">
       {/* Toolbar */}
-      <div className="w-full max-w-4xl flex items-center justify-between gap-4 mb-6 px-4">
+      <div className="w-full max-w-4xl glass-card p-4 mb-6 flex items-center justify-between gap-4">
         <div className="flex items-center gap-2">
           {/* Table of Contents */}
           <Sheet>
             <SheetTrigger asChild>
-              <Button variant="outline" size="icon">
+              <Button variant="outline" size="icon" className="border-primary/30 hover:bg-primary/20 hover:border-primary">
                 <List className="h-4 w-4" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="left">
+            <SheetContent side="left" className="bg-black/95 backdrop-blur-xl border-r border-primary/30">
               <SheetHeader>
-                <SheetTitle>Table of Contents</SheetTitle>
+                <SheetTitle className="font-display text-cyan-300">Table of Contents</SheetTitle>
               </SheetHeader>
               <ScrollArea className="h-[calc(100vh-100px)] mt-4">
-                <div className="space-y-4">
+                <div className="space-y-2">
                   {tableOfContents && Object.values(tableOfContents).map(({ chapter, firstPageIndex }) => (
                     <button
                       key={chapter.id}
                       onClick={() => goToPage(firstPageIndex)}
-                      className="block w-full text-left p-3 rounded-lg hover:bg-muted transition-colors"
+                      className="block w-full text-left p-3 rounded-lg hover:bg-primary/20 transition-all border border-transparent hover:border-primary/30"
                     >
-                      <span className="font-medium">{chapter.title}</span>
+                      <span className="font-medium text-foreground">{chapter.title}</span>
                       {chapter.is_preview && (
-                        <span className="ml-2 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">
+                        <span className="ml-2 text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded border border-green-500/30">
                           Preview
                         </span>
                       )}
@@ -302,13 +304,13 @@ export function TextbookViewer({ courseId, courseName }: TextbookViewerProps) {
           {/* Search */}
           <Sheet open={isSearching} onOpenChange={setIsSearching}>
             <SheetTrigger asChild>
-              <Button variant="outline" size="icon">
+              <Button variant="outline" size="icon" className="border-primary/30 hover:bg-primary/20 hover:border-primary">
                 <Search className="h-4 w-4" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="right">
+            <SheetContent side="right" className="bg-black/95 backdrop-blur-xl border-l border-primary/30">
               <SheetHeader>
-                <SheetTitle>Search Textbook</SheetTitle>
+                <SheetTitle className="font-display text-cyan-300">Search Textbook</SheetTitle>
               </SheetHeader>
               <div className="mt-4 space-y-4">
                 <div className="flex gap-2">
@@ -317,8 +319,9 @@ export function TextbookViewer({ courseId, courseName }: TextbookViewerProps) {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                    className="bg-black/30 border-primary/30 focus:border-primary"
                   />
-                  <Button onClick={handleSearch}>
+                  <Button onClick={handleSearch} variant="neon" size="icon">
                     <Search className="h-4 w-4" />
                   </Button>
                 </div>
@@ -328,9 +331,9 @@ export function TextbookViewer({ courseId, courseName }: TextbookViewerProps) {
                       <button
                         key={result.id}
                         onClick={() => handleSearchResultClick(result)}
-                        className="block w-full text-left p-3 rounded-lg hover:bg-muted transition-colors"
+                        className="block w-full text-left p-3 rounded-lg hover:bg-primary/20 transition-all border border-transparent hover:border-primary/30"
                       >
-                        <span className="text-sm font-medium">{result.chapter.title}</span>
+                        <span className="text-sm font-medium text-cyan-300">{result.chapter.title}</span>
                         <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
                           {result.content.substring(0, 150)}...
                         </p>
@@ -362,11 +365,11 @@ export function TextbookViewer({ courseId, courseName }: TextbookViewerProps) {
           />
         </div>
 
-        <h2 className="text-lg font-semibold text-center flex-1">{courseName}</h2>
+        <h2 className="text-lg font-display font-semibold text-center flex-1 neon-text">{courseName}</h2>
 
         <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">
-            Page {currentPage + 1} of {pages.length}
+          <span className="text-sm text-cyan-300">
+            Page <span className="text-primary font-bold">{currentPage + 1}</span> of {pages.length}
           </span>
         </div>
       </div>
@@ -385,7 +388,7 @@ export function TextbookViewer({ courseId, courseName }: TextbookViewerProps) {
           showCover={false}
           mobileScrollSupport={true}
           onFlip={handleFlip}
-          className="mx-auto shadow-2xl"
+          className="mx-auto shadow-[0_0_60px_rgba(168,85,247,0.3)]"
           style={{}}
           startPage={0}
           drawShadow={true}
@@ -422,6 +425,7 @@ export function TextbookViewer({ courseId, courseName }: TextbookViewerProps) {
           variant="outline"
           onClick={goToPrev}
           disabled={currentPage === 0}
+          className="border-primary/30 hover:bg-primary/20 hover:border-primary disabled:opacity-30"
         >
           <ChevronLeft className="h-4 w-4 mr-2" />
           Previous
@@ -430,6 +434,7 @@ export function TextbookViewer({ courseId, courseName }: TextbookViewerProps) {
           variant="outline"
           onClick={goToNext}
           disabled={currentPage >= pages.length - 1}
+          className="border-primary/30 hover:bg-primary/20 hover:border-primary disabled:opacity-30"
         >
           Next
           <ChevronRight className="h-4 w-4 ml-2" />
