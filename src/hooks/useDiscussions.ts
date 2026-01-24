@@ -41,20 +41,28 @@ export function useCourseDiscussions(courseId: string | undefined) {
       // Get discussions
       const { data: discussions, error } = await supabase
         .from('discussions')
-        .select(`
-          *,
-          profiles (display_name, avatar_url)
-        `)
+        .select('*')
         .eq('course_id', courseId)
         .order('is_pinned', { ascending: false })
         .order('created_at', { ascending: false });
 
       if (error) throw error;
+      if (!discussions || discussions.length === 0) return [];
+
+      // Get unique user IDs and fetch profiles
+      const userIds = [...new Set(discussions.map(d => d.user_id))];
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, display_name, avatar_url')
+        .in('id', userIds);
+
+      const profileMap: Record<string, { display_name: string | null; avatar_url: string | null }> = {};
+      profiles?.forEach(p => {
+        profileMap[p.id] = { display_name: p.display_name, avatar_url: p.avatar_url };
+      });
 
       // Get comment counts
-      const discussionIds = discussions?.map(d => d.id) || [];
-      if (discussionIds.length === 0) return discussions as Discussion[];
-
+      const discussionIds = discussions.map(d => d.id);
       const { data: commentCounts, error: countError } = await supabase
         .from('discussion_comments')
         .select('discussion_id')
@@ -68,10 +76,11 @@ export function useCourseDiscussions(courseId: string | undefined) {
         counts[c.discussion_id] = (counts[c.discussion_id] || 0) + 1;
       });
 
-      return discussions?.map(d => ({
+      return discussions.map(d => ({
         ...d,
+        profiles: profileMap[d.user_id] || { display_name: null, avatar_url: null },
         comment_count: counts[d.id] || 0,
-      })) as Discussion[];
+      }));
     },
     enabled: !!courseId,
   });
@@ -81,20 +90,29 @@ export function useCourseDiscussions(courseId: string | undefined) {
 export function useDiscussion(discussionId: string | undefined) {
   return useQuery({
     queryKey: ['discussion', discussionId],
-    queryFn: async () => {
+    queryFn: async (): Promise<Discussion | null> => {
       if (!discussionId) return null;
 
       const { data, error } = await supabase
         .from('discussions')
-        .select(`
-          *,
-          profiles (display_name, avatar_url)
-        `)
+        .select('*')
         .eq('id', discussionId)
         .single();
 
       if (error) throw error;
-      return data as Discussion;
+      if (!data) return null;
+
+      // Fetch profile separately
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('display_name, avatar_url')
+        .eq('id', data.user_id)
+        .single();
+
+      return {
+        ...data,
+        profiles: profile || { display_name: null, avatar_url: null },
+      };
     },
     enabled: !!discussionId,
   });
@@ -109,15 +127,29 @@ export function useDiscussionComments(discussionId: string | undefined) {
 
       const { data, error } = await supabase
         .from('discussion_comments')
-        .select(`
-          *,
-          profiles (display_name, avatar_url)
-        `)
+        .select('*')
         .eq('discussion_id', discussionId)
         .order('created_at', { ascending: true });
 
       if (error) throw error;
-      return data as DiscussionComment[];
+      if (!data || data.length === 0) return [];
+
+      // Fetch profiles separately
+      const userIds = [...new Set(data.map(c => c.user_id))];
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, display_name, avatar_url')
+        .in('id', userIds);
+
+      const profileMap: Record<string, { display_name: string | null; avatar_url: string | null }> = {};
+      profiles?.forEach(p => {
+        profileMap[p.id] = { display_name: p.display_name, avatar_url: p.avatar_url };
+      });
+
+      return data.map(c => ({
+        ...c,
+        profiles: profileMap[c.user_id] || { display_name: null, avatar_url: null },
+      }));
     },
     enabled: !!discussionId,
   });
