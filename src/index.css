@@ -2,95 +2,145 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
+/* SoloSuccess Academy - Cyberpunk Design System
+   All colors MUST be HSL.
 */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Light mode - clean tech aesthetic */
+    --background: 220 20% 97%;
+    --foreground: 240 10% 10%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 240 10% 10%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 240 10% 10%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Neon Purple as primary */
+    --primary: 270 70% 55%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Cyan as secondary */
+    --secondary: 185 80% 45%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 220 15% 92%;
+    --muted-foreground: 220 10% 45%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    /* Accent for highlights */
+    --accent: 320 80% 55%;
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 220 15% 88%;
+    --input: 220 15% 92%;
+    --ring: 270 70% 55%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
 
+    /* Custom semantic colors */
+    --success: 142 70% 45%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 10%;
+    --info: 200 90% 50%;
+    --info-foreground: 0 0% 100%;
+
+    /* Phase colors */
+    --phase-initialization: 270 70% 55%;
+    --phase-orchestration: 185 80% 45%;
+    --phase-launch: 320 80% 55%;
+
+    /* Neon glow colors */
+    --glow-purple: 270 100% 65%;
+    --glow-cyan: 185 100% 55%;
+    --glow-pink: 320 100% 65%;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(270 70% 55%), hsl(320 80% 55%));
+    --gradient-secondary: linear-gradient(135deg, hsl(185 80% 45%), hsl(200 90% 50%));
+    --gradient-dark: linear-gradient(135deg, hsl(240 15% 10%), hsl(260 20% 15%));
+
+    /* Sidebar - keep consistent */
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
+    --sidebar-primary: 270 70% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 270 50% 95%;
+    --sidebar-accent-foreground: 270 70% 35%;
     --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-ring: 270 70% 55%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
+    /* Dark mode - true cyberpunk aesthetic */
+    --background: 240 15% 6%;
     --foreground: 210 40% 98%;
 
-    --card: 222.2 84% 4.9%;
+    --card: 240 15% 10%;
     --card-foreground: 210 40% 98%;
 
-    --popover: 222.2 84% 4.9%;
+    --popover: 240 15% 10%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    /* Neon Purple primary */
+    --primary: 270 100% 70%;
+    --primary-foreground: 240 15% 6%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    /* Neon Cyan secondary */
+    --secondary: 185 100% 55%;
+    --secondary-foreground: 240 15% 6%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 240 10% 18%;
+    --muted-foreground: 220 15% 65%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    /* Neon Pink accent */
+    --accent: 320 100% 65%;
+    --accent-foreground: 240 15% 6%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 72% 55%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --border: 240 10% 20%;
+    --input: 240 10% 18%;
+    --ring: 270 100% 70%;
+
+    /* Custom semantic colors */
+    --success: 142 80% 50%;
+    --success-foreground: 0 0% 10%;
+    --warning: 38 100% 55%;
+    --warning-foreground: 0 0% 10%;
+    --info: 200 100% 55%;
+    --info-foreground: 0 0% 10%;
+
+    /* Phase colors - more vibrant in dark mode */
+    --phase-initialization: 270 100% 70%;
+    --phase-orchestration: 185 100% 55%;
+    --phase-launch: 320 100% 65%;
+
+    /* Neon glow colors */
+    --glow-purple: 270 100% 70%;
+    --glow-cyan: 185 100% 60%;
+    --glow-pink: 320 100% 70%;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(270 100% 70%), hsl(320 100% 65%));
+    --gradient-secondary: linear-gradient(135deg, hsl(185 100% 55%), hsl(200 100% 60%));
+    --gradient-dark: linear-gradient(135deg, hsl(240 15% 6%), hsl(260 20% 10%));
+
+    /* Sidebar */
+    --sidebar-background: 240 15% 8%;
+    --sidebar-foreground: 210 40% 95%;
+    --sidebar-primary: 270 100% 70%;
+    --sidebar-primary-foreground: 240 15% 6%;
+    --sidebar-accent: 240 10% 15%;
+    --sidebar-accent-foreground: 270 100% 70%;
+    --sidebar-border: 240 10% 18%;
+    --sidebar-ring: 270 100% 70%;
   }
 }
 
@@ -100,6 +150,137 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@layer components {
+  /* Neon text glow effect */
+  .neon-text {
+    text-shadow: 
+      0 0 5px hsl(var(--glow-purple) / 0.5),
+      0 0 20px hsl(var(--glow-purple) / 0.3),
+      0 0 40px hsl(var(--glow-purple) / 0.2);
+  }
+
+  .neon-text-cyan {
+    text-shadow: 
+      0 0 5px hsl(var(--glow-cyan) / 0.5),
+      0 0 20px hsl(var(--glow-cyan) / 0.3),
+      0 0 40px hsl(var(--glow-cyan) / 0.2);
+  }
+
+  .neon-text-pink {
+    text-shadow: 
+      0 0 5px hsl(var(--glow-pink) / 0.5),
+      0 0 20px hsl(var(--glow-pink) / 0.3),
+      0 0 40px hsl(var(--glow-pink) / 0.2);
+  }
+
+  /* Neon border glow */
+  .neon-border {
+    box-shadow: 
+      0 0 5px hsl(var(--glow-purple) / 0.4),
+      0 0 20px hsl(var(--glow-purple) / 0.2),
+      inset 0 0 10px hsl(var(--glow-purple) / 0.1);
+  }
+
+  .neon-border-cyan {
+    box-shadow: 
+      0 0 5px hsl(var(--glow-cyan) / 0.4),
+      0 0 20px hsl(var(--glow-cyan) / 0.2),
+      inset 0 0 10px hsl(var(--glow-cyan) / 0.1);
+  }
+
+  /* Glass morphism effect */
+  .glass {
+    background: hsl(var(--card) / 0.7);
+    backdrop-filter: blur(12px);
+    border: 1px solid hsl(var(--border) / 0.5);
+  }
+
+  /* Gradient backgrounds */
+  .gradient-primary {
+    background: var(--gradient-primary);
+  }
+
+  .gradient-secondary {
+    background: var(--gradient-secondary);
+  }
+
+  .gradient-dark {
+    background: var(--gradient-dark);
+  }
+
+  /* Phase badges */
+  .phase-initialization {
+    background: hsl(var(--phase-initialization) / 0.15);
+    color: hsl(var(--phase-initialization));
+    border: 1px solid hsl(var(--phase-initialization) / 0.3);
+  }
+
+  .phase-orchestration {
+    background: hsl(var(--phase-orchestration) / 0.15);
+    color: hsl(var(--phase-orchestration));
+    border: 1px solid hsl(var(--phase-orchestration) / 0.3);
+  }
+
+  .phase-launch {
+    background: hsl(var(--phase-launch) / 0.15);
+    color: hsl(var(--phase-launch));
+    border: 1px solid hsl(var(--phase-launch) / 0.3);
+  }
+
+  /* Grid pattern background */
+  .grid-pattern {
+    background-image: 
+      linear-gradient(hsl(var(--border) / 0.3) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--border) / 0.3) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+}
+
+@layer utilities {
+  /* Animation utilities */
+  .animate-glow {
+    animation: glow 2s ease-in-out infinite alternate;
+  }
+
+  @keyframes glow {
+    from {
+      box-shadow: 
+        0 0 5px hsl(var(--glow-purple) / 0.4),
+        0 0 20px hsl(var(--glow-purple) / 0.2);
+    }
+    to {
+      box-shadow: 
+        0 0 10px hsl(var(--glow-purple) / 0.6),
+        0 0 40px hsl(var(--glow-purple) / 0.4);
+    }
+  }
+
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+
+  /* Gradient text */
+  .text-gradient {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .text-gradient-cyan {
+    background: var(--gradient-secondary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 }
