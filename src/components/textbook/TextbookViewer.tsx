@@ -17,6 +17,7 @@ import {
 import { BookPage } from './BookPage';
 import { HighlightToolbar } from './HighlightToolbar';
 import { HighlightsPanel } from './HighlightsPanel';
+import { FlashcardsPanel } from './FlashcardsPanel';
 import { NoteDialog } from './NoteDialog';
 import { 
   ChevronLeft, 
@@ -351,6 +352,13 @@ export function TextbookViewer({ courseId, courseName }: TextbookViewerProps) {
             highlights={highlights} 
             pageContents={pageContents}
             onNavigateToPage={goToPageById}
+          />
+
+          {/* Flashcards Panel */}
+          <FlashcardsPanel
+            courseId={courseId}
+            highlights={highlights}
+            pageContents={pageContents}
           />
         </div>
 

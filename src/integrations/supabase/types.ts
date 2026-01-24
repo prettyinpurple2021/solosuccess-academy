@@ -494,6 +494,62 @@ export type Database = {
           },
         ]
       }
+      user_flashcards: {
+        Row: {
+          back_text: string
+          course_id: string
+          created_at: string
+          ease_factor: number
+          front_text: string
+          highlight_id: string | null
+          id: string
+          interval_days: number
+          last_reviewed_at: string | null
+          next_review_at: string
+          repetitions: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          back_text: string
+          course_id: string
+          created_at?: string
+          ease_factor?: number
+          front_text: string
+          highlight_id?: string | null
+          id?: string
+          interval_days?: number
+          last_reviewed_at?: string | null
+          next_review_at?: string
+          repetitions?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          back_text?: string
+          course_id?: string
+          created_at?: string
+          ease_factor?: number
+          front_text?: string
+          highlight_id?: string | null
+          id?: string
+          interval_days?: number
+          last_reviewed_at?: string | null
+          next_review_at?: string
+          repetitions?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_flashcards_highlight_id_fkey"
+            columns: ["highlight_id"]
+            isOneToOne: false
+            referencedRelation: "user_textbook_highlights"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_progress: {
         Row: {
           completed: boolean
