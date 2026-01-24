@@ -408,6 +408,92 @@ export type Database = {
           },
         ]
       }
+      textbook_chapters: {
+        Row: {
+          course_id: string
+          created_at: string
+          id: string
+          is_preview: boolean
+          lesson_id: string | null
+          order_number: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          course_id: string
+          created_at?: string
+          id?: string
+          is_preview?: boolean
+          lesson_id?: string | null
+          order_number: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          course_id?: string
+          created_at?: string
+          id?: string
+          is_preview?: boolean
+          lesson_id?: string | null
+          order_number?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "textbook_chapters_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "textbook_chapters_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      textbook_pages: {
+        Row: {
+          chapter_id: string
+          content: string
+          created_at: string
+          embedded_quiz: Json | null
+          id: string
+          page_number: number
+          updated_at: string
+        }
+        Insert: {
+          chapter_id: string
+          content?: string
+          created_at?: string
+          embedded_quiz?: Json | null
+          id?: string
+          page_number: number
+          updated_at?: string
+        }
+        Update: {
+          chapter_id?: string
+          content?: string
+          created_at?: string
+          embedded_quiz?: Json | null
+          id?: string
+          page_number?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "textbook_pages_chapter_id_fkey"
+            columns: ["chapter_id"]
+            isOneToOne: false
+            referencedRelation: "textbook_chapters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_progress: {
         Row: {
           completed: boolean
@@ -469,6 +555,96 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_textbook_bookmarks: {
+        Row: {
+          chapter_id: string
+          course_id: string
+          id: string
+          page_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          chapter_id: string
+          course_id: string
+          id?: string
+          page_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          chapter_id?: string
+          course_id?: string
+          id?: string
+          page_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_textbook_bookmarks_chapter_id_fkey"
+            columns: ["chapter_id"]
+            isOneToOne: false
+            referencedRelation: "textbook_chapters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_textbook_bookmarks_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_textbook_bookmarks_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: false
+            referencedRelation: "textbook_pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_textbook_highlights: {
+        Row: {
+          color: string
+          created_at: string
+          end_offset: number
+          id: string
+          note: string | null
+          page_id: string
+          start_offset: number
+          user_id: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          end_offset: number
+          id?: string
+          note?: string | null
+          page_id: string
+          start_offset: number
+          user_id: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          end_offset?: number
+          id?: string
+          note?: string | null
+          page_id?: string
+          start_offset?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_textbook_highlights_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: false
+            referencedRelation: "textbook_pages"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

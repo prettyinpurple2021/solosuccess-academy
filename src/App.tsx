@@ -16,6 +16,7 @@ import DiscussionDetail from "./pages/DiscussionDetail";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 import AdminDashboard from "./pages/AdminDashboard";
+import Textbook from "./pages/Textbook";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -47,6 +48,7 @@ const App = () => (
             <Route path="/courses/:courseId/project" element={<CourseProject />} />
             <Route path="/courses/:courseId/discussions" element={<CourseDiscussions />} />
             <Route path="/courses/:courseId/discussions/:discussionId" element={<DiscussionDetail />} />
+            <Route path="/courses/:courseId/textbook" element={<Textbook />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

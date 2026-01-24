@@ -17,6 +17,7 @@ import {
   ArrowLeft, 
   ArrowRight,
   BookOpen, 
+  BookText,
   CheckCircle2, 
   Clock, 
   Download,
@@ -336,6 +337,26 @@ export default function CourseDetail() {
 
               {/* Sidebar */}
               <div className="space-y-6">
+                {/* Textbook Card */}
+                <Card className="border-amber-500/20 bg-amber-500/5">
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <BookText className="h-5 w-5 text-amber-600" />
+                      Interactive Textbook
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Read the course material in our interactive textbook format with page-turning animations.
+                    </p>
+                    <Button variant="outline" className="w-full" asChild>
+                      <Link to={`/courses/${course.id}/textbook`}>
+                        <BookText className="mr-2 h-4 w-4" />
+                        Open Textbook
+                      </Link>
+                    </Button>
+                  </CardContent>
+                </Card>
                 {/* Project Card */}
                 {course.project_title && (
                   <Card className="border-accent/20 bg-accent/5">
