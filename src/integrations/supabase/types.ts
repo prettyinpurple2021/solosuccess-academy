@@ -277,40 +277,49 @@ export type Database = {
       }
       lessons: {
         Row: {
+          activity_data: Json | null
           content: string | null
           course_id: string
           created_at: string
           duration_minutes: number | null
           id: string
           order_number: number
+          quiz_data: Json | null
           title: string
           type: Database["public"]["Enums"]["lesson_type"]
           updated_at: string
           video_url: string | null
+          worksheet_data: Json | null
         }
         Insert: {
+          activity_data?: Json | null
           content?: string | null
           course_id: string
           created_at?: string
           duration_minutes?: number | null
           id?: string
           order_number: number
+          quiz_data?: Json | null
           title: string
           type?: Database["public"]["Enums"]["lesson_type"]
           updated_at?: string
           video_url?: string | null
+          worksheet_data?: Json | null
         }
         Update: {
+          activity_data?: Json | null
           content?: string | null
           course_id?: string
           created_at?: string
           duration_minutes?: number | null
           id?: string
           order_number?: number
+          quiz_data?: Json | null
           title?: string
           type?: Database["public"]["Enums"]["lesson_type"]
           updated_at?: string
           video_url?: string | null
+          worksheet_data?: Json | null
         }
         Relationships: [
           {
@@ -478,7 +487,13 @@ export type Database = {
     Enums: {
       app_role: "admin" | "student"
       course_phase: "initialization" | "orchestration" | "launch"
-      lesson_type: "text" | "video" | "quiz" | "assignment"
+      lesson_type:
+        | "text"
+        | "video"
+        | "quiz"
+        | "assignment"
+        | "worksheet"
+        | "activity"
       project_status: "draft" | "submitted" | "reviewed"
     }
     CompositeTypes: {
@@ -609,7 +624,14 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "student"],
       course_phase: ["initialization", "orchestration", "launch"],
-      lesson_type: ["text", "video", "quiz", "assignment"],
+      lesson_type: [
+        "text",
+        "video",
+        "quiz",
+        "assignment",
+        "worksheet",
+        "activity",
+      ],
       project_status: ["draft", "submitted", "reviewed"],
     },
   },

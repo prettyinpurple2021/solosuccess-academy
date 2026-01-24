@@ -1,6 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
+import { useIsAdmin } from '@/hooks/useAdmin';
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -9,10 +10,11 @@ import {
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { User, LogOut, BookOpen, LayoutDashboard, Settings } from 'lucide-react';
+import { User, LogOut, BookOpen, LayoutDashboard, Settings, Shield } from 'lucide-react';
 
 export function Header() {
   const { user, profile, isAuthenticated, signOut } = useAuth();
+  const { data: isAdmin } = useIsAdmin(user?.id);
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
@@ -63,6 +65,14 @@ export function Header() {
               Dashboard
             </Link>
           )}
+          {isAdmin && (
+            <Link 
+              to="/admin" 
+              className="text-sm font-medium text-primary hover:text-primary/80 transition-colors"
+            >
+              Admin
+            </Link>
+          )}
         </nav>
 
         {/* Auth Section */}
@@ -111,6 +121,17 @@ export function Header() {
                     Settings
                   </Link>
                 </DropdownMenuItem>
+                {isAdmin && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin" className="cursor-pointer text-primary">
+                        <Shield className="mr-2 h-4 w-4" />
+                        Admin Dashboard
+                      </Link>
+                    </DropdownMenuItem>
+                  </>
+                )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer text-destructive">
                   <LogOut className="mr-2 h-4 w-4" />
