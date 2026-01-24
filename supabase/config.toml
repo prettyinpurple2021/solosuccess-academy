@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.ai-tutor]
 verify_jwt = false
+
+[functions.project-feedback]
+verify_jwt = false
