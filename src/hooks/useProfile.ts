@@ -6,6 +6,9 @@ export interface Profile {
   display_name: string | null;
   avatar_url: string | null;
   bio: string | null;
+  email_notifications: boolean;
+  course_updates: boolean;
+  discussion_replies: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -103,6 +106,43 @@ export function useUpdateAvatar() {
       const { data, error } = await supabase
         .from('profiles')
         .update({ avatar_url: avatarUrl })
+        .eq('id', userId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['profile', variables.userId] });
+    },
+  });
+}
+
+// Update notification preferences
+export function useUpdateNotificationPreferences() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      userId,
+      emailNotifications,
+      courseUpdates,
+      discussionReplies,
+    }: {
+      userId: string;
+      emailNotifications?: boolean;
+      courseUpdates?: boolean;
+      discussionReplies?: boolean;
+    }) => {
+      const updates: Record<string, boolean> = {};
+      if (emailNotifications !== undefined) updates.email_notifications = emailNotifications;
+      if (courseUpdates !== undefined) updates.course_updates = courseUpdates;
+      if (discussionReplies !== undefined) updates.discussion_replies = discussionReplies;
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .update(updates)
         .eq('id', userId)
         .select()
         .single();
