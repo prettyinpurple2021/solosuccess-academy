@@ -8,7 +8,8 @@ import { ProfileForm } from '@/components/profile/ProfileForm';
 import { AchievementsCard } from '@/components/profile/AchievementsCard';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile, useUserAchievements } from '@/hooks/useProfile';
-import { Lock, Loader2 } from 'lucide-react';
+import { Lock } from 'lucide-react';
+import { NeonSpinner } from '@/components/ui/neon-spinner';
 
 export default function Profile() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
@@ -45,7 +46,7 @@ export default function Profile() {
         <Header />
         <main className="flex-1 flex items-center justify-center relative">
           <div className="cyber-grid" />
-          <Loader2 className="h-10 w-10 animate-spin text-primary drop-shadow-[0_0_20px_hsl(var(--primary)/0.5)]" />
+          <NeonSpinner size="lg" />
         </main>
         <Footer />
       </div>

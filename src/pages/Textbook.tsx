@@ -4,7 +4,8 @@ import { Footer } from '@/components/layout/Footer';
 import { TextbookViewer } from '@/components/textbook/TextbookViewer';
 import { Button } from '@/components/ui/button';
 import { useCourses } from '@/hooks/useCourses';
-import { Loader2, ArrowLeft } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
+import { NeonSpinner } from '@/components/ui/neon-spinner';
 
 export default function Textbook() {
   const { courseId } = useParams<{ courseId: string }>();
@@ -17,7 +18,7 @@ export default function Textbook() {
       <div className="min-h-screen flex flex-col cyber-bg">
         <Header />
         <main className="flex-1 flex items-center justify-center">
-          <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent shadow-[0_0_20px_rgba(168,85,247,0.6)]" />
+          <NeonSpinner size="xl" />
         </main>
         <Footer />
       </div>

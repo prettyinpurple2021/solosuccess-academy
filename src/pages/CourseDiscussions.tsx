@@ -9,7 +9,8 @@ import { CreateDiscussionForm } from '@/components/discussion/CreateDiscussionFo
 import { useCourse, useHasPurchasedCourse } from '@/hooks/useCourses';
 import { useCourseDiscussions } from '@/hooks/useDiscussions';
 import { useAuth } from '@/hooks/useAuth';
-import { ArrowLeft, Lock, Loader2, Plus, MessageSquare } from 'lucide-react';
+import { ArrowLeft, Lock, Plus, MessageSquare } from 'lucide-react';
+import { NeonSpinner } from '@/components/ui/neon-spinner';
 
 export default function CourseDiscussions() {
   const { courseId } = useParams<{ courseId: string }>();
@@ -50,7 +51,7 @@ export default function CourseDiscussions() {
         <Header />
         <main className="flex-1 flex items-center justify-center relative">
           <div className="cyber-grid" />
-          <Loader2 className="h-10 w-10 animate-spin text-primary drop-shadow-[0_0_20px_hsl(var(--primary)/0.5)]" />
+          <NeonSpinner size="lg" />
         </main>
         <Footer />
       </div>
@@ -152,7 +153,7 @@ export default function CourseDiscussions() {
           {/* Discussion list */}
           {discussionsLoading ? (
             <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-10 w-10 animate-spin text-primary drop-shadow-[0_0_20px_hsl(var(--primary)/0.5)]" />
+              <NeonSpinner size="lg" />
             </div>
           ) : (
             <DiscussionList discussions={discussions || []} courseId={courseId!} />

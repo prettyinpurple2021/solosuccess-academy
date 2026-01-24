@@ -1,6 +1,6 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { Loader2 } from 'lucide-react';
+import { NeonSpinner } from '@/components/ui/neon-spinner';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -12,9 +12,10 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="flex min-h-screen items-center justify-center cyber-bg">
+        <div className="cyber-grid absolute inset-0" />
+        <div className="flex flex-col items-center gap-4 relative z-10">
+          <NeonSpinner size="lg" />
           <p className="text-sm text-muted-foreground">Loading...</p>
         </div>
       </div>

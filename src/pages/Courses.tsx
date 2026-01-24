@@ -9,6 +9,7 @@ import { useCourses } from '@/hooks/useCourses';
 import { useAuth } from '@/hooks/useAuth';
 import { phaseMetadata, formatPrice, getPhaseClasses, type CoursePhase } from '@/lib/courseData';
 import { ArrowRight, BookOpen, CheckCircle2, Lock, ShoppingCart, Terminal, Zap } from 'lucide-react';
+import { NeonSpinner } from '@/components/ui/neon-spinner';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -108,7 +109,7 @@ export default function Courses() {
 
           {isLoading ? (
             <div className="flex justify-center py-16">
-              <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent shadow-[0_0_30px_hsl(270_80%_60%/0.5)]" />
+              <NeonSpinner size="xl" />
             </div>
           ) : (
             <div className="space-y-20">

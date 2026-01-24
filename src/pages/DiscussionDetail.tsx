@@ -11,7 +11,8 @@ import { useDiscussion, useDiscussionComments, useDeleteDiscussion } from '@/hoo
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
-import { ArrowLeft, Lock, Loader2, Pin, Trash2, Clock } from 'lucide-react';
+import { ArrowLeft, Lock, Pin, Trash2, Clock } from 'lucide-react';
+import { NeonSpinner } from '@/components/ui/neon-spinner';
 
 export default function DiscussionDetail() {
   const { courseId, discussionId } = useParams<{ courseId: string; discussionId: string }>();
@@ -71,7 +72,7 @@ export default function DiscussionDetail() {
         <Header />
         <main className="flex-1 flex items-center justify-center relative">
           <div className="cyber-grid" />
-          <Loader2 className="h-10 w-10 animate-spin text-primary drop-shadow-[0_0_20px_hsl(var(--primary)/0.5)]" />
+          <NeonSpinner size="lg" />
         </main>
         <Footer />
       </div>
@@ -201,7 +202,7 @@ export default function DiscussionDetail() {
 
             {commentsLoading ? (
               <div className="flex items-center justify-center py-8">
-                <Loader2 className="h-8 w-8 animate-spin text-primary drop-shadow-[0_0_15px_hsl(var(--primary)/0.5)]" />
+                <NeonSpinner size="md" />
               </div>
             ) : (
               <CommentList

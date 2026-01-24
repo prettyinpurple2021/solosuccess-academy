@@ -23,6 +23,7 @@ import {
   Shield,
   KeyRound
 } from 'lucide-react';
+import { NeonSpinner, InlineSpinner } from '@/components/ui/neon-spinner';
 
 export default function Settings() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
@@ -107,7 +108,7 @@ export default function Settings() {
         <Header />
         <main className="flex-1 flex items-center justify-center relative">
           <div className="cyber-grid" />
-          <Loader2 className="h-10 w-10 animate-spin text-primary drop-shadow-[0_0_20px_hsl(var(--primary)/0.5)]" />
+          <NeonSpinner size="lg" />
         </main>
         <Footer />
       </div>

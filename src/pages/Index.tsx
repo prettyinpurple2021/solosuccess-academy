@@ -21,6 +21,7 @@ import {
   Terminal,
   Cpu
 } from 'lucide-react';
+import { NeonSpinner } from '@/components/ui/neon-spinner';
 
 export default function Index() {
   const { data: courses, isLoading } = useCourses();
@@ -210,7 +211,7 @@ export default function Index() {
 
             {isLoading ? (
               <div className="flex justify-center py-12">
-                <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent shadow-[0_0_20px_hsl(270_80%_60%/0.5)]" />
+                <NeonSpinner size="lg" />
               </div>
             ) : (
               <div className="space-y-16">

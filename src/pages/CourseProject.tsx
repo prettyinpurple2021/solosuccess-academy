@@ -7,7 +7,8 @@ import { ProjectFeedback } from '@/components/project/ProjectFeedback';
 import { useCourse, useHasPurchasedCourse } from '@/hooks/useCourses';
 import { useCourseProject } from '@/hooks/useProjects';
 import { useAuth } from '@/hooks/useAuth';
-import { ArrowLeft, Lock, Loader2 } from 'lucide-react';
+import { ArrowLeft, Lock } from 'lucide-react';
+import { NeonSpinner } from '@/components/ui/neon-spinner';
 
 export default function CourseProject() {
   const { courseId } = useParams<{ courseId: string }>();
@@ -51,8 +52,8 @@ export default function CourseProject() {
         <Header />
         <main className="flex-1 flex items-center justify-center relative">
           <div className="absolute top-1/4 left-1/4 w-64 h-64 rounded-full blur-3xl animate-orb-glow-primary" />
-          <div className="glass-card p-8 relative z-10">
-            <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" style={{ filter: 'drop-shadow(0 0 10px hsl(var(--primary)))' }} />
+          <div className="glass-card p-8 relative z-10 flex flex-col items-center">
+            <NeonSpinner size="lg" />
             <p className="text-muted-foreground mt-4">Loading project...</p>
           </div>
         </main>

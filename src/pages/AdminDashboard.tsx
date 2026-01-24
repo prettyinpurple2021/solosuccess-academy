@@ -14,7 +14,6 @@ import { useAuth } from '@/hooks/useAuth';
 import { useIsAdmin, useAdminCourses, useUpdateCourse } from '@/hooks/useAdmin';
 import { useToast } from '@/hooks/use-toast';
 import { 
-  Loader2, 
   Shield, 
   BookOpen, 
   Eye, 
@@ -24,6 +23,7 @@ import {
   Plus,
   BookText
 } from 'lucide-react';
+import { NeonSpinner, InlineSpinner } from '@/components/ui/neon-spinner';
 
 export default function AdminDashboard() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
@@ -45,8 +45,8 @@ export default function AdminDashboard() {
         <Header />
         <main className="flex-1 flex items-center justify-center relative">
           <div className="absolute top-1/4 left-1/4 w-64 h-64 rounded-full blur-3xl animate-orb-glow-primary" />
-          <div className="glass-card p-8 relative z-10">
-            <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" style={{ filter: 'drop-shadow(0 0 10px hsl(var(--primary)))' }} />
+          <div className="glass-card p-8 relative z-10 flex flex-col items-center">
+            <NeonSpinner size="lg" />
             <p className="text-muted-foreground mt-4">Loading admin dashboard...</p>
           </div>
         </main>
@@ -198,7 +198,7 @@ export default function AdminDashboard() {
 
               {coursesLoading ? (
                 <div className="flex items-center justify-center py-12">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" style={{ filter: 'drop-shadow(0 0 10px hsl(var(--primary)))' }} />
+                  <NeonSpinner size="lg" />
                 </div>
               ) : (
                 <div className="grid gap-4">

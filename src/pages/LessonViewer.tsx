@@ -18,6 +18,7 @@ import {
   Menu,
   Lock
 } from 'lucide-react';
+import { NeonSpinner } from '@/components/ui/neon-spinner';
 
 export default function LessonViewer() {
   const { courseId, lessonId } = useParams<{ courseId: string; lessonId: string }>();
@@ -95,7 +96,7 @@ export default function LessonViewer() {
   if (isLoading) {
     return (
       <div className="min-h-screen cyber-bg flex items-center justify-center">
-        <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent shadow-[0_0_20px_rgba(168,85,247,0.6)]" />
+        <NeonSpinner size="xl" />
       </div>
     );
   }

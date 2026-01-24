@@ -27,6 +27,7 @@ import {
   List,
   Loader2
 } from 'lucide-react';
+import { NeonSpinner } from '@/components/ui/neon-spinner';
 import { useToast } from '@/hooks/use-toast';
 
 interface TextbookViewerProps {
@@ -245,7 +246,7 @@ export function TextbookViewer({ courseId, courseName }: TextbookViewerProps) {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-[600px]">
-        <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent shadow-[0_0_20px_rgba(168,85,247,0.6)]" />
+        <NeonSpinner size="xl" />
       </div>
     );
   }

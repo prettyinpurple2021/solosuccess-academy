@@ -30,6 +30,7 @@ import {
   FileText,
   Video
 } from 'lucide-react';
+import { NeonSpinner } from '@/components/ui/neon-spinner';
 
 export default function CourseDetail() {
   const { courseId } = useParams<{ courseId: string }>();
@@ -92,7 +93,7 @@ export default function CourseDetail() {
         <Header />
         <main className="flex-1 flex items-center justify-center relative">
           <div className="cyber-grid" />
-          <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent shadow-[0_0_20px_hsl(var(--primary)/0.5)]" />
+          <NeonSpinner size="lg" />
         </main>
         <Footer />
       </div>
