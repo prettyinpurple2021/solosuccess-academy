@@ -32,13 +32,16 @@ import {
   EyeOff,
   GripVertical,
   X,
+  Sparkles,
 } from 'lucide-react';
+import { TextbookGenerateDialog } from './TextbookGenerateDialog';
 
 interface TextbookEditorProps {
   courseId: string;
+  courseTitle?: string;
 }
 
-export function TextbookEditor({ courseId }: TextbookEditorProps) {
+export function TextbookEditor({ courseId, courseTitle = 'Course' }: TextbookEditorProps) {
   const [editingChapter, setEditingChapter] = useState<TextbookChapter | null>(null);
   const [isCreatingChapter, setIsCreatingChapter] = useState(false);
   const [selectedChapterId, setSelectedChapterId] = useState<string | null>(null);
@@ -99,10 +102,17 @@ export function TextbookEditor({ courseId }: TextbookEditorProps) {
           <h3 className="text-lg font-semibold">Textbook Chapters ({chapters?.length || 0})</h3>
         </div>
         {!isCreatingChapter && !editingChapter && !selectedChapterId && (
-          <Button onClick={() => setIsCreatingChapter(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Add Chapter
-          </Button>
+          <div className="flex items-center gap-2">
+            <TextbookGenerateDialog
+              courseId={courseId}
+              courseTitle={courseTitle}
+              mode="chapter"
+            />
+            <Button onClick={() => setIsCreatingChapter(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Add Chapter
+            </Button>
+          </div>
         )}
       </div>
 
@@ -130,7 +140,12 @@ export function TextbookEditor({ courseId }: TextbookEditorProps) {
               Back to Chapters
             </Button>
           </div>
-          <PageEditor chapterId={selectedChapterId} />
+          <PageEditor 
+            chapterId={selectedChapterId} 
+            courseId={courseId}
+            courseTitle={courseTitle}
+            chapterTitle={chapters?.find(c => c.id === selectedChapterId)?.title}
+          />
         </div>
       )}
 
@@ -321,7 +336,14 @@ function ChapterForm({
 }
 
 // Page Editor Component
-function PageEditor({ chapterId }: { chapterId: string }) {
+interface PageEditorProps {
+  chapterId: string;
+  courseId: string;
+  courseTitle: string;
+  chapterTitle?: string;
+}
+
+function PageEditor({ chapterId, courseId, courseTitle, chapterTitle }: PageEditorProps) {
   const [editingPage, setEditingPage] = useState<TextbookPage | null>(null);
   const [isCreating, setIsCreating] = useState(false);
 
@@ -359,10 +381,19 @@ function PageEditor({ chapterId }: { chapterId: string }) {
       <div className="flex items-center justify-between">
         <h4 className="font-medium">Pages ({pages?.length || 0})</h4>
         {!isCreating && !editingPage && (
-          <Button size="sm" onClick={() => setIsCreating(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Add Page
-          </Button>
+          <div className="flex items-center gap-2">
+            <TextbookGenerateDialog
+              courseId={courseId}
+              courseTitle={courseTitle}
+              chapterId={chapterId}
+              chapterTitle={chapterTitle}
+              mode="page"
+            />
+            <Button size="sm" onClick={() => setIsCreating(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Add Page
+            </Button>
+          </div>
         )}
       </div>
 

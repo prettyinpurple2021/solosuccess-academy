@@ -7,7 +7,7 @@ const corsHeaders = {
 };
 
 interface GenerateRequest {
-  type: "course_outline" | "lesson_content" | "quiz" | "worksheet" | "activity" | "exam";
+  type: "course_outline" | "lesson_content" | "quiz" | "worksheet" | "activity" | "exam" | "textbook_chapter" | "textbook_page";
   context: {
     courseTitle?: string;
     courseDescription?: string;
@@ -16,7 +16,10 @@ interface GenerateRequest {
     topic?: string;
     difficulty?: "beginner" | "intermediate" | "advanced";
     questionCount?: number;
+    chapterTitle?: string;
+    pageCount?: number;
   };
+  customPrompt?: string;
 }
 
 const systemPrompts: Record<string, string> = {
@@ -123,7 +126,40 @@ Generate 15-20 questions in JSON format:
     }
   ]
 }
-Include questions of varying difficulty and cover the breadth of the course material.`
+Include questions of varying difficulty and cover the breadth of the course material.`,
+
+  textbook_chapter: `You are an expert educational content writer for SoloSuccess Academy.
+Create a complete textbook chapter with multiple pages of rich content.
+Generate in JSON format:
+{
+  "title": "Chapter Title",
+  "pages": [
+    {
+      "content": "Full page content in markdown format with headers, paragraphs, bullet points, examples, and key takeaways. Should be 300-500 words per page.",
+      "embedded_quiz": null or {
+        "question": "A comprehension question",
+        "options": ["Option A", "Option B", "Option C", "Option D"],
+        "correctAnswer": 0,
+        "explanation": "Why this is correct"
+      }
+    }
+  ]
+}
+Create 4-6 pages per chapter. Include practical examples, actionable tips, and at least 2 embedded quizzes to test understanding.`,
+
+  textbook_page: `You are an expert educational content writer for SoloSuccess Academy.
+Create a single textbook page with rich, engaging content for solo founders and small business owners.
+Generate in JSON format:
+{
+  "content": "Full page content in markdown format. Include:\n- A clear main concept or topic\n- 2-3 supporting paragraphs with examples\n- Bullet points for key takeaways\n- A practical tip or action item\nContent should be 300-500 words.",
+  "embedded_quiz": null or {
+    "question": "A comprehension question about the content",
+    "options": ["Option A", "Option B", "Option C", "Option D"],
+    "correctAnswer": 0,
+    "explanation": "Why this answer is correct"
+  }
+}
+Make the content actionable and relevant to entrepreneurs.`
 };
 
 serve(async (req) => {
@@ -173,7 +209,7 @@ serve(async (req) => {
       );
     }
 
-    const { type, context }: GenerateRequest = await req.json();
+    const { type, context, customPrompt }: GenerateRequest = await req.json();
 
     if (!type || !systemPrompts[type]) {
       return new Response(
@@ -182,50 +218,71 @@ serve(async (req) => {
       );
     }
 
-    // Build user prompt based on context
-    let userPrompt = "";
-    switch (type) {
-      case "course_outline":
-        userPrompt = `Create a course outline about: ${context.topic || "building a successful solo business"}
+    // Use custom prompt if provided, otherwise build default prompt
+    let userPrompt = customPrompt || "";
+    
+    if (!customPrompt) {
+      switch (type) {
+        case "course_outline":
+          userPrompt = `Create a course outline about: ${context.topic || "building a successful solo business"}
 Target audience: Solo founders and small business owners
 Difficulty level: ${context.difficulty || "intermediate"}`;
-        break;
+          break;
 
-      case "lesson_content":
-        userPrompt = `Create lesson content for:
+        case "lesson_content":
+          userPrompt = `Create lesson content for:
 Course: ${context.courseTitle || "Solo Business Mastery"}
 Lesson Title: ${context.lessonTitle || context.topic || "Getting Started"}
 Difficulty: ${context.difficulty || "intermediate"}
 ${context.topic ? `Topic focus: ${context.topic}` : ""}`;
-        break;
+          break;
 
-      case "quiz":
-        userPrompt = `Create ${context.questionCount || 5} quiz questions about:
+        case "quiz":
+          userPrompt = `Create ${context.questionCount || 5} quiz questions about:
 Topic: ${context.topic || context.lessonTitle || "business fundamentals"}
 Course context: ${context.courseTitle || "Solo Business"}
 Difficulty: ${context.difficulty || "intermediate"}`;
-        break;
+          break;
 
-      case "worksheet":
-        userPrompt = `Create a practical worksheet for:
+        case "worksheet":
+          userPrompt = `Create a practical worksheet for:
 Topic: ${context.topic || context.lessonTitle || "strategic planning"}
 Course: ${context.courseTitle || "Solo Business Mastery"}
 Focus on actionable exercises that entrepreneurs can apply immediately.`;
-        break;
+          break;
 
-      case "activity":
-        userPrompt = `Create an interactive activity for:
+        case "activity":
+          userPrompt = `Create an interactive activity for:
 Topic: ${context.topic || context.lessonTitle || "business strategy"}
 Course: ${context.courseTitle || "Solo Business Mastery"}
 Make it hands-on and practical for solo entrepreneurs.`;
-        break;
+          break;
 
-      case "exam":
-        userPrompt = `Create a comprehensive final exam for:
+        case "exam":
+          userPrompt = `Create a comprehensive final exam for:
 Course: ${context.courseTitle || "Solo Business Mastery"}
 Course Description: ${context.courseDescription || "A course for solo entrepreneurs"}
 Include ${context.questionCount || 15} questions covering all major topics.`;
-        break;
+          break;
+
+        case "textbook_chapter":
+          userPrompt = `Create a complete textbook chapter for:
+Course: ${context.courseTitle || "Solo Business Mastery"}
+Chapter Title: ${context.chapterTitle || context.topic || "Introduction"}
+Number of pages: ${context.pageCount || 5}
+Difficulty: ${context.difficulty || "intermediate"}
+Make it comprehensive and practical for solo entrepreneurs.`;
+          break;
+
+        case "textbook_page":
+          userPrompt = `Create a textbook page for:
+Course: ${context.courseTitle || "Solo Business Mastery"}
+Chapter: ${context.chapterTitle || "Introduction"}
+Topic: ${context.topic || "Key Concepts"}
+Difficulty: ${context.difficulty || "intermediate"}
+Include an embedded quiz to test understanding.`;
+          break;
+      }
     }
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");

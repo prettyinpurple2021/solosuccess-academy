@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
-export type ContentType = 'course_outline' | 'lesson_content' | 'quiz' | 'worksheet' | 'activity' | 'exam';
+export type ContentType = 'course_outline' | 'lesson_content' | 'quiz' | 'worksheet' | 'activity' | 'exam' | 'textbook_chapter' | 'textbook_page';
 
 export interface GenerateContext {
   courseTitle?: string;
@@ -12,6 +12,8 @@ export interface GenerateContext {
   topic?: string;
   difficulty?: 'beginner' | 'intermediate' | 'advanced';
   questionCount?: number;
+  chapterTitle?: string;
+  pageCount?: number;
 }
 
 export interface GeneratedCourseOutline {
@@ -64,19 +66,43 @@ export interface GeneratedActivity {
   reflection: string;
 }
 
+export interface GeneratedTextbookChapter {
+  title: string;
+  pages: Array<{
+    content: string;
+    embedded_quiz: {
+      question: string;
+      options: string[];
+      correctAnswer: number;
+      explanation: string;
+    } | null;
+  }>;
+}
+
+export interface GeneratedTextbookPage {
+  content: string;
+  embedded_quiz: {
+    question: string;
+    options: string[];
+    correctAnswer: number;
+    explanation: string;
+  } | null;
+}
+
 export function useContentGenerator() {
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
 
   const generateContent = async <T = string>(
     type: ContentType,
-    context: GenerateContext
+    context: GenerateContext,
+    customPrompt?: string
   ): Promise<T | null> => {
     setIsGenerating(true);
 
     try {
       const { data, error } = await supabase.functions.invoke('generate-content', {
-        body: { type, context },
+        body: { type, context, customPrompt },
       });
 
       if (error) {

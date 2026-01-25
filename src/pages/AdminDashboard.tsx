@@ -374,7 +374,7 @@ export default function AdminDashboard() {
                       Back to Courses
                     </Button>
                   </div>
-                  <TextbookEditor courseId={selectedCourseId} />
+                  <TextbookEditor courseId={selectedCourseId} courseTitle={selectedCourse?.title} />
                 </div>
               )}
             </TabsContent>

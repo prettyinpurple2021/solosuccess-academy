@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import {
   Dialog,
@@ -39,6 +40,48 @@ const contentTypeOptions = [
   { value: 'exam', label: 'Final Exam' },
 ];
 
+const buildDefaultPrompt = (
+  contentType: ContentType,
+  courseTitle: string,
+  courseDescription: string | null,
+  topic: string,
+  lessonTitle: string,
+  difficulty: string,
+  questionCount: number
+): string => {
+  const effectiveTopic = topic || courseTitle;
+  switch (contentType) {
+    case 'lesson_content':
+      return `Create lesson content for:
+Course: ${courseTitle}
+Lesson Title: ${lessonTitle || effectiveTopic}
+Difficulty: ${difficulty}
+${effectiveTopic !== courseTitle ? `Topic focus: ${effectiveTopic}` : ''}`;
+    case 'quiz':
+      return `Create ${questionCount} quiz questions about:
+Topic: ${effectiveTopic}
+Course context: ${courseTitle}
+Difficulty: ${difficulty}`;
+    case 'worksheet':
+      return `Create a practical worksheet for:
+Topic: ${effectiveTopic}
+Course: ${courseTitle}
+Focus on actionable exercises that entrepreneurs can apply immediately.`;
+    case 'activity':
+      return `Create an interactive activity for:
+Topic: ${effectiveTopic}
+Course: ${courseTitle}
+Make it hands-on and practical for solo entrepreneurs.`;
+    case 'exam':
+      return `Create a comprehensive final exam for:
+Course: ${courseTitle}
+Course Description: ${courseDescription || 'A course for solo entrepreneurs'}
+Include ${questionCount} questions covering all major topics.`;
+    default:
+      return '';
+  }
+};
+
 export function QuickGenerateDialog({ courseId, courseTitle, courseDescription }: QuickGenerateDialogProps) {
   const [open, setOpen] = useState(false);
   const [contentType, setContentType] = useState<ContentType>('lesson_content');
@@ -46,6 +89,8 @@ export function QuickGenerateDialog({ courseId, courseTitle, courseDescription }
   const [lessonTitle, setLessonTitle] = useState('');
   const [difficulty, setDifficulty] = useState<'beginner' | 'intermediate' | 'advanced'>('intermediate');
   const [questionCount, setQuestionCount] = useState(5);
+  const [customPrompt, setCustomPrompt] = useState('');
+  const [showPromptEditor, setShowPromptEditor] = useState(false);
   const [generatedContent, setGeneratedContent] = useState<any>(null);
   const [copied, setCopied] = useState(false);
   const [isApplying, setIsApplying] = useState(false);
@@ -55,6 +100,18 @@ export function QuickGenerateDialog({ courseId, courseTitle, courseDescription }
   const { data: existingLessons } = useAdminLessons(courseId);
   const queryClient = useQueryClient();
   const { toast } = useToast();
+
+  // Update prompt when inputs change
+  useEffect(() => {
+    if (!showPromptEditor) {
+      setCustomPrompt(buildDefaultPrompt(contentType, courseTitle, courseDescription, topic, lessonTitle, difficulty, questionCount));
+    }
+  }, [contentType, courseTitle, courseDescription, topic, lessonTitle, difficulty, questionCount, showPromptEditor]);
+
+  const handleShowPromptEditor = () => {
+    setCustomPrompt(buildDefaultPrompt(contentType, courseTitle, courseDescription, topic, lessonTitle, difficulty, questionCount));
+    setShowPromptEditor(true);
+  };
 
   const handleGenerate = async () => {
     const context: GenerateContext = {
@@ -66,7 +123,7 @@ export function QuickGenerateDialog({ courseId, courseTitle, courseDescription }
       questionCount: contentType === 'quiz' || contentType === 'exam' ? questionCount : undefined,
     };
 
-    const content = await generateContent(contentType, context);
+    const content = await generateContent(contentType, context, customPrompt);
     if (content) {
       setGeneratedContent(content);
     }
@@ -89,6 +146,8 @@ export function QuickGenerateDialog({ courseId, courseTitle, courseDescription }
     setGeneratedContent(null);
     setCopied(false);
     setIsApplying(false);
+    setShowPromptEditor(false);
+    setCustomPrompt('');
   };
 
   // Map content type to lesson type
@@ -348,6 +407,35 @@ export function QuickGenerateDialog({ courseId, courseTitle, courseDescription }
                 />
               </div>
             )}
+
+            {/* Editable Prompt Section */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label>AI Prompt</Label>
+                {!showPromptEditor && (
+                  <Button variant="ghost" size="sm" onClick={handleShowPromptEditor}>
+                    Edit Prompt
+                  </Button>
+                )}
+              </div>
+              {showPromptEditor ? (
+                <Textarea
+                  value={customPrompt}
+                  onChange={(e) => setCustomPrompt(e.target.value)}
+                  className="min-h-[120px] font-mono text-sm"
+                  placeholder="Enter your custom prompt..."
+                />
+              ) : (
+                <div className="p-3 rounded-lg border border-border/50 bg-muted/30">
+                  <p className="text-sm text-muted-foreground whitespace-pre-wrap line-clamp-3">
+                    {buildDefaultPrompt(contentType, courseTitle, courseDescription, topic, lessonTitle, difficulty, questionCount)}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Click "Edit Prompt" to customize the AI instructions
+                  </p>
+                </div>
+              )}
+            </div>
 
             <Button
               onClick={handleGenerate}
