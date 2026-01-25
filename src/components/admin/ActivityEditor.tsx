@@ -6,6 +6,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { ActivityData } from '@/hooks/useAdmin';
 import { Plus, Trash2, GripVertical } from 'lucide-react';
+import { AIGenerateButton } from './AIGenerateButton';
+import { GeneratedActivity } from '@/hooks/useContentGenerator';
 
 interface ActivityEditorProps {
   data: ActivityData | null;
@@ -16,6 +18,21 @@ export function ActivityEditor({ data, onChange }: ActivityEditorProps) {
   const instructions = data?.instructions || '';
   const activityType = data?.type || 'exercise';
   const steps = data?.steps || [];
+
+  const handleAIGenerate = (result: GeneratedActivity) => {
+    if (result) {
+      const convertedSteps = result.steps?.map((step) => ({
+        id: crypto.randomUUID(),
+        title: step.title || '',
+        description: step.instructions || '',
+      })) || [];
+      onChange({
+        instructions: result.description || '',
+        type: activityType,
+        steps: convertedSteps,
+      });
+    }
+  };
 
   const addStep = () => {
     const newStep = {
@@ -46,6 +63,13 @@ export function ActivityEditor({ data, onChange }: ActivityEditorProps) {
 
   return (
     <div className="space-y-6">
+      <div className="flex justify-end">
+        <AIGenerateButton
+          type="activity"
+          onGenerated={handleAIGenerate}
+        />
+      </div>
+
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <Label>Activity Type</Label>
