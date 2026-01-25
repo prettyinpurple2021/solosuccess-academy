@@ -5,6 +5,8 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { WorksheetData } from '@/hooks/useAdmin';
 import { Plus, Trash2, GripVertical } from 'lucide-react';
+import { AIGenerateButton } from './AIGenerateButton';
+import { GeneratedWorksheet } from '@/hooks/useContentGenerator';
 
 interface WorksheetEditorProps {
   data: WorksheetData | null;
@@ -14,6 +16,20 @@ interface WorksheetEditorProps {
 export function WorksheetEditor({ data, onChange }: WorksheetEditorProps) {
   const instructions = data?.instructions || '';
   const sections = data?.sections || [];
+
+  const handleAIGenerate = (result: GeneratedWorksheet) => {
+    if (result) {
+      const convertedSections = result.sections?.map((section) => ({
+        id: crypto.randomUUID(),
+        title: section.title || '',
+        prompts: section.exercises?.map((ex) => ex.prompt) || [''],
+      })) || [];
+      onChange({
+        instructions: result.instructions || '',
+        sections: convertedSections,
+      });
+    }
+  };
 
   const addSection = () => {
     const newSection = {
@@ -60,6 +76,13 @@ export function WorksheetEditor({ data, onChange }: WorksheetEditorProps) {
 
   return (
     <div className="space-y-6">
+      <div className="flex justify-end">
+        <AIGenerateButton
+          type="worksheet"
+          onGenerated={handleAIGenerate}
+        />
+      </div>
+
       <div className="space-y-2">
         <Label>Worksheet Instructions</Label>
         <Textarea
