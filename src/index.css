@@ -738,4 +738,41 @@
     96% { opacity: 0.9; }
     97% { opacity: 1; }
   }
+
+  /* Dialog/Modal Neon Border Effect */
+  .dialog-neon-border {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .dialog-neon-border::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    padding: 1px;
+    border-radius: inherit;
+    background: linear-gradient(
+      135deg,
+      hsl(270 100% 70% / 0.6),
+      hsl(185 100% 55% / 0.4),
+      hsl(320 100% 65% / 0.5),
+      hsl(270 100% 70% / 0.6)
+    );
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    background-size: 300% 300%;
+    animation: dialog-border-glow 4s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  @keyframes dialog-border-glow {
+    0%, 100% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+  }
 }
