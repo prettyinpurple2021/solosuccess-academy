@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import {
   Dialog,
   DialogContent,
@@ -20,9 +19,11 @@ import {
 } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import { Sparkles, Loader2, Copy, Check, Zap } from 'lucide-react';
+import { Sparkles, Loader2, Copy, Check, Zap, Plus } from 'lucide-react';
 import { useContentGenerator, ContentType, GenerateContext } from '@/hooks/useContentGenerator';
+import { useCreateLesson, useAdminLessons, LessonType, QuizData, WorksheetData, ActivityData } from '@/hooks/useAdmin';
 import { useToast } from '@/hooks/use-toast';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface QuickGenerateDialogProps {
   courseId: string;
@@ -47,8 +48,12 @@ export function QuickGenerateDialog({ courseId, courseTitle, courseDescription }
   const [questionCount, setQuestionCount] = useState(5);
   const [generatedContent, setGeneratedContent] = useState<any>(null);
   const [copied, setCopied] = useState(false);
+  const [isApplying, setIsApplying] = useState(false);
 
   const { generateContent, isGenerating } = useContentGenerator();
+  const createLesson = useCreateLesson();
+  const { data: existingLessons } = useAdminLessons(courseId);
+  const queryClient = useQueryClient();
   const { toast } = useToast();
 
   const handleGenerate = async () => {
@@ -83,6 +88,117 @@ export function QuickGenerateDialog({ courseId, courseTitle, courseDescription }
     setLessonTitle('');
     setGeneratedContent(null);
     setCopied(false);
+    setIsApplying(false);
+  };
+
+  // Map content type to lesson type
+  const getLessonType = (): LessonType => {
+    switch (contentType) {
+      case 'lesson_content':
+        return 'text';
+      case 'quiz':
+      case 'exam':
+        return 'quiz';
+      case 'worksheet':
+        return 'worksheet';
+      case 'activity':
+        return 'activity';
+      default:
+        return 'text';
+    }
+  };
+
+  // Transform generated content to lesson data format
+  const transformToLessonData = () => {
+    if (!generatedContent) return {};
+
+    const lessonType = getLessonType();
+
+    if (lessonType === 'text') {
+      return { content: typeof generatedContent === 'string' ? generatedContent : JSON.stringify(generatedContent, null, 2) };
+    }
+
+    if (lessonType === 'quiz' && generatedContent.questions) {
+      const quizData: QuizData = {
+        questions: generatedContent.questions.map((q: any, index: number) => ({
+          id: crypto.randomUUID(),
+          question: q.question,
+          options: q.options,
+          correctAnswer: q.correctIndex,
+          explanation: q.explanation,
+        })),
+        passingScore: generatedContent.passingScore || 70,
+      };
+      return { quiz_data: quizData };
+    }
+
+    if (lessonType === 'worksheet' && generatedContent.sections) {
+      const worksheetData: WorksheetData = {
+        instructions: generatedContent.instructions || '',
+        sections: generatedContent.sections.map((s: any) => ({
+          id: crypto.randomUUID(),
+          title: s.title,
+          prompts: s.exercises?.map((e: any) => e.prompt) || [],
+        })),
+      };
+      return { worksheet_data: worksheetData };
+    }
+
+    if (lessonType === 'activity' && generatedContent.steps) {
+      const activityData: ActivityData = {
+        instructions: generatedContent.description || '',
+        type: 'exercise',
+        steps: generatedContent.steps.map((s: any) => ({
+          id: crypto.randomUUID(),
+          title: s.title,
+          description: s.instructions,
+        })),
+      };
+      return { activity_data: activityData };
+    }
+
+    return {};
+  };
+
+  const handleApplyToLesson = async () => {
+    if (!generatedContent) return;
+
+    setIsApplying(true);
+    try {
+      const nextOrderNumber = (existingLessons?.length || 0) + 1;
+      const lessonType = getLessonType();
+      const lessonData = transformToLessonData();
+
+      const newLessonTitle = lessonTitle || topic || `AI Generated ${contentTypeOptions.find(c => c.value === contentType)?.label}`;
+
+      await createLesson.mutateAsync({
+        course_id: courseId,
+        title: newLessonTitle,
+        type: lessonType,
+        order_number: nextOrderNumber,
+        ...lessonData,
+        is_published: false,
+      });
+
+      toast({
+        title: 'Lesson created!',
+        description: `"${newLessonTitle}" has been added to the course as a draft.`,
+      });
+
+      // Invalidate lessons query to refresh the list
+      queryClient.invalidateQueries({ queryKey: ['admin-lessons', courseId] });
+
+      setOpen(false);
+      resetDialog();
+    } catch (error: any) {
+      toast({
+        title: 'Failed to create lesson',
+        description: error.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setIsApplying(false);
+    }
   };
 
   const handleOpenChange = (newOpen: boolean) => {
@@ -255,25 +371,50 @@ export function QuickGenerateDialog({ courseId, courseTitle, courseDescription }
           {/* Output Section */}
           {generatedContent && (
             <div className="flex-1 min-h-0 flex flex-col border-t border-border/50 pt-4">
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center justify-between mb-2 gap-2">
                 <Label>Generated Content</Label>
-                <Button variant="outline" size="sm" onClick={handleCopy}>
-                  {copied ? (
-                    <>
-                      <Check className="mr-2 h-3 w-3" />
-                      Copied
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="mr-2 h-3 w-3" />
-                      Copy
-                    </>
-                  )}
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="sm" onClick={handleCopy}>
+                    {copied ? (
+                      <>
+                        <Check className="mr-2 h-3 w-3" />
+                        Copied
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="mr-2 h-3 w-3" />
+                        Copy
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={handleApplyToLesson}
+                    disabled={isApplying || contentType === 'course_outline'}
+                    className="bg-success hover:bg-success/90 text-success-foreground"
+                  >
+                    {isApplying ? (
+                      <>
+                        <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                        Creating...
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="mr-2 h-3 w-3" />
+                        Apply to Lesson
+                      </>
+                    )}
+                  </Button>
+                </div>
               </div>
               <ScrollArea className="flex-1 max-h-[250px] rounded-lg border border-border/30 p-3">
                 {renderGeneratedContent()}
               </ScrollArea>
+              {contentType === 'course_outline' && (
+                <p className="text-xs text-muted-foreground mt-2">
+                  Course outlines cannot be applied directly. Use the full Content Generator to create courses.
+                </p>
+              )}
             </div>
           )}
         </div>
