@@ -54,8 +54,15 @@ export default function ContentGenerator() {
 
   if (adminLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center cyber-bg">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="min-h-screen flex flex-col cyber-bg">
+        <Header />
+        <main className="flex-1 flex items-center justify-center">
+          <div className="flex flex-col items-center gap-4">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="text-muted-foreground">Checking access...</p>
+          </div>
+        </main>
+        <Footer />
       </div>
     );
   }
