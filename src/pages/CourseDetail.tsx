@@ -3,8 +3,8 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
+import { ProgressRing } from '@/components/ui/progress-ring';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { useCourse, useCourseLessons, useHasPurchasedCourse } from '@/hooks/useCourses';
@@ -198,22 +198,14 @@ export default function CourseDetail() {
                           <span className="font-medium">You own this course</span>
                         </div>
                         
-                        {/* Progress */}
-                        <div className="mb-6">
-                          <div className="flex justify-between text-sm mb-2">
-                            <span className="text-muted-foreground">Your Progress</span>
-                            <span className="font-medium text-primary">{progressPercent}%</span>
-                          </div>
-                          <div className="relative">
-                            <Progress value={progressPercent} className="h-2 bg-black/40" />
-                            <div 
-                              className="absolute top-0 left-0 h-full bg-gradient-to-r from-primary to-secondary rounded-full transition-all duration-500"
-                              style={{ width: `${progressPercent}%`, boxShadow: '0 0 15px hsl(var(--primary)/0.5)' }}
-                            />
-                          </div>
-                          <p className="text-xs text-muted-foreground mt-2">
-                            {progressData?.completedCount || 0} of {progressData?.lessonCount || 0} lessons completed
-                          </p>
+                        {/* Progress Ring */}
+                        <div className="flex flex-col items-center mb-6">
+                          <ProgressRing 
+                            progress={progressPercent} 
+                            size="lg"
+                            label={`${progressData?.completedCount || 0}/${progressData?.lessonCount || 0}`}
+                            sublabel="lessons"
+                          />
                         </div>
 
                         <Button variant="neon" className="w-full" size="lg" asChild>

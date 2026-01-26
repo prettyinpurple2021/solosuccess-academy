@@ -1,17 +1,23 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { AvatarUpload } from '@/components/profile/AvatarUpload';
 import { ProfileForm } from '@/components/profile/ProfileForm';
 import { AchievementsCard } from '@/components/profile/AchievementsCard';
+import { ProgressRing } from '@/components/ui/progress-ring';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile, useUserAchievements } from '@/hooks/useProfile';
+import { useOverallProgress } from '@/hooks/useProgress';
+import { useCourses } from '@/hooks/useCourses';
 import { NeonSpinner } from '@/components/ui/neon-spinner';
+import { TrendingUp, BookOpen, Target } from 'lucide-react';
 
 export default function Profile() {
   const { user, isLoading: authLoading } = useAuth();
   const { data: profile, isLoading: profileLoading } = useProfile(user?.id);
   const { data: achievements, isLoading: achievementsLoading } = useUserAchievements(user?.id);
+  const { data: overallProgress, isLoading: progressLoading } = useOverallProgress(user?.id);
+  const { data: allCourses } = useCourses();
 
   const isLoading = authLoading || profileLoading;
 
@@ -37,24 +43,93 @@ export default function Profile() {
     );
   }
 
+  // Get course titles for progress display
+  const getCourseTitle = (courseId: string) => {
+    return allCourses?.find(c => c.id === courseId)?.title || 'Course';
+  };
+
   return (
     <div className="py-8">
       <div className="container max-w-4xl">
         <h1 className="text-3xl font-display font-bold mb-8 neon-text">Your Profile</h1>
 
         <div className="grid gap-8 lg:grid-cols-[300px_1fr]">
-          <Card className="glass-card border-primary/30 hover:border-primary/50 hover:shadow-[0_0_30px_hsl(var(--primary)/0.2)] transition-all duration-300">
-            <CardContent className="pt-6">
-              <AvatarUpload
-                userId={user!.id}
-                currentAvatarUrl={profile.avatar_url}
-                displayName={profile.display_name}
-              />
-            </CardContent>
-          </Card>
+          <div className="space-y-6">
+            <Card className="glass-card border-primary/30 hover:border-primary/50 hover:shadow-[0_0_30px_hsl(var(--primary)/0.2)] transition-all duration-300">
+              <CardContent className="pt-6">
+                <AvatarUpload
+                  userId={user!.id}
+                  currentAvatarUrl={profile.avatar_url}
+                  displayName={profile.display_name}
+                />
+              </CardContent>
+            </Card>
+
+            {/* Overall Progress Ring */}
+            <Card className="glass-card border-secondary/30 hover:border-secondary/50 hover:shadow-[0_0_30px_hsl(var(--secondary)/0.2)] transition-all duration-300">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg flex items-center gap-2 font-display">
+                  <TrendingUp className="h-5 w-5 text-secondary drop-shadow-[0_0_8px_hsl(var(--secondary)/0.5)]" />
+                  Overall Progress
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-col items-center py-4">
+                {progressLoading ? (
+                  <NeonSpinner size="md" />
+                ) : (
+                  <>
+                    <ProgressRing 
+                      progress={overallProgress?.percentage || 0} 
+                      size="lg"
+                      label={`${overallProgress?.completedLessons || 0}/${overallProgress?.totalLessons || 0}`}
+                      sublabel="lessons"
+                    />
+                    <p className="text-xs text-muted-foreground mt-3 text-center">
+                      Across {achievements?.coursesPurchased || 0} enrolled courses
+                    </p>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+          </div>
 
           <ProfileForm profile={profile} />
         </div>
+
+        {/* Course Progress Section */}
+        {overallProgress?.courseProgress && overallProgress.courseProgress.length > 0 && (
+          <Card className="mt-8 glass-card border-accent/30 hover:border-accent/50 hover:shadow-[0_0_30px_hsl(var(--accent)/0.15)] transition-all duration-300">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 font-display">
+                <BookOpen className="h-5 w-5 text-accent drop-shadow-[0_0_8px_hsl(var(--accent)/0.5)]" />
+                Course Progress
+              </CardTitle>
+              <CardDescription>Your progress in each enrolled course</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {overallProgress.courseProgress.map((course) => (
+                  <div 
+                    key={course.courseId}
+                    className="flex items-center gap-4 p-4 rounded-lg bg-black/30 border border-accent/20 hover:border-accent/40 transition-all"
+                  >
+                    <ProgressRing 
+                      progress={course.percentage} 
+                      size="sm"
+                      showPercentage={true}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm truncate">{getCourseTitle(course.courseId)}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {course.completed}/{course.total} lessons
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         <div className="mt-8">
           <AchievementsCard 

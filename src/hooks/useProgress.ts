@@ -151,3 +151,80 @@ export function useUpdateLessonNotes() {
     },
   });
 }
+
+// Fetch overall progress across all purchased courses
+export function useOverallProgress(userId: string | undefined) {
+  return useQuery({
+    queryKey: ['overall-progress', userId],
+    queryFn: async () => {
+      if (!userId) return { totalLessons: 0, completedLessons: 0, courseProgress: [] };
+
+      // Get user's purchased courses
+      const { data: purchases, error: purchasesError } = await supabase
+        .from('purchases')
+        .select('course_id')
+        .eq('user_id', userId);
+
+      if (purchasesError) throw purchasesError;
+
+      const purchasedCourseIds = purchases?.map(p => p.course_id) || [];
+
+      if (purchasedCourseIds.length === 0) {
+        return { totalLessons: 0, completedLessons: 0, courseProgress: [] };
+      }
+
+      // Get all lessons for purchased courses
+      const { data: lessons, error: lessonsError } = await supabase
+        .from('lessons')
+        .select('id, course_id')
+        .in('course_id', purchasedCourseIds);
+
+      if (lessonsError) throw lessonsError;
+
+      const lessonIds = lessons?.map(l => l.id) || [];
+
+      if (lessonIds.length === 0) {
+        return { totalLessons: 0, completedLessons: 0, courseProgress: [] };
+      }
+
+      // Get user's progress for these lessons
+      const { data: progress, error: progressError } = await supabase
+        .from('user_progress')
+        .select('lesson_id, completed')
+        .eq('user_id', userId)
+        .in('lesson_id', lessonIds);
+
+      if (progressError) throw progressError;
+
+      const completedSet = new Set(
+        progress?.filter(p => p.completed).map(p => p.lesson_id) || []
+      );
+
+      // Calculate per-course progress
+      const courseProgressMap = new Map<string, { total: number; completed: number }>();
+      lessons?.forEach(lesson => {
+        const existing = courseProgressMap.get(lesson.course_id) || { total: 0, completed: 0 };
+        existing.total += 1;
+        if (completedSet.has(lesson.id)) {
+          existing.completed += 1;
+        }
+        courseProgressMap.set(lesson.course_id, existing);
+      });
+
+      const courseProgress = Array.from(courseProgressMap.entries()).map(([courseId, data]) => ({
+        courseId,
+        total: data.total,
+        completed: data.completed,
+        percentage: data.total > 0 ? Math.round((data.completed / data.total) * 100) : 0,
+      }));
+
+      return {
+        totalLessons: lessonIds.length,
+        completedLessons: completedSet.size,
+        percentage: lessonIds.length > 0 ? Math.round((completedSet.size / lessonIds.length) * 100) : 0,
+        courseProgress,
+      };
+    },
+    enabled: !!userId,
+  });
+}
