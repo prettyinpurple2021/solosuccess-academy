@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -11,17 +12,110 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, courseTitle, lessonTitle, lessonContent } = await req.json();
+    // 1. Verify authentication
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(
+        JSON.stringify({ error: "Authentication required" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims) {
+      return new Response(
+        JSON.stringify({ error: "Invalid authentication" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const userId = claimsData.claims.sub;
+
+    // 2. Parse and validate input
+    const { messages, courseTitle, lessonTitle, lessonContent, courseId } = await req.json();
+
+    // Validate messages array
+    if (!Array.isArray(messages) || messages.length === 0 || messages.length > 50) {
+      return new Response(
+        JSON.stringify({ error: "Invalid messages format" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Validate each message
+    for (const msg of messages) {
+      if (!msg.role || !msg.content) {
+        return new Response(
+          JSON.stringify({ error: "Invalid message format" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Only allow 'user' and 'assistant' roles from clients
+      if (msg.role !== 'user' && msg.role !== 'assistant') {
+        return new Response(
+          JSON.stringify({ error: "Invalid message role" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Limit content length
+      if (typeof msg.content !== 'string' || msg.content.length > 10000) {
+        return new Response(
+          JSON.stringify({ error: "Message content too long" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
+
+    // 3. Verify course purchase if courseId provided
+    if (courseId) {
+      const { data: purchase } = await supabase
+        .from('purchases')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('course_id', courseId)
+        .maybeSingle();
+
+      // Also check if user is admin
+      const { data: adminRole } = await supabase
+        .from('user_roles')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('role', 'admin')
+        .maybeSingle();
+
+      if (!purchase && !adminRole) {
+        return new Response(
+          JSON.stringify({ error: "Course access required" }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    const systemPrompt = `You are an expert AI Tutor for the course "${courseTitle || 'Solo Founder Academy'}". 
-You are currently helping a student with the lesson: "${lessonTitle || 'Current Lesson'}".
+    // Sanitize dynamic content
+    const sanitize = (text: string | undefined, maxLen = 500): string => {
+      if (!text) return '';
+      return text.substring(0, maxLen);
+    };
 
-${lessonContent ? `Here is the lesson content for context:\n${lessonContent}\n\n` : ''}
+    const systemPrompt = `You are an expert AI Tutor for the course "${sanitize(courseTitle) || 'Solo Founder Academy'}". 
+You are currently helping a student with the lesson: "${sanitize(lessonTitle) || 'Current Lesson'}".
+
+${lessonContent ? `Here is the lesson content for context:\n${sanitize(lessonContent, 5000)}\n\n` : ''}
 
 Your role:
 - Help students understand the lesson material deeply
@@ -35,7 +129,8 @@ Guidelines:
 - Use bullet points for lists and steps
 - Reference the lesson content when relevant
 - Ask clarifying questions if their query is ambiguous
-- Celebrate their progress and curiosity`;
+- Celebrate their progress and curiosity
+- Stay focused on the course material and related business topics`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -79,7 +174,7 @@ Guidelines:
     });
   } catch (error) {
     console.error("AI Tutor error:", error);
-    return new Response(JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }), {
+    return new Response(JSON.stringify({ error: "An error occurred" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

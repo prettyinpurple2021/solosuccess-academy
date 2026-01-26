@@ -12,10 +12,46 @@ serve(async (req) => {
   }
 
   try {
+    // 1. Verify authentication
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(
+        JSON.stringify({ error: "Authentication required" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const supabaseAuth = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsError } = await supabaseAuth.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims) {
+      return new Response(
+        JSON.stringify({ error: "Invalid authentication" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const userId = claimsData.claims.sub;
+
+    // 2. Parse and validate input
     const { projectId } = await req.json();
     
-    if (!projectId) {
+    if (!projectId || typeof projectId !== 'string') {
       return new Response(JSON.stringify({ error: "Project ID is required" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Validate UUID format
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(projectId)) {
+      return new Response(JSON.stringify({ error: "Invalid project ID format" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -32,7 +68,7 @@ serve(async (req) => {
     // Create Supabase client with service role
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    // Fetch project with course info
+    // 3. Fetch project with course info
     const { data: project, error: projectError } = await supabase
       .from("course_projects")
       .select(`
@@ -51,6 +87,14 @@ serve(async (req) => {
         status: 404,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    // 4. CRITICAL: Verify ownership - user must own this project
+    if (project.user_id !== userId) {
+      return new Response(
+        JSON.stringify({ error: "You don't have permission to access this project" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     const course = project.courses;
@@ -89,10 +133,13 @@ Rate the submission on a scale of 1-10, where:
 
 Be encouraging but honest. The goal is to help them succeed as solo founders.`;
 
+    // Sanitize submission content
+    const sanitizedContent = (project.submission_content || '').substring(0, 15000);
+
     const userPrompt = `Please review this project submission:
 
 ---
-${project.submission_content}
+${sanitizedContent}
 ---
 
 ${project.file_urls?.length ? `\nNote: The student has also uploaded ${project.file_urls.length} file(s) as part of their submission.` : ""}`;
@@ -158,7 +205,7 @@ ${project.file_urls?.length ? `\nNote: The student has also uploaded ${project.f
     });
   } catch (error) {
     console.error("Project feedback error:", error);
-    return new Response(JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }), {
+    return new Response(JSON.stringify({ error: "An error occurred" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
