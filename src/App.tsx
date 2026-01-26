@@ -25,6 +25,7 @@ import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 import AdminDashboard from "./pages/AdminDashboard";
 import ContentGenerator from "./pages/ContentGenerator";
+import Gradebook from "./pages/Gradebook";
 import Textbook from "./pages/Textbook";
 import NotFound from "./pages/NotFound";
 
@@ -60,6 +61,7 @@ const App = () => (
               <Route path="/settings" element={<Settings />} />
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/admin/content-generator" element={<ContentGenerator />} />
+              <Route path="/admin/gradebook" element={<Gradebook />} />
               
               {/* Course learning routes (require purchase) */}
               <Route path="/courses/:courseId/lessons/:lessonId" element={<LessonViewer />} />
