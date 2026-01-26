@@ -10,6 +10,7 @@ import { LessonContent } from '@/components/lesson/LessonContent';
 import { LessonSidebar } from '@/components/lesson/LessonSidebar';
 import { AITutorChat } from '@/components/lesson/AITutorChat';
 import { CourseBreadcrumb } from '@/components/navigation/CourseBreadcrumb';
+import { fireCourseCompletionConfetti } from '@/hooks/useConfetti';
 import { 
   ArrowLeft,
   ArrowRight, 
@@ -50,6 +51,11 @@ export default function LessonViewer() {
   const handleMarkComplete = async () => {
     if (!user?.id || !lessonId) return;
 
+    // Calculate if this will complete the course
+    const currentlyCompleted = progressData?.completedCount ?? 0;
+    const totalLessons = progressData?.lessonCount ?? 0;
+    const willCompleteCourse = !isCompleted && currentlyCompleted + 1 === totalLessons;
+
     try {
       await markComplete.mutateAsync({
         userId: user.id,
@@ -57,14 +63,23 @@ export default function LessonViewer() {
         completed: !isCompleted,
       });
 
-      toast({
-        title: isCompleted ? 'Marked as incomplete' : 'Lesson completed!',
-        description: isCompleted 
-          ? 'Progress updated' 
-          : nextLesson 
-            ? 'Great work! Ready for the next lesson?' 
-            : 'Congratulations on completing this lesson!',
-      });
+      // Fire confetti if completing the entire course
+      if (willCompleteCourse) {
+        fireCourseCompletionConfetti();
+        toast({
+          title: '🎉 Course Completed!',
+          description: `Congratulations! You've finished all lessons in ${course?.title}!`,
+        });
+      } else {
+        toast({
+          title: isCompleted ? 'Marked as incomplete' : 'Lesson completed!',
+          description: isCompleted 
+            ? 'Progress updated' 
+            : nextLesson 
+              ? 'Great work! Ready for the next lesson?' 
+              : 'Congratulations on completing this lesson!',
+        });
+      }
     } catch (error) {
       toast({
         title: 'Error',
