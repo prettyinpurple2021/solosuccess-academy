@@ -2,8 +2,6 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Header } from '@/components/layout/Header';
-import { Footer } from '@/components/layout/Footer';
 import { useCourses } from '@/hooks/useCourses';
 import { phaseMetadata, formatPrice, type CoursePhase } from '@/lib/courseData';
 import { 
@@ -83,10 +81,7 @@ export default function Index() {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col cyber-bg cyber-grid">
-      <Header />
-      
-      <main className="flex-1 relative z-10">
+    <div className="flex-1 relative z-10">
         {/* Hero Section */}
         <section className="relative overflow-hidden py-24 md:py-36">
           {/* Animated background effects */}
@@ -361,9 +356,6 @@ export default function Index() {
             </Card>
           </div>
         </section>
-      </main>
-
-      <Footer />
     </div>
   );
 }

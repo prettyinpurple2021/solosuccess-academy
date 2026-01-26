@@ -3,8 +3,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Header } from '@/components/layout/Header';
-import { Footer } from '@/components/layout/Footer';
 import { useCourses } from '@/hooks/useCourses';
 import { useAuth } from '@/hooks/useAuth';
 import { phaseMetadata, formatPrice, getPhaseClasses, type CoursePhase } from '@/lib/courseData';
@@ -84,11 +82,8 @@ export default function Courses() {
   }, {} as Record<CoursePhase, typeof courses>);
 
   return (
-    <div className="min-h-screen flex flex-col cyber-bg cyber-grid">
-      <Header />
-      
-      <main className="flex-1 py-12 relative z-10">
-        <div className="container">
+    <section className="py-12">
+      <div className="container">
           {/* Page Header */}
           <div className="max-w-4xl mb-16">
             <div className="flex items-center gap-3 mb-4">
@@ -224,9 +219,6 @@ export default function Courses() {
             </div>
           )}
         </div>
-      </main>
-
-      <Footer />
-    </div>
+    </section>
   );
 }
