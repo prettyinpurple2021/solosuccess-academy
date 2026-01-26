@@ -21,7 +21,8 @@ import {
   DollarSign,
   Plus,
   BookText,
-  Sparkles
+  Sparkles,
+  GraduationCap
 } from 'lucide-react';
 import { NeonSpinner } from '@/components/ui/neon-spinner';
 
@@ -162,30 +163,58 @@ export default function AdminDashboard() {
         </TabsList>
 
         <TabsContent value="courses" className="space-y-4">
-          {/* AI Content Generator Link */}
-          <Card className="border-2 border-dashed border-primary/40 bg-primary/5 hover:border-primary/60 transition-all">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-primary/20">
-                    <Sparkles className="h-5 w-5 text-primary" />
+          {/* Quick Access Cards */}
+          <div className="grid gap-4 md:grid-cols-2">
+            {/* AI Content Generator Link */}
+            <Card className="border-2 border-dashed border-primary/40 bg-primary/5 hover:border-primary/60 transition-all">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-primary/20">
+                      <Sparkles className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold">AI Content Generator</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Generate courses, lessons, quizzes with AI
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-semibold">AI Content Generator</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Generate courses, lessons, quizzes, and more with AI
-                    </p>
-                  </div>
+                  <Button asChild variant="neon">
+                    <Link to="/admin/content-generator">
+                      <Sparkles className="mr-2 h-4 w-4" />
+                      Open
+                    </Link>
+                  </Button>
                 </div>
-                <Button asChild variant="neon">
-                  <Link to="/admin/content-generator">
-                    <Sparkles className="mr-2 h-4 w-4" />
-                    Open Generator
-                  </Link>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+
+            {/* Gradebook Link */}
+            <Card className="border-2 border-dashed border-info/40 bg-info/5 hover:border-info/60 transition-all">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-info/20">
+                      <GraduationCap className="h-5 w-5 text-info" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold">Gradebook</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Track student progress and scores
+                      </p>
+                    </div>
+                  </div>
+                  <Button asChild className="bg-info/20 text-info border-info/30 hover:bg-info/30">
+                    <Link to="/admin/gradebook">
+                      <GraduationCap className="mr-2 h-4 w-4" />
+                      Open
+                    </Link>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
 
           {/* Seed Curriculum Button */}
           <SeedCurriculumButton />
