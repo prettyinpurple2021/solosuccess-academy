@@ -2,10 +2,11 @@ import { useParams, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ProjectSubmissionForm } from '@/components/project/ProjectSubmissionForm';
 import { ProjectFeedback } from '@/components/project/ProjectFeedback';
+import { CourseBreadcrumb } from '@/components/navigation/CourseBreadcrumb';
 import { useCourse, useHasPurchasedCourse } from '@/hooks/useCourses';
 import { useCourseProject } from '@/hooks/useProjects';
 import { useAuth } from '@/hooks/useAuth';
-import { ArrowLeft, Lock } from 'lucide-react';
+import { Lock } from 'lucide-react';
 import { NeonSpinner } from '@/components/ui/neon-spinner';
 
 export default function CourseProject() {
@@ -77,13 +78,14 @@ export default function CourseProject() {
   return (
     <div className="p-6 md:p-8 lg:p-12">
       <div className="max-w-4xl mx-auto">
-        {/* Back navigation */}
-        <Button variant="ghost" asChild className="mb-6 hover:bg-primary/10 hover:text-primary transition-all">
-          <Link to={`/courses/${courseId}`}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to {course.title}
-          </Link>
-        </Button>
+        {/* Breadcrumb */}
+        <CourseBreadcrumb
+          segments={[
+            { label: course.title, href: `/courses/${courseId}` },
+            { label: 'Project' },
+          ]}
+          className="mb-6"
+        />
 
         <div className="space-y-8">
           {/* Project Form */}

@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useCourse, useCourseLessons, useHasPurchasedCourse } from '@/hooks/useCourses';
 import { useCourseProgress, useMarkLessonComplete } from '@/hooks/useProgress';
@@ -10,8 +9,9 @@ import { useToast } from '@/hooks/use-toast';
 import { LessonContent } from '@/components/lesson/LessonContent';
 import { LessonSidebar } from '@/components/lesson/LessonSidebar';
 import { AITutorChat } from '@/components/lesson/AITutorChat';
+import { CourseBreadcrumb } from '@/components/navigation/CourseBreadcrumb';
 import { 
-  ArrowLeft, 
+  ArrowLeft,
   ArrowRight, 
   Bot, 
   CheckCircle2, 
@@ -137,20 +137,14 @@ export default function LessonViewer() {
           </SheetContent>
         </Sheet>
 
-        {/* Back to Course */}
-        <Button variant="ghost" size="sm" asChild className="gap-2 hover:bg-primary/20 hover:text-primary">
-          <Link to={`/courses/${courseId}`}>
-            <ArrowLeft className="h-4 w-4" />
-            <span className="hidden sm:inline font-display">{course?.title}</span>
-          </Link>
-        </Button>
-
-        <Separator orientation="vertical" className="h-6 bg-primary/30" />
-
-        {/* Lesson Title */}
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium truncate text-cyan-300">{currentLesson.title}</p>
-        </div>
+        {/* Breadcrumb Navigation */}
+        <CourseBreadcrumb
+          segments={[
+            { label: course?.title || 'Course', href: `/courses/${courseId}` },
+            { label: currentLesson.title },
+          ]}
+          className="flex-1 min-w-0"
+        />
 
         {/* AI Tutor Button */}
         <Button

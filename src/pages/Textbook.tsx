@@ -1,6 +1,7 @@
 import { useParams, Link } from 'react-router-dom';
 import { TextbookViewer } from '@/components/textbook/TextbookViewer';
 import { Button } from '@/components/ui/button';
+import { CourseBreadcrumb } from '@/components/navigation/CourseBreadcrumb';
 import { useCourses } from '@/hooks/useCourses';
 import { ArrowLeft } from 'lucide-react';
 import { NeonSpinner } from '@/components/ui/neon-spinner';
@@ -38,15 +39,14 @@ export default function Textbook() {
   return (
     <div className="flex-1 py-8">
       <div className="container">
-        {/* Back Link */}
-        <div className="mb-6">
-          <Button variant="ghost" asChild className="hover:bg-primary/20 hover:text-primary">
-            <Link to={`/courses/${courseId}`}>
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Course
-            </Link>
-          </Button>
-        </div>
+        {/* Breadcrumb */}
+        <CourseBreadcrumb
+          segments={[
+            { label: course.title, href: `/courses/${courseId}` },
+            { label: 'Textbook' },
+          ]}
+          className="mb-6"
+        />
 
         {/* Textbook Viewer */}
         <TextbookViewer courseId={courseId!} courseName={course.title} />

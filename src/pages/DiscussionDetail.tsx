@@ -4,12 +4,13 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { CommentList } from '@/components/discussion/CommentList';
+import { CourseBreadcrumb } from '@/components/navigation/CourseBreadcrumb';
 import { useCourse, useHasPurchasedCourse } from '@/hooks/useCourses';
 import { useDiscussion, useDiscussionComments, useDeleteDiscussion } from '@/hooks/useDiscussions';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
-import { ArrowLeft, Lock, Pin, Trash2, Clock } from 'lucide-react';
+import { Lock, Pin, Trash2, Clock } from 'lucide-react';
 import { NeonSpinner } from '@/components/ui/neon-spinner';
 
 export default function DiscussionDetail() {
@@ -86,13 +87,15 @@ export default function DiscussionDetail() {
   return (
     <div className="p-6 md:p-8 lg:p-12">
       <div className="max-w-4xl mx-auto">
-        {/* Back navigation */}
-        <Button variant="ghost" asChild className="mb-6 hover:bg-primary/10 hover:text-primary transition-all">
-          <Link to={`/courses/${courseId}/discussions`}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            All Discussions
-          </Link>
-        </Button>
+        {/* Breadcrumb */}
+        <CourseBreadcrumb
+          segments={[
+            { label: course?.title || 'Course', href: `/courses/${courseId}` },
+            { label: 'Discussions', href: `/courses/${courseId}/discussions` },
+            { label: discussion.title },
+          ]}
+          className="mb-6"
+        />
 
         {/* Discussion */}
         <Card className="mb-8 glass-card border-secondary/30 hover:border-secondary/50 hover:shadow-[0_0_30px_hsl(var(--secondary)/0.15)] transition-all duration-300">
