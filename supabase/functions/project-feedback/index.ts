@@ -1,9 +1,17 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { checkRateLimit, rateLimitResponse } from "../_shared/rateLimit.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
+// Rate limit: 10 requests per hour per user (project feedback is expensive)
+const RATE_LIMIT_CONFIG = {
+  endpoint: "project-feedback",
+  maxRequests: 10,
+  windowMinutes: 60,
 };
 
 serve(async (req) => {
@@ -37,6 +45,12 @@ serve(async (req) => {
     }
 
     const userId = claimsData.claims.sub;
+
+    // 2. Check rate limit
+    const rateLimitResult = await checkRateLimit(userId, RATE_LIMIT_CONFIG);
+    if (!rateLimitResult.allowed) {
+      return rateLimitResponse(rateLimitResult, corsHeaders);
+    }
 
     // 2. Parse and validate input
     const { projectId } = await req.json();
