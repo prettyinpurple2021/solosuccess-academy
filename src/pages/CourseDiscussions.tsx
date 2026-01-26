@@ -3,10 +3,11 @@ import { useParams, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { DiscussionList } from '@/components/discussion/DiscussionList';
 import { CreateDiscussionForm } from '@/components/discussion/CreateDiscussionForm';
+import { CourseBreadcrumb } from '@/components/navigation/CourseBreadcrumb';
 import { useCourse, useHasPurchasedCourse } from '@/hooks/useCourses';
 import { useCourseDiscussions } from '@/hooks/useDiscussions';
 import { useAuth } from '@/hooks/useAuth';
-import { ArrowLeft, Lock, Plus, MessageSquare } from 'lucide-react';
+import { Lock, Plus, MessageSquare } from 'lucide-react';
 import { NeonSpinner } from '@/components/ui/neon-spinner';
 
 export default function CourseDiscussions() {
@@ -62,13 +63,14 @@ export default function CourseDiscussions() {
   return (
     <div className="p-6 md:p-8 lg:p-12">
       <div className="max-w-4xl mx-auto">
-        {/* Back navigation */}
-        <Button variant="ghost" asChild className="mb-6 hover:bg-primary/10 hover:text-primary transition-all">
-          <Link to={`/courses/${courseId}`}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to {course.title}
-          </Link>
-        </Button>
+        {/* Breadcrumb */}
+        <CourseBreadcrumb
+          segments={[
+            { label: course.title, href: `/courses/${courseId}` },
+            { label: 'Discussions' },
+          ]}
+          className="mb-6"
+        />
 
         {/* Header */}
         <div className="flex items-start justify-between mb-8">
