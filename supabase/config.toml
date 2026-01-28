@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.send-notification-email]
 verify_jwt = false
+
+[functions.check-student-progress]
+verify_jwt = false
