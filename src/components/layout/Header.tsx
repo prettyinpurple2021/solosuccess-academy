@@ -12,6 +12,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { User, LogOut, BookOpen, LayoutDashboard, Settings, Shield, Zap } from 'lucide-react';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
+import { XPDisplay } from '@/components/gamification/XPDisplay';
 
 export function Header() {
   const { user, profile, isAuthenticated, signOut } = useAuth();
@@ -78,7 +79,12 @@ export function Header() {
 
         {/* Auth Section */}
         <div className="flex items-center gap-3">
-          {isAuthenticated && <NotificationBell />}
+          {isAuthenticated && (
+            <>
+              <XPDisplay compact className="hidden sm:flex" />
+              <NotificationBell />
+            </>
+          )}
           {isAuthenticated ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

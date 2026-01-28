@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
+import { useGamification } from '@/components/gamification/GamificationProvider';
 import { 
   useCourseProject, 
   useSaveProjectDraft, 
@@ -34,6 +35,7 @@ interface ProjectSubmissionFormProps {
 
 export function ProjectSubmissionForm({ course, userId }: ProjectSubmissionFormProps) {
   const { toast } = useToast();
+  const { awardXP, checkAndAwardBadges } = useGamification();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const { data: project, isLoading } = useCourseProject(userId, course.id);
@@ -160,6 +162,9 @@ export function ProjectSubmissionForm({ course, userId }: ProjectSubmissionFormP
         description: 'Requesting AI feedback...',
       });
 
+      // Award XP for project submission
+      await awardXP('PROJECT_SUBMIT');
+
       // Request AI feedback
       await requestFeedback.mutateAsync({ projectId, userId, courseId: course.id });
 
@@ -167,6 +172,10 @@ export function ProjectSubmissionForm({ course, userId }: ProjectSubmissionFormP
         title: 'Feedback received!',
         description: 'Your AI feedback is ready to view.',
       });
+
+      // Award XP for receiving feedback and check badges
+      await awardXP('PROJECT_FEEDBACK');
+      setTimeout(() => checkAndAwardBadges(), 1000);
     } catch (error: any) {
       toast({
         title: 'Submission failed',

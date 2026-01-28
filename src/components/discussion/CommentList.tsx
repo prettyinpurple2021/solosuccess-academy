@@ -3,6 +3,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
+import { useGamification } from '@/components/gamification/GamificationProvider';
 import { 
   type DiscussionComment, 
   useCreateComment, 
@@ -24,6 +25,7 @@ interface CommentListProps {
 
 export function CommentList({ comments, discussionId, userId }: CommentListProps) {
   const { toast } = useToast();
+  const { awardXP, checkAndAwardBadges } = useGamification();
   const createComment = useCreateComment();
   const deleteComment = useDeleteComment();
 
@@ -51,6 +53,10 @@ export function CommentList({ comments, discussionId, userId }: CommentListProps
 
       setNewComment('');
       toast({ title: 'Comment posted!' });
+
+      // Award XP for posting a comment
+      await awardXP('COMMENT_POST');
+      setTimeout(() => checkAndAwardBadges(), 1000);
     } catch (error: any) {
       toast({
         title: 'Failed to post comment',
@@ -82,6 +88,10 @@ export function CommentList({ comments, discussionId, userId }: CommentListProps
       setReplyingTo(null);
       setReplyContent('');
       toast({ title: 'Reply posted!' });
+
+      // Award XP for posting a reply
+      await awardXP('COMMENT_POST');
+      setTimeout(() => checkAndAwardBadges(), 1000);
     } catch (error: any) {
       toast({
         title: 'Failed to post reply',
