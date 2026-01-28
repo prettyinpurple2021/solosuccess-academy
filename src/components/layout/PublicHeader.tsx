@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { cn } from '@/lib/utils';
 
 export function PublicHeader() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
@@ -54,11 +54,11 @@ export function PublicHeader() {
 
         {/* Auth Section */}
         <div className="flex items-center gap-4">
-          {isAuthenticated ? (
+          {!isLoading && isAuthenticated ? (
             <Button variant="neon" asChild>
               <Link to="/dashboard">Go to Dashboard</Link>
             </Button>
-          ) : (
+          ) : !isLoading ? (
             <div className="hidden md:flex items-center gap-3">
               <Button variant="ghost" asChild>
                 <Link to="/auth">Sign In</Link>
@@ -67,7 +67,7 @@ export function PublicHeader() {
                 <Link to="/auth?mode=signup">Get Started</Link>
               </Button>
             </div>
-          )}
+          ) : null}
           
           {/* Mobile menu button */}
           <Button 
