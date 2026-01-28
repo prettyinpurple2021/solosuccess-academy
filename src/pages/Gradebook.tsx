@@ -62,8 +62,10 @@ export default function Gradebook() {
   const [selectedStudent, setSelectedStudent] = useState<StudentProgress | null>(null);
   const [editingGrade, setEditingGrade] = useState<{
     progressId: string;
+    studentId: string;
     studentName: string;
     lessonTitle: string;
+    courseTitle: string;
     currentScore: number | null;
     currentOverride: number | null;
     currentNotes: string | null;
@@ -101,11 +103,13 @@ export default function Gradebook() {
         (students.filter(s => s.quizCount > 0).length || 1))
     : 0;
 
-  const handleEditGrade = (quiz: QuizScore, studentName: string) => {
+  const handleEditGrade = (quiz: QuizScore, studentId: string, studentName: string, courseTitle: string) => {
     setEditingGrade({
       progressId: quiz.progressId,
+      studentId,
       studentName,
       lessonTitle: quiz.lessonTitle,
+      courseTitle,
       currentScore: quiz.score,
       currentOverride: quiz.adminOverrideScore,
       currentNotes: quiz.adminNotes,
@@ -421,7 +425,7 @@ export default function Gradebook() {
                                   <Tooltip key={idx}>
                                     <TooltipTrigger asChild>
                                       <button
-                                        onClick={() => handleEditGrade(quiz, selectedStudent.displayName)}
+                                        onClick={() => handleEditGrade(quiz, selectedStudent.userId, selectedStudent.displayName, course.courseTitle)}
                                         className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full border cursor-pointer hover:opacity-80 transition-opacity ${
                                           quiz.effectiveScore >= 80 ? 'bg-success/20 text-success border-success/30' :
                                           quiz.effectiveScore >= 60 ? 'bg-warning/20 text-warning border-warning/30' :
@@ -475,8 +479,10 @@ export default function Gradebook() {
           open={!!editingGrade}
           onOpenChange={(open) => !open && setEditingGrade(null)}
           progressId={editingGrade.progressId}
+          studentId={editingGrade.studentId}
           studentName={editingGrade.studentName}
           lessonTitle={editingGrade.lessonTitle}
+          courseTitle={editingGrade.courseTitle}
           currentScore={editingGrade.currentScore}
           currentOverride={editingGrade.currentOverride}
           currentNotes={editingGrade.currentNotes}
