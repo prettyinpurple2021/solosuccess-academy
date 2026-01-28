@@ -5,12 +5,15 @@ import { AvatarUpload } from '@/components/profile/AvatarUpload';
 import { ProfileForm } from '@/components/profile/ProfileForm';
 import { AchievementsCard } from '@/components/profile/AchievementsCard';
 import { ProgressRing } from '@/components/ui/progress-ring';
+import { XPDisplay } from '@/components/gamification/XPDisplay';
+import { StreakCard } from '@/components/gamification/StreakCard';
+import { BadgesDisplay } from '@/components/gamification/BadgesDisplay';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile, useUserAchievements } from '@/hooks/useProfile';
 import { useOverallProgress } from '@/hooks/useProgress';
 import { useCourses } from '@/hooks/useCourses';
 import { NeonSpinner } from '@/components/ui/neon-spinner';
-import { TrendingUp, BookOpen, Target } from 'lucide-react';
+import { TrendingUp, BookOpen } from 'lucide-react';
 
 export default function Profile() {
   const { user, isLoading: authLoading } = useAuth();
@@ -64,6 +67,12 @@ export default function Profile() {
                 />
               </CardContent>
             </Card>
+
+            {/* XP & Level Display */}
+            <XPDisplay />
+
+            {/* Streak Card */}
+            <StreakCard />
 
             {/* Overall Progress Ring */}
             <Card className="glass-card border-secondary/30 hover:border-secondary/50 hover:shadow-[0_0_30px_hsl(var(--secondary)/0.2)] transition-all duration-300">
@@ -130,6 +139,11 @@ export default function Profile() {
             </CardContent>
           </Card>
         )}
+
+        {/* Badges Display */}
+        <div className="mt-8">
+          <BadgesDisplay showAll />
+        </div>
 
         <div className="mt-8">
           <AchievementsCard 

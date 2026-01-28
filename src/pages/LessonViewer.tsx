@@ -11,6 +11,7 @@ import { LessonSidebar } from '@/components/lesson/LessonSidebar';
 import { AITutorChat } from '@/components/lesson/AITutorChat';
 import { CourseBreadcrumb } from '@/components/navigation/CourseBreadcrumb';
 import { fireCourseCompletionConfetti } from '@/hooks/useConfetti';
+import { useGamification } from '@/components/gamification/GamificationProvider';
 import { 
   ArrowLeft,
   ArrowRight, 
@@ -26,6 +27,7 @@ export default function LessonViewer() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
+  const { awardXP, checkAndAwardBadges } = useGamification();
   const [showAITutor, setShowAITutor] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -62,6 +64,13 @@ export default function LessonViewer() {
         lessonId,
         completed: !isCompleted,
       });
+
+      // Award XP if completing (not uncompleting)
+      if (!isCompleted) {
+        await awardXP('LESSON_COMPLETE');
+        // Check for new badges after a short delay
+        setTimeout(() => checkAndAwardBadges(), 1000);
+      }
 
       // Fire confetti if completing the entire course
       if (willCompleteCourse) {

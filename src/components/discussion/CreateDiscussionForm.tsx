@@ -5,6 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useCreateDiscussion } from '@/hooks/useDiscussions';
+import { useGamification } from '@/components/gamification/GamificationProvider';
 import { Loader2, X, MessageSquarePlus } from 'lucide-react';
 import { z } from 'zod';
 
@@ -22,6 +23,7 @@ interface CreateDiscussionFormProps {
 
 export function CreateDiscussionForm({ courseId, userId, onSuccess, onCancel }: CreateDiscussionFormProps) {
   const { toast } = useToast();
+  const { awardXP, checkAndAwardBadges } = useGamification();
   const createDiscussion = useCreateDiscussion();
   
   const [title, setTitle] = useState('');
@@ -52,6 +54,9 @@ export function CreateDiscussionForm({ courseId, userId, onSuccess, onCancel }: 
         content: result.data.content,
       });
 
+      // Award XP for starting a discussion
+      await awardXP('DISCUSSION_START');
+      setTimeout(() => checkAndAwardBadges(), 1000);
       toast({
         title: 'Discussion created!',
         description: 'Your question has been posted.',
