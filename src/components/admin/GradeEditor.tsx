@@ -20,8 +20,10 @@ interface GradeEditorProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   progressId: string;
+  studentId: string;
   studentName: string;
   lessonTitle: string;
+  courseTitle: string;
   currentScore: number | null;
   currentOverride: number | null;
   currentNotes: string | null;
@@ -31,8 +33,10 @@ export function GradeEditor({
   open,
   onOpenChange,
   progressId,
+  studentId,
   studentName,
   lessonTitle,
+  courseTitle,
   currentScore,
   currentOverride,
   currentNotes,
@@ -58,10 +62,39 @@ export function GradeEditor({
 
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: async (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['gradebook'] });
       queryClient.invalidateQueries({ queryKey: ['gradebook-detailed'] });
       toast.success('Grade updated successfully');
+      
+      // Send email notification to student
+      try {
+        const { data: sessionData } = await supabase.auth.getSession();
+        if (sessionData?.session?.access_token) {
+          const response = await supabase.functions.invoke('send-notification-email', {
+            body: {
+              type: 'grade_review',
+              userId: studentId,
+              data: {
+                lessonTitle,
+                courseTitle,
+                score: variables.score,
+                adminNotes: variables.notes,
+              },
+            },
+          });
+          
+          if (response.error) {
+            console.error('Failed to send notification:', response.error);
+          } else {
+            console.log('Notification sent successfully');
+          }
+        }
+      } catch (emailError) {
+        console.error('Email notification failed:', emailError);
+        // Don't show error to user - grade was saved successfully
+      }
+      
       onOpenChange(false);
     },
     onError: (error) => {
