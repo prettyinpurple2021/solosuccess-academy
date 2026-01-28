@@ -36,10 +36,10 @@ export function XPDisplay({ compact = false, className }: XPDisplayProps) {
         <div className={cn('flex items-center gap-3', className)}>
           <Tooltip>
             <TooltipTrigger asChild>
-              <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-primary/20 border border-primary/30">
+              <button type="button" className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-primary/20 border border-primary/30 cursor-default">
                 <Zap className="h-3.5 w-3.5 text-primary" />
                 <span className="text-xs font-bold text-primary">{xp.toLocaleString()}</span>
-              </div>
+              </button>
             </TooltipTrigger>
             <TooltipContent>
               <p>Level {level} • {xpInLevel}/{xpToNextLevel} XP to next level</p>
@@ -49,10 +49,10 @@ export function XPDisplay({ compact = false, className }: XPDisplayProps) {
           {streak > 0 && (
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-orange-500/20 border border-orange-500/30">
+                <button type="button" className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-orange-500/20 border border-orange-500/30 cursor-default">
                   <Flame className="h-3.5 w-3.5 text-orange-500" />
                   <span className="text-xs font-bold text-orange-500">{streak}</span>
-                </div>
+                </button>
               </TooltipTrigger>
               <TooltipContent>
                 <p>{streak}-day learning streak!</p>
