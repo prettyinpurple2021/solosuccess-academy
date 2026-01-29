@@ -39,6 +39,8 @@ import {
   FileUp,
   Save,
   CheckCircle2,
+  Eye,
+  Pencil,
 } from 'lucide-react';
 import { useIsAdmin, CoursePhase } from '@/hooks/useAdmin';
 import { useAuth } from '@/hooks/useAuth';
@@ -48,6 +50,7 @@ import { useToast } from '@/hooks/use-toast';
 import { NeonSpinner } from '@/components/ui/neon-spinner';
 import { DocumentUpload } from '@/components/admin/DocumentUpload';
 import { useDocumentParser } from '@/hooks/useDocumentParser';
+import { CurriculumPreviewEditor } from '@/components/admin/CurriculumPreviewEditor';
 
 const buildDefaultPrompt = (
   contentType: ContentType,
@@ -105,10 +108,21 @@ export default function ContentGenerator() {
   const [customPrompt, setCustomPrompt] = useState('');
   const [showPromptEditor, setShowPromptEditor] = useState(false);
   
+  // Preview/Edit mode state
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editableCurriculum, setEditableCurriculum] = useState<GeneratedBulkCurriculum | null>(null);
+  
   // Save dialog state
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [savePhase, setSavePhase] = useState<CoursePhase>('initialization');
   const [savePrice, setSavePrice] = useState(4900);
+
+  // Sync editable curriculum when content is generated
+  useEffect(() => {
+    if (activeTab === 'bulk_curriculum' && generatedContent?.course) {
+      setEditableCurriculum(generatedContent as GeneratedBulkCurriculum);
+    }
+  }, [generatedContent, activeTab]);
 
   // Update prompt when inputs change
   useEffect(() => {
@@ -178,10 +192,12 @@ export default function ContentGenerator() {
   };
 
   const handleSaveCurriculum = () => {
-    if (!generatedContent?.course) return;
+    // Use the editable curriculum if in edit mode, otherwise use generated content
+    const curriculumToSave = editableCurriculum || generatedContent;
+    if (!curriculumToSave?.course) return;
     
     saveCurriculum({
-      curriculum: generatedContent as GeneratedBulkCurriculum,
+      curriculum: curriculumToSave as GeneratedBulkCurriculum,
       options: {
         phase: savePhase,
         priceCents: savePrice,
@@ -190,7 +206,11 @@ export default function ContentGenerator() {
     setShowSaveDialog(false);
   };
 
-  const canSaveCurriculum = activeTab === 'bulk_curriculum' && generatedContent?.course;
+  const handleCurriculumUpdate = (updated: GeneratedBulkCurriculum) => {
+    setEditableCurriculum(updated);
+  };
+
+  const canSaveCurriculum = activeTab === 'bulk_curriculum' && (editableCurriculum?.course || generatedContent?.course);
 
   const contentTypes = [
     { value: 'course_outline', label: 'Course Outline', icon: BookOpen, description: 'Generate full course structure' },
@@ -276,46 +296,58 @@ export default function ContentGenerator() {
       );
     }
 
-    // Render bulk curriculum
+    // Render bulk curriculum - show preview summary or edit mode
     if (activeTab === 'bulk_curriculum' && generatedContent.course) {
+      // If in edit mode, show the full editor
+      if (isEditMode && editableCurriculum) {
+        return (
+          <CurriculumPreviewEditor
+            curriculum={editableCurriculum}
+            onUpdate={handleCurriculumUpdate}
+          />
+        );
+      }
+
+      // Preview mode - show summary
+      const displayCurriculum = editableCurriculum || generatedContent;
       return (
         <div className="space-y-4">
           {/* Course Info */}
           <div className="p-3 bg-primary/10 rounded-lg border border-primary/30">
-            <h3 className="text-lg font-semibold text-primary">{generatedContent.course.title}</h3>
-            <p className="text-sm text-muted-foreground mt-1">{generatedContent.course.description?.substring(0, 200)}...</p>
+            <h3 className="text-lg font-semibold text-primary">{displayCurriculum.course.title}</h3>
+            <p className="text-sm text-muted-foreground mt-1">{displayCurriculum.course.description?.substring(0, 200)}...</p>
           </div>
 
           {/* Lessons Summary */}
-          {generatedContent.lessons && (
+          {displayCurriculum.lessons && (
             <div className="space-y-2">
               <p className="font-medium flex items-center gap-2">
                 <FileText className="h-4 w-4 text-accent" />
-                Lessons ({generatedContent.lessons.length})
+                Lessons ({displayCurriculum.lessons.length})
               </p>
               <div className="grid gap-2">
-                {generatedContent.lessons.slice(0, 4).map((lesson: any, i: number) => (
+                {displayCurriculum.lessons.slice(0, 4).map((lesson: any, i: number) => (
                   <div key={i} className="p-2 border border-border/50 rounded text-sm">
                     <Badge variant="secondary" className="text-xs mr-2">{lesson.type}</Badge>
                     {lesson.title}
                   </div>
                 ))}
-                {generatedContent.lessons.length > 4 && (
-                  <p className="text-xs text-muted-foreground">+{generatedContent.lessons.length - 4} more lessons...</p>
+                {displayCurriculum.lessons.length > 4 && (
+                  <p className="text-xs text-muted-foreground">+{displayCurriculum.lessons.length - 4} more lessons...</p>
                 )}
               </div>
             </div>
           )}
 
           {/* Textbook Chapters */}
-          {generatedContent.textbook_chapters && (
+          {displayCurriculum.textbook_chapters && (
             <div className="space-y-2">
               <p className="font-medium flex items-center gap-2">
                 <BookOpen className="h-4 w-4 text-secondary" />
-                Textbook Chapters ({generatedContent.textbook_chapters.length})
+                Textbook Chapters ({displayCurriculum.textbook_chapters.length})
               </p>
               <div className="grid gap-2">
-                {generatedContent.textbook_chapters.map((chapter: any, i: number) => (
+                {displayCurriculum.textbook_chapters.map((chapter: any, i: number) => (
                   <div key={i} className="p-2 border border-border/50 rounded text-sm">
                     {chapter.title} ({chapter.pages?.length || 0} pages)
                   </div>
@@ -325,14 +357,14 @@ export default function ContentGenerator() {
           )}
 
           {/* Final Exam */}
-          {generatedContent.final_exam && (
+          {displayCurriculum.final_exam && (
             <div className="p-3 bg-secondary/10 rounded-lg border border-secondary/30">
               <p className="font-medium flex items-center gap-2">
                 <GraduationCap className="h-4 w-4 text-secondary" />
-                {generatedContent.final_exam.title}
+                {displayCurriculum.final_exam.title}
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                {generatedContent.final_exam.questions?.length || 0} questions • Passing score: {generatedContent.final_exam.passingScore}%
+                {displayCurriculum.final_exam.questions?.length || 0} questions • Passing score: {displayCurriculum.final_exam.passingScore}%
               </p>
             </div>
           )}
@@ -556,6 +588,26 @@ export default function ContentGenerator() {
               </div>
               {generatedContent && (
                 <div className="flex items-center gap-2">
+                  {/* Edit/Preview Toggle for bulk curriculum */}
+                  {canSaveCurriculum && (
+                    <Button
+                      variant={isEditMode ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setIsEditMode(!isEditMode)}
+                    >
+                      {isEditMode ? (
+                        <>
+                          <Eye className="mr-2 h-4 w-4" />
+                          Preview
+                        </>
+                      ) : (
+                        <>
+                          <Pencil className="mr-2 h-4 w-4" />
+                          Edit
+                        </>
+                      )}
+                    </Button>
+                  )}
                   {canSaveCurriculum && (
                     <Button 
                       variant="neon" 
@@ -628,16 +680,19 @@ export default function ContentGenerator() {
           </DialogHeader>
           
           <div className="space-y-4 py-4">
-            {generatedContent?.course && (
-              <div className="p-3 rounded-lg bg-primary/10 border border-primary/30">
-                <p className="font-medium text-primary">{generatedContent.course.title}</p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {generatedContent.lessons?.length || 0} lessons • 
-                  {generatedContent.textbook_chapters?.length || 0} textbook chapters
-                  {generatedContent.final_exam && ' • Final exam included'}
-                </p>
-              </div>
-            )}
+            {(() => {
+              const curriculumToShow = editableCurriculum || generatedContent;
+              return curriculumToShow?.course ? (
+                <div className="p-3 rounded-lg bg-primary/10 border border-primary/30">
+                  <p className="font-medium text-primary">{curriculumToShow.course.title}</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {curriculumToShow.lessons?.length || 0} lessons • 
+                    {curriculumToShow.textbook_chapters?.length || 0} textbook chapters
+                    {curriculumToShow.final_exam && ' • Final exam included'}
+                  </p>
+                </div>
+              ) : null;
+            })()}
 
             <div className="space-y-2">
               <Label>Course Phase</Label>
