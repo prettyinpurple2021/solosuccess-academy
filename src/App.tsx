@@ -28,6 +28,7 @@ import Settings from "./pages/Settings";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminAnalytics from "./pages/AdminAnalytics";
 import ContentGenerator from "./pages/ContentGenerator";
+import AISettings from "./pages/AISettings";
 import Gradebook from "./pages/Gradebook";
 import Textbook from "./pages/Textbook";
 import Certificates from "./pages/Certificates";
@@ -72,6 +73,7 @@ const App = () => (
                 <Route path="/admin" element={<AdminDashboard />} />
                 <Route path="/admin/analytics" element={<AdminAnalytics />} />
                 <Route path="/admin/content-generator" element={<ContentGenerator />} />
+                <Route path="/admin/ai-settings" element={<AISettings />} />
                 <Route path="/admin/gradebook" element={<Gradebook />} />
                 
                 {/* Course learning routes (require purchase) */}

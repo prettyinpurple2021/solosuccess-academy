@@ -22,8 +22,10 @@ import {
   Trash2,
   Sparkles,
   Loader2,
+  Image,
 } from 'lucide-react';
 import { LessonEditCard, LessonData } from './LessonEditCard';
+import { ImageGenerateDialog } from './ImageGenerateDialog';
 import type { GeneratedBulkCurriculum } from '@/hooks/useContentGenerator';
 import { useContentGenerator } from '@/hooks/useContentGenerator';
 import { useToast } from '@/hooks/use-toast';
@@ -416,6 +418,26 @@ export function CurriculumPreviewEditor({ curriculum, onUpdate, documentContent 
                         <span className="text-xs text-muted-foreground">
                           {chapter.pages?.length || 0} pages
                         </span>
+                        <ImageGenerateDialog
+                          topic={chapter.title}
+                          trigger={
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-accent hover:text-accent hover:bg-accent/10"
+                              onClick={(e) => e.stopPropagation()}
+                              title="Generate image for chapter"
+                            >
+                              <Image className="h-4 w-4" />
+                            </Button>
+                          }
+                          onImageGenerated={(url) => {
+                            toast({
+                              title: 'Image generated!',
+                              description: `Download or copy the image for chapter "${chapter.title}"`,
+                            });
+                          }}
+                        />
                         <Button
                           variant="ghost"
                           size="icon"
