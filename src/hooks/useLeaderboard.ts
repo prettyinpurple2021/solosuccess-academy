@@ -26,12 +26,12 @@ export function useXPLeaderboard(limit = 10) {
       if (gamError) throw gamError;
       if (!gamificationData || gamificationData.length === 0) return [];
 
-      // Get profiles for these users
+      // Get profiles for these users using public view
       const userIds = gamificationData.map(g => g.user_id);
       const { data: profiles, error: profError } = await supabase
-        .from('profiles')
+        .from('profiles_public' as any)
         .select('id, display_name, avatar_url')
-        .in('id', userIds);
+        .in('id', userIds) as { data: { id: string; display_name: string | null; avatar_url: string | null }[] | null; error: any };
 
       if (profError) throw profError;
 
@@ -87,9 +87,9 @@ export function useStreakLeaderboard(limit = 10) {
 
       const userIds = gamificationData.map(g => g.user_id);
       const { data: profiles, error: profError } = await supabase
-        .from('profiles')
+        .from('profiles_public' as any)
         .select('id, display_name, avatar_url')
-        .in('id', userIds);
+        .in('id', userIds) as { data: { id: string; display_name: string | null; avatar_url: string | null }[] | null; error: any };
 
       if (profError) throw profError;
 
@@ -152,11 +152,11 @@ export function useBadgeLeaderboard(limit = 10) {
 
       const userIds = sortedUsers.map(([userId]) => userId);
 
-      // Get profiles
+      // Get profiles using public view
       const { data: profiles, error: profError } = await supabase
-        .from('profiles')
+        .from('profiles_public' as any)
         .select('id, display_name, avatar_url')
-        .in('id', userIds);
+        .in('id', userIds) as { data: { id: string; display_name: string | null; avatar_url: string | null }[] | null; error: any };
 
       if (profError) throw profError;
 
