@@ -380,6 +380,10 @@ export function CurriculumPreviewEditor({ curriculum, onUpdate, documentContent 
                   onUpdate={handleLessonUpdate}
                   onDelete={handleLessonDelete}
                   onRegenerate={handleRegenerateLesson}
+                  onGenerateVideo={(_, topic) => {
+                    setVideoDialogContext({ topic, type: 'lesson_explainer' });
+                    setVideoDialogOpen(true);
+                  }}
                   isRegenerating={regeneratingLessonIndex === index}
                 />
               ))}

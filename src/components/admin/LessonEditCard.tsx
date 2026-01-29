@@ -54,6 +54,7 @@ interface LessonEditCardProps {
   onUpdate: (index: number, lesson: LessonData) => void;
   onDelete: (index: number) => void;
   onRegenerate?: (index: number) => Promise<void>;
+  onGenerateVideo?: (index: number, topic: string) => void;
   isRegenerating?: boolean;
 }
 
@@ -81,6 +82,7 @@ export function LessonEditCard({
   onUpdate, 
   onDelete,
   onRegenerate,
+  onGenerateVideo,
   isRegenerating = false,
 }: LessonEditCardProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -121,6 +123,21 @@ export function LessonEditCard({
               </Badge>
               <span className="text-sm font-medium truncate">{lesson.title}</span>
             </div>
+            {onGenerateVideo && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-secondary hover:text-secondary hover:bg-secondary/10"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onGenerateVideo(index, lesson.title);
+                }}
+                disabled={isRegenerating}
+                title="Generate video for lesson"
+              >
+                <Video className="h-4 w-4" />
+              </Button>
+            )}
             {onRegenerate && (
               <Button
                 variant="ghost"
