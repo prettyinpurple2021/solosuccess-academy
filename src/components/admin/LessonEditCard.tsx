@@ -28,6 +28,8 @@ import {
   PenLine,
   Trash2,
   GripVertical,
+  Sparkles,
+  Loader2,
 } from 'lucide-react';
 
 export interface LessonData {
@@ -51,6 +53,8 @@ interface LessonEditCardProps {
   index: number;
   onUpdate: (index: number, lesson: LessonData) => void;
   onDelete: (index: number) => void;
+  onRegenerate?: (index: number) => Promise<void>;
+  isRegenerating?: boolean;
 }
 
 const lessonTypeIcons: Record<string, React.ElementType> = {
@@ -71,7 +75,14 @@ const lessonTypes = [
   { value: 'assignment', label: 'Assignment' },
 ];
 
-export function LessonEditCard({ lesson, index, onUpdate, onDelete }: LessonEditCardProps) {
+export function LessonEditCard({ 
+  lesson, 
+  index, 
+  onUpdate, 
+  onDelete,
+  onRegenerate,
+  isRegenerating = false,
+}: LessonEditCardProps) {
   const [isOpen, setIsOpen] = useState(false);
   const Icon = lessonTypeIcons[lesson.type] || FileText;
 
@@ -110,6 +121,25 @@ export function LessonEditCard({ lesson, index, onUpdate, onDelete }: LessonEdit
               </Badge>
               <span className="text-sm font-medium truncate">{lesson.title}</span>
             </div>
+            {onRegenerate && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-primary hover:text-primary hover:bg-primary/10"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onRegenerate(index);
+                }}
+                disabled={isRegenerating}
+                title="Regenerate with AI"
+              >
+                {isRegenerating ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Sparkles className="h-4 w-4" />
+                )}
+              </Button>
+            )}
             <Button
               variant="ghost"
               size="icon"
@@ -118,6 +148,7 @@ export function LessonEditCard({ lesson, index, onUpdate, onDelete }: LessonEdit
                 e.stopPropagation();
                 onDelete(index);
               }}
+              disabled={isRegenerating}
             >
               <Trash2 className="h-4 w-4" />
             </Button>

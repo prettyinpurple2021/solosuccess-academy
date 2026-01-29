@@ -304,6 +304,7 @@ export default function ContentGenerator() {
           <CurriculumPreviewEditor
             curriculum={editableCurriculum}
             onUpdate={handleCurriculumUpdate}
+            documentContent={documentContent}
           />
         );
       }
