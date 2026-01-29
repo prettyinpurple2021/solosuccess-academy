@@ -65,20 +65,22 @@ export function useCourseCertificate(userId: string | undefined, courseId: strin
   });
 }
 
-// Verify a certificate by code (public)
+// Verify a certificate by code (public) - uses RPC function for security
 export function useVerifyCertificate(verificationCode: string | undefined) {
   return useQuery({
     queryKey: ['verify-certificate', verificationCode],
     queryFn: async () => {
       if (!verificationCode) return null;
+      
+      // Use the secure RPC function to prevent full table enumeration
       const { data, error } = await supabase
-        .from('certificates')
-        .select('*')
-        .eq('verification_code', verificationCode)
-        .maybeSingle();
+        .rpc('verify_certificate_by_code', { code: verificationCode });
       
       if (error) throw error;
-      return data as Certificate | null;
+      
+      // RPC returns an array, get the first result
+      const certificate = Array.isArray(data) && data.length > 0 ? data[0] : null;
+      return certificate as Certificate | null;
     },
     enabled: !!verificationCode,
   });
