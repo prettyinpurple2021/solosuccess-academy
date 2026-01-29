@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -20,18 +20,28 @@ import {
   ChevronUp,
   Plus,
   Trash2,
+  Sparkles,
+  Loader2,
 } from 'lucide-react';
 import { LessonEditCard, LessonData } from './LessonEditCard';
 import type { GeneratedBulkCurriculum } from '@/hooks/useContentGenerator';
+import { useContentGenerator } from '@/hooks/useContentGenerator';
+import { useToast } from '@/hooks/use-toast';
 
 interface CurriculumPreviewEditorProps {
   curriculum: GeneratedBulkCurriculum;
   onUpdate: (curriculum: GeneratedBulkCurriculum) => void;
+  documentContent?: string;
 }
 
-export function CurriculumPreviewEditor({ curriculum, onUpdate }: CurriculumPreviewEditorProps) {
+export function CurriculumPreviewEditor({ curriculum, onUpdate, documentContent }: CurriculumPreviewEditorProps) {
   const [activeTab, setActiveTab] = useState('course');
   const [expandedChapters, setExpandedChapters] = useState<Record<number, boolean>>({});
+  const [regeneratingLessonIndex, setRegeneratingLessonIndex] = useState<number | null>(null);
+  const [regeneratingChapterIndex, setRegeneratingChapterIndex] = useState<number | null>(null);
+  
+  const { generateContent, isGenerating } = useContentGenerator();
+  const { toast } = useToast();
 
   const toggleChapter = (index: number) => {
     setExpandedChapters((prev) => ({ ...prev, [index]: !prev[index] }));
@@ -64,6 +74,92 @@ export function CurriculumPreviewEditor({ curriculum, onUpdate }: CurriculumPrev
       content: '',
     };
     onUpdate({ ...curriculum, lessons: [...curriculum.lessons, newLesson] });
+  };
+
+  // Regenerate individual lesson with AI
+  const handleRegenerateLesson = async (index: number) => {
+    const lesson = curriculum.lessons[index];
+    setRegeneratingLessonIndex(index);
+    
+    try {
+      let contentType: 'lesson_content' | 'quiz' | 'worksheet' | 'activity' = 'lesson_content';
+      if (lesson.type === 'quiz') contentType = 'quiz';
+      else if (lesson.type === 'worksheet') contentType = 'worksheet';
+      else if (lesson.type === 'activity') contentType = 'activity';
+
+      const result = await generateContent(contentType, {
+        courseTitle: curriculum.course.title,
+        lessonTitle: lesson.title,
+        lessonType: lesson.type,
+        topic: lesson.title,
+        documentContent: documentContent,
+      });
+
+      if (result) {
+        const newLessons = [...curriculum.lessons];
+        if (contentType === 'lesson_content') {
+          newLessons[index] = { ...lesson, content: result as string };
+        } else if (contentType === 'quiz') {
+          newLessons[index] = { ...lesson, quiz_data: result as any };
+        } else if (contentType === 'worksheet') {
+          newLessons[index] = { ...lesson, worksheet_data: result };
+        } else if (contentType === 'activity') {
+          newLessons[index] = { ...lesson, activity_data: result };
+        }
+        onUpdate({ ...curriculum, lessons: newLessons });
+        toast({
+          title: 'Lesson regenerated',
+          description: `"${lesson.title}" has been regenerated with AI.`,
+        });
+      }
+    } catch (error) {
+      console.error('Failed to regenerate lesson:', error);
+      toast({
+        title: 'Regeneration failed',
+        description: 'Could not regenerate the lesson. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setRegeneratingLessonIndex(null);
+    }
+  };
+
+  // Regenerate textbook chapter with AI
+  const handleRegenerateChapter = async (chapterIndex: number) => {
+    const chapter = curriculum.textbook_chapters[chapterIndex];
+    setRegeneratingChapterIndex(chapterIndex);
+    
+    try {
+      const result = await generateContent<{ title: string; pages: Array<{ content: string; embedded_quiz: any }> }>('textbook_chapter', {
+        courseTitle: curriculum.course.title,
+        chapterTitle: chapter.title,
+        pageCount: chapter.pages?.length || 3,
+        documentContent: documentContent,
+      });
+
+      if (result) {
+        const newChapters = [...curriculum.textbook_chapters];
+        newChapters[chapterIndex] = {
+          ...chapter,
+          title: result.title || chapter.title,
+          pages: result.pages || chapter.pages,
+        };
+        onUpdate({ ...curriculum, textbook_chapters: newChapters });
+        toast({
+          title: 'Chapter regenerated',
+          description: `"${chapter.title}" has been regenerated with AI.`,
+        });
+      }
+    } catch (error) {
+      console.error('Failed to regenerate chapter:', error);
+      toast({
+        title: 'Regeneration failed',
+        description: 'Could not regenerate the chapter. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setRegeneratingChapterIndex(null);
+    }
   };
 
   // Chapter handlers
@@ -215,6 +311,8 @@ export function CurriculumPreviewEditor({ curriculum, onUpdate }: CurriculumPrev
                   index={index}
                   onUpdate={handleLessonUpdate}
                   onDelete={handleLessonDelete}
+                  onRegenerate={handleRegenerateLesson}
+                  isRegenerating={regeneratingLessonIndex === index}
                 />
               ))}
               <Button
@@ -259,11 +357,29 @@ export function CurriculumPreviewEditor({ curriculum, onUpdate }: CurriculumPrev
                         <Button
                           variant="ghost"
                           size="icon"
+                          className="h-8 w-8 text-primary hover:text-primary hover:bg-primary/10"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleRegenerateChapter(chapterIndex);
+                          }}
+                          disabled={regeneratingChapterIndex === chapterIndex}
+                          title="Regenerate with AI"
+                        >
+                          {regeneratingChapterIndex === chapterIndex ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Sparkles className="h-4 w-4" />
+                          )}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
                           className="h-8 w-8 text-destructive"
                           onClick={(e) => {
                             e.stopPropagation();
                             handleDeleteChapter(chapterIndex);
                           }}
+                          disabled={regeneratingChapterIndex === chapterIndex}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
