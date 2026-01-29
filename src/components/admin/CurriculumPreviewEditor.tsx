@@ -230,6 +230,21 @@ export function CurriculumPreviewEditor({ curriculum, onUpdate, documentContent 
     });
   };
 
+  const handleAddExamQuestion = () => {
+    const newQuestion = {
+      question: '',
+      options: ['', '', '', ''],
+      correctIndex: 0,
+      explanation: '',
+      points: 10,
+    };
+    const newQuestions = [...(curriculum.final_exam.questions || []), newQuestion];
+    onUpdate({
+      ...curriculum,
+      final_exam: { ...curriculum.final_exam, questions: newQuestions },
+    });
+  };
+
   // Regenerate individual exam question with AI
   const handleRegenerateQuestion = async (qIndex: number) => {
     const question = curriculum.final_exam.questions[qIndex];
@@ -508,7 +523,13 @@ export function CurriculumPreviewEditor({ curriculum, onUpdate, documentContent 
                 </div>
 
                 <div className="space-y-3">
-                  <Label>Questions ({curriculum.final_exam.questions?.length || 0})</Label>
+                  <div className="flex items-center justify-between">
+                    <Label>Questions ({curriculum.final_exam.questions?.length || 0})</Label>
+                    <Button variant="outline" size="sm" onClick={handleAddExamQuestion}>
+                      <Plus className="h-4 w-4 mr-1" />
+                      Add Question
+                    </Button>
+                  </div>
                   {curriculum.final_exam.questions?.map((q, qIndex) => (
                     <Card key={qIndex} className="p-3 border-border/50 bg-muted/20">
                       <div className="space-y-3">
