@@ -6,8 +6,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Header } from '@/components/layout/Header';
-import { Footer } from '@/components/layout/Footer';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Eye, EyeOff, Sparkles } from 'lucide-react';
 
@@ -78,12 +76,9 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col cyber-bg">
-      <Header />
-      
-      <main className="flex-1 flex items-center justify-center py-12 px-4 relative">
-        {/* Cyber grid overlay */}
-        <div className="cyber-grid" />
+    <div className="flex-1 flex items-center justify-center py-12 px-4 relative">
+      {/* Cyber grid overlay */}
+      <div className="cyber-grid" />
         
         <div className="w-full max-w-md relative z-10">
           {/* Animated glow orbs */}
@@ -260,9 +255,6 @@ export default function Auth() {
             </Tabs>
           </Card>
         </div>
-      </main>
-
-      <Footer />
-    </div>
+      </div>
   );
 }
