@@ -28,12 +28,15 @@ import {
   Check,
   ArrowLeft,
   Edit,
+  FileUp,
 } from 'lucide-react';
 import { useIsAdmin } from '@/hooks/useAdmin';
 import { useAuth } from '@/hooks/useAuth';
 import { useContentGenerator, GenerateContext, ContentType } from '@/hooks/useContentGenerator';
 import { useToast } from '@/hooks/use-toast';
 import { NeonSpinner } from '@/components/ui/neon-spinner';
+import { DocumentUpload } from '@/components/admin/DocumentUpload';
+import { useDocumentParser } from '@/hooks/useDocumentParser';
 
 const buildDefaultPrompt = (
   contentType: ContentType,
@@ -76,6 +79,7 @@ export default function ContentGenerator() {
   const { data: isAdmin, isLoading: adminLoading } = useIsAdmin(user?.id);
   const { generateContent, isGenerating } = useContentGenerator();
   const { toast } = useToast();
+  const { documentContent, fileName, handleDocumentParsed, clearDocument } = useDocumentParser();
 
   const [activeTab, setActiveTab] = useState<ContentType>('course_outline');
   const [topic, setTopic] = useState('');
@@ -135,6 +139,8 @@ export default function ContentGenerator() {
       lessonTitle,
       difficulty,
       questionCount: activeTab === 'quiz' || activeTab === 'exam' ? questionCount : undefined,
+      documentContent: documentContent || undefined,
+      documentFileName: fileName || undefined,
     };
 
     const content = await generateContent(activeTab, context, customPrompt);
@@ -161,6 +167,7 @@ export default function ContentGenerator() {
     { value: 'worksheet', label: 'Worksheet', icon: ClipboardList, description: 'Generate practical exercises' },
     { value: 'activity', label: 'Activity', icon: Zap, description: 'Generate hands-on activities' },
     { value: 'exam', label: 'Final Exam', icon: GraduationCap, description: 'Generate comprehensive exam' },
+    { value: 'bulk_curriculum', label: 'Bulk Curriculum', icon: FileUp, description: 'Generate complete curriculum from document' },
   ];
 
   const renderGeneratedContent = () => {
@@ -237,6 +244,70 @@ export default function ContentGenerator() {
       );
     }
 
+    // Render bulk curriculum
+    if (activeTab === 'bulk_curriculum' && generatedContent.course) {
+      return (
+        <div className="space-y-4">
+          {/* Course Info */}
+          <div className="p-3 bg-primary/10 rounded-lg border border-primary/30">
+            <h3 className="text-lg font-semibold text-primary">{generatedContent.course.title}</h3>
+            <p className="text-sm text-muted-foreground mt-1">{generatedContent.course.description?.substring(0, 200)}...</p>
+          </div>
+
+          {/* Lessons Summary */}
+          {generatedContent.lessons && (
+            <div className="space-y-2">
+              <p className="font-medium flex items-center gap-2">
+                <FileText className="h-4 w-4 text-accent" />
+                Lessons ({generatedContent.lessons.length})
+              </p>
+              <div className="grid gap-2">
+                {generatedContent.lessons.slice(0, 4).map((lesson: any, i: number) => (
+                  <div key={i} className="p-2 border border-border/50 rounded text-sm">
+                    <Badge variant="secondary" className="text-xs mr-2">{lesson.type}</Badge>
+                    {lesson.title}
+                  </div>
+                ))}
+                {generatedContent.lessons.length > 4 && (
+                  <p className="text-xs text-muted-foreground">+{generatedContent.lessons.length - 4} more lessons...</p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Textbook Chapters */}
+          {generatedContent.textbook_chapters && (
+            <div className="space-y-2">
+              <p className="font-medium flex items-center gap-2">
+                <BookOpen className="h-4 w-4 text-secondary" />
+                Textbook Chapters ({generatedContent.textbook_chapters.length})
+              </p>
+              <div className="grid gap-2">
+                {generatedContent.textbook_chapters.map((chapter: any, i: number) => (
+                  <div key={i} className="p-2 border border-border/50 rounded text-sm">
+                    {chapter.title} ({chapter.pages?.length || 0} pages)
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Final Exam */}
+          {generatedContent.final_exam && (
+            <div className="p-3 bg-secondary/10 rounded-lg border border-secondary/30">
+              <p className="font-medium flex items-center gap-2">
+                <GraduationCap className="h-4 w-4 text-secondary" />
+                {generatedContent.final_exam.title}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {generatedContent.final_exam.questions?.length || 0} questions • Passing score: {generatedContent.final_exam.passingScore}%
+              </p>
+            </div>
+          )}
+        </div>
+      );
+    }
+
     // Default JSON display
     return (
       <pre className="text-sm bg-black/30 p-4 rounded-lg overflow-auto">
@@ -277,16 +348,16 @@ export default function ContentGenerator() {
           </CardHeader>
           <CardContent className="space-y-6">
             <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as ContentType)}>
-              <TabsList className="grid grid-cols-3 gap-1 h-auto">
-                {contentTypes.slice(0, 3).map((ct) => (
+              <TabsList className="grid grid-cols-4 gap-1 h-auto">
+                {contentTypes.slice(0, 4).map((ct) => (
                   <TabsTrigger key={ct.value} value={ct.value} className="flex flex-col gap-1 p-2 h-auto">
                     <ct.icon className="h-4 w-4" />
                     <span className="text-xs">{ct.label}</span>
                   </TabsTrigger>
                 ))}
               </TabsList>
-              <TabsList className="grid grid-cols-3 gap-1 h-auto mt-1">
-                {contentTypes.slice(3).map((ct) => (
+              <TabsList className="grid grid-cols-4 gap-1 h-auto mt-1">
+                {contentTypes.slice(4).map((ct) => (
                   <TabsTrigger key={ct.value} value={ct.value} className="flex flex-col gap-1 p-2 h-auto">
                     <ct.icon className="h-4 w-4" />
                     <span className="text-xs">{ct.label}</span>
@@ -296,15 +367,34 @@ export default function ContentGenerator() {
             </Tabs>
 
             <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="topic">Topic / Subject</Label>
-                <Input
-                  id="topic"
-                  placeholder="e.g., Building a personal brand as a solo founder"
-                  value={topic}
-                  onChange={(e) => setTopic(e.target.value)}
-                />
-              </div>
+              {/* Document Upload - Required for bulk curriculum, optional for others */}
+              <DocumentUpload
+                onDocumentParsed={handleDocumentParsed}
+                onClear={clearDocument}
+                documentContent={documentContent}
+                fileName={fileName}
+                isLoading={isGenerating}
+              />
+
+              {activeTab === 'bulk_curriculum' && !documentContent && (
+                <div className="p-3 rounded-lg border border-primary/30 bg-primary/10">
+                  <p className="text-sm text-primary">
+                    <strong>Bulk Curriculum:</strong> Upload a document above to generate a complete curriculum including course outline, lessons, textbook chapters, and a final exam.
+                  </p>
+                </div>
+              )}
+
+              {activeTab !== 'bulk_curriculum' && (
+                <div className="space-y-2">
+                  <Label htmlFor="topic">Topic / Subject</Label>
+                  <Input
+                    id="topic"
+                    placeholder="e.g., Building a personal brand as a solo founder"
+                    value={topic}
+                    onChange={(e) => setTopic(e.target.value)}
+                  />
+                </div>
+              )}
 
               {(activeTab === 'lesson_content' || activeTab === 'quiz' || activeTab === 'worksheet' || activeTab === 'activity') && (
                 <>
@@ -403,7 +493,7 @@ export default function ContentGenerator() {
 
               <Button
                 onClick={handleGenerate}
-                disabled={isGenerating || !topic.trim()}
+                disabled={isGenerating || (activeTab === 'bulk_curriculum' ? !documentContent : !topic.trim())}
                 className="w-full"
                 size="lg"
                 variant="neon"

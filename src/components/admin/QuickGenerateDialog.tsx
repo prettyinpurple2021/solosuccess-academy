@@ -20,11 +20,13 @@ import {
 } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import { Sparkles, Loader2, Copy, Check, Zap, Plus } from 'lucide-react';
+import { Sparkles, Loader2, Copy, Check, Zap, Plus, FileText } from 'lucide-react';
 import { useContentGenerator, ContentType, GenerateContext } from '@/hooks/useContentGenerator';
 import { useCreateLesson, useAdminLessons, LessonType, QuizData, WorksheetData, ActivityData } from '@/hooks/useAdmin';
 import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
+import { DocumentUpload } from './DocumentUpload';
+import { useDocumentParser } from '@/hooks/useDocumentParser';
 
 interface QuickGenerateDialogProps {
   courseId: string;
@@ -100,6 +102,7 @@ export function QuickGenerateDialog({ courseId, courseTitle, courseDescription }
   const { data: existingLessons } = useAdminLessons(courseId);
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { documentContent, fileName, handleDocumentParsed, clearDocument } = useDocumentParser();
 
   // Update prompt when inputs change
   useEffect(() => {
@@ -121,6 +124,8 @@ export function QuickGenerateDialog({ courseId, courseTitle, courseDescription }
       lessonTitle: lessonTitle || undefined,
       difficulty,
       questionCount: contentType === 'quiz' || contentType === 'exam' ? questionCount : undefined,
+      documentContent: documentContent || undefined,
+      documentFileName: fileName || undefined,
     };
 
     const content = await generateContent(contentType, context, customPrompt);
@@ -148,6 +153,7 @@ export function QuickGenerateDialog({ courseId, courseTitle, courseDescription }
     setIsApplying(false);
     setShowPromptEditor(false);
     setCustomPrompt('');
+    clearDocument();
   };
 
   // Map content type to lesson type
@@ -407,6 +413,15 @@ export function QuickGenerateDialog({ courseId, courseTitle, courseDescription }
                 />
               </div>
             )}
+
+            {/* Document Upload Section */}
+            <DocumentUpload
+              onDocumentParsed={handleDocumentParsed}
+              onClear={clearDocument}
+              documentContent={documentContent}
+              fileName={fileName}
+              isLoading={isGenerating}
+            />
 
             {/* Editable Prompt Section */}
             <div className="space-y-2">
