@@ -16,6 +16,14 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
   Sparkles,
   BookOpen,
   FileText,
@@ -29,10 +37,13 @@ import {
   ArrowLeft,
   Edit,
   FileUp,
+  Save,
+  CheckCircle2,
 } from 'lucide-react';
-import { useIsAdmin } from '@/hooks/useAdmin';
+import { useIsAdmin, CoursePhase } from '@/hooks/useAdmin';
 import { useAuth } from '@/hooks/useAuth';
-import { useContentGenerator, GenerateContext, ContentType } from '@/hooks/useContentGenerator';
+import { useContentGenerator, GenerateContext, ContentType, GeneratedBulkCurriculum } from '@/hooks/useContentGenerator';
+import { useSaveBulkCurriculum } from '@/hooks/useSaveBulkCurriculum';
 import { useToast } from '@/hooks/use-toast';
 import { NeonSpinner } from '@/components/ui/neon-spinner';
 import { DocumentUpload } from '@/components/admin/DocumentUpload';
@@ -78,6 +89,7 @@ export default function ContentGenerator() {
   const { user } = useAuth();
   const { data: isAdmin, isLoading: adminLoading } = useIsAdmin(user?.id);
   const { generateContent, isGenerating } = useContentGenerator();
+  const { saveCurriculum, isSaving, saveProgress, isSuccess, savedCourseId } = useSaveBulkCurriculum();
   const { toast } = useToast();
   const { documentContent, fileName, handleDocumentParsed, clearDocument } = useDocumentParser();
 
@@ -92,6 +104,11 @@ export default function ContentGenerator() {
   const [copied, setCopied] = useState(false);
   const [customPrompt, setCustomPrompt] = useState('');
   const [showPromptEditor, setShowPromptEditor] = useState(false);
+  
+  // Save dialog state
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
+  const [savePhase, setSavePhase] = useState<CoursePhase>('initialization');
+  const [savePrice, setSavePrice] = useState(4900);
 
   // Update prompt when inputs change
   useEffect(() => {
@@ -159,6 +176,21 @@ export default function ContentGenerator() {
     toast({ title: 'Copied to clipboard!' });
     setTimeout(() => setCopied(false), 2000);
   };
+
+  const handleSaveCurriculum = () => {
+    if (!generatedContent?.course) return;
+    
+    saveCurriculum({
+      curriculum: generatedContent as GeneratedBulkCurriculum,
+      options: {
+        phase: savePhase,
+        priceCents: savePrice,
+      },
+    });
+    setShowSaveDialog(false);
+  };
+
+  const canSaveCurriculum = activeTab === 'bulk_curriculum' && generatedContent?.course;
 
   const contentTypes = [
     { value: 'course_outline', label: 'Course Outline', icon: BookOpen, description: 'Generate full course structure' },
@@ -523,19 +555,46 @@ export default function ContentGenerator() {
                 <CardDescription>Review and copy your generated content</CardDescription>
               </div>
               {generatedContent && (
-                <Button variant="outline" size="sm" onClick={handleCopy}>
-                  {copied ? (
-                    <>
-                      <Check className="mr-2 h-4 w-4" />
-                      Copied!
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="mr-2 h-4 w-4" />
-                      Copy
-                    </>
+                <div className="flex items-center gap-2">
+                  {canSaveCurriculum && (
+                    <Button 
+                      variant="neon" 
+                      size="sm" 
+                      onClick={() => setShowSaveDialog(true)}
+                      disabled={isSaving}
+                    >
+                      {isSaving ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          {saveProgress || 'Saving...'}
+                        </>
+                      ) : isSuccess ? (
+                        <>
+                          <CheckCircle2 className="mr-2 h-4 w-4" />
+                          Saved!
+                        </>
+                      ) : (
+                        <>
+                          <Save className="mr-2 h-4 w-4" />
+                          Save to Database
+                        </>
+                      )}
+                    </Button>
                   )}
-                </Button>
+                  <Button variant="outline" size="sm" onClick={handleCopy}>
+                    {copied ? (
+                      <>
+                        <Check className="mr-2 h-4 w-4" />
+                        Copied!
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="mr-2 h-4 w-4" />
+                        Copy
+                      </>
+                    )}
+                  </Button>
+                </div>
               )}
             </div>
           </CardHeader>
@@ -554,6 +613,82 @@ export default function ContentGenerator() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Save Curriculum Dialog */}
+      <Dialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
+        <DialogContent className="glass-card border-primary/30">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Save className="h-5 w-5 text-primary" />
+              Save Curriculum to Database
+            </DialogTitle>
+            <DialogDescription>
+              This will create a new course with all lessons and textbook content.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            {generatedContent?.course && (
+              <div className="p-3 rounded-lg bg-primary/10 border border-primary/30">
+                <p className="font-medium text-primary">{generatedContent.course.title}</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {generatedContent.lessons?.length || 0} lessons • 
+                  {generatedContent.textbook_chapters?.length || 0} textbook chapters
+                  {generatedContent.final_exam && ' • Final exam included'}
+                </p>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <Label>Course Phase</Label>
+              <Select value={savePhase} onValueChange={(v) => setSavePhase(v as CoursePhase)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="initialization">Phase 1: Initialization</SelectItem>
+                  <SelectItem value="orchestration">Phase 2: Orchestration</SelectItem>
+                  <SelectItem value="launch">Phase 3: Launch</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Price (cents)</Label>
+              <Input
+                type="number"
+                min={0}
+                step={100}
+                value={savePrice}
+                onChange={(e) => setSavePrice(parseInt(e.target.value) || 0)}
+                placeholder="4900 = $49.00"
+              />
+              <p className="text-xs text-muted-foreground">
+                {(savePrice / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowSaveDialog(false)}>
+              Cancel
+            </Button>
+            <Button variant="neon" onClick={handleSaveCurriculum} disabled={isSaving}>
+              {isSaving ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="mr-2 h-4 w-4" />
+                  Save Curriculum
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

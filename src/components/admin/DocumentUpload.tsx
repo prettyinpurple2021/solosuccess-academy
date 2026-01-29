@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Upload, FileText, X, Loader2, FileUp, AlertCircle } from 'lucide-react';
+import { FileText, X, Loader2, FileUp, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface DocumentUploadProps {
@@ -14,13 +14,6 @@ interface DocumentUploadProps {
   isLoading?: boolean;
   className?: string;
 }
-
-const ACCEPTED_TYPES = {
-  'application/pdf': '.pdf',
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '.docx',
-  'text/plain': '.txt',
-  'text/markdown': '.md',
-};
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
@@ -42,56 +35,88 @@ export function DocumentUpload({
     setParseProgress(10);
 
     try {
-      const fileType = file.type;
       let content = '';
+      const fileExtension = file.name.split('.').pop()?.toLowerCase();
 
-      if (fileType === 'text/plain' || fileType === 'text/markdown' || file.name.endsWith('.md')) {
-        // Plain text / markdown
+      // Handle text-based files natively
+      if (
+        file.type === 'text/plain' ||
+        file.type === 'text/markdown' ||
+        fileExtension === 'txt' ||
+        fileExtension === 'md'
+      ) {
         setParseProgress(50);
         content = await file.text();
         setParseProgress(100);
-      } else if (fileType === 'application/pdf') {
-        // PDF parsing
+      } else if (fileExtension === 'docx') {
+        // For DOCX, extract text from the XML inside the zip
         setParseProgress(20);
-        const pdfjsLib = await import('pdfjs-dist');
-        
-        // Set worker source
-        pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
-        
-        setParseProgress(30);
         const arrayBuffer = await file.arrayBuffer();
-        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        const JSZip = (await import('jszip')).default;
         
-        const numPages = pdf.numPages;
-        const textParts: string[] = [];
+        setParseProgress(40);
+        const zip = await JSZip.loadAsync(arrayBuffer);
+        const docXml = await zip.file('word/document.xml')?.async('string');
         
-        for (let i = 1; i <= numPages; i++) {
-          const page = await pdf.getPage(i);
-          const textContent = await page.getTextContent();
-          const pageText = textContent.items
-            .map((item: any) => item.str)
-            .join(' ');
-          textParts.push(pageText);
-          setParseProgress(30 + Math.round((i / numPages) * 60));
+        if (!docXml) {
+          throw new Error('Could not read document content');
         }
         
-        content = textParts.join('\n\n');
-        setParseProgress(100);
-      } else if (
-        fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
-        file.name.endsWith('.docx')
-      ) {
-        // DOCX parsing
-        setParseProgress(30);
-        const mammoth = await import('mammoth');
-        const arrayBuffer = await file.arrayBuffer();
+        setParseProgress(70);
+        // Extract text from XML - simple regex extraction
+        const textMatches = docXml.match(/<w:t[^>]*>([^<]*)<\/w:t>/g) || [];
+        content = textMatches
+          .map(match => match.replace(/<[^>]+>/g, ''))
+          .join(' ')
+          .replace(/\s+/g, ' ')
+          .trim();
         
-        setParseProgress(60);
-        const result = await mammoth.extractRawText({ arrayBuffer });
-        content = result.value;
+        setParseProgress(100);
+      } else if (fileExtension === 'pdf') {
+        // For PDF, read as text (basic extraction) or show info
+        setParseProgress(30);
+        
+        // Read as ArrayBuffer and convert to base64 for potential server-side processing
+        const arrayBuffer = await file.arrayBuffer();
+        const bytes = new Uint8Array(arrayBuffer);
+        
+        // Try to extract text from PDF (basic approach)
+        let textContent = '';
+        const decoder = new TextDecoder('utf-8', { fatal: false });
+        const rawText = decoder.decode(bytes);
+        
+        // Extract text between stream markers (simplified PDF text extraction)
+        const streamMatches = rawText.match(/stream[\r\n]+([\s\S]*?)[\r\n]+endstream/g) || [];
+        
+        for (const stream of streamMatches) {
+          // Try to find readable text in streams
+          const readable = stream.replace(/[^\x20-\x7E\r\n]/g, ' ').replace(/\s+/g, ' ').trim();
+          if (readable.length > 50) {
+            textContent += readable + '\n';
+          }
+        }
+        
+        // Also try to extract text objects
+        const textObjects = rawText.match(/\(([^)]+)\)\s*Tj/g) || [];
+        for (const obj of textObjects) {
+          const text = obj.replace(/^\(|\)\s*Tj$/g, '');
+          if (text.length > 0) {
+            textContent += text + ' ';
+          }
+        }
+        
+        setParseProgress(80);
+        
+        if (textContent.trim().length < 100) {
+          // If basic extraction didn't work well, provide guidance
+          content = `[PDF Document: ${file.name}]\n\nNote: This PDF may contain images or encoded text that requires OCR processing. The AI will work with available text content.\n\nExtracted content preview:\n${textContent.substring(0, 500)}...\n\nFor best results with PDF documents, consider converting to DOCX or TXT format, or paste the content directly.`;
+        } else {
+          content = textContent.trim();
+        }
+        
         setParseProgress(100);
       } else {
-        throw new Error(`Unsupported file type: ${fileType || file.name}`);
+        throw new Error(`Unsupported file type. Please upload TXT, MD, DOCX, or PDF files.`);
       }
 
       if (content.trim().length === 0) {
@@ -112,13 +137,10 @@ export function DocumentUpload({
       return;
     }
 
-    const isValidType = Object.keys(ACCEPTED_TYPES).includes(file.type) ||
-      file.name.endsWith('.txt') ||
-      file.name.endsWith('.md') ||
-      file.name.endsWith('.pdf') ||
-      file.name.endsWith('.docx');
+    const fileExtension = file.name.split('.').pop()?.toLowerCase();
+    const validExtensions = ['txt', 'md', 'pdf', 'docx'];
 
-    if (!isValidType) {
+    if (!validExtensions.includes(fileExtension || '')) {
       setError('Please upload a PDF, DOCX, TXT, or MD file');
       return;
     }
