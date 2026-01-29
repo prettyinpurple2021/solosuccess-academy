@@ -1,4 +1,5 @@
 import { Toaster } from "@/components/ui/toaster";
+import { lazy, Suspense } from "react";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -25,6 +26,7 @@ import DiscussionDetail from "./pages/DiscussionDetail";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminAnalytics from "./pages/AdminAnalytics";
 import ContentGenerator from "./pages/ContentGenerator";
 import Gradebook from "./pages/Gradebook";
 import Textbook from "./pages/Textbook";
@@ -68,6 +70,7 @@ const App = () => (
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/admin" element={<AdminDashboard />} />
+                <Route path="/admin/analytics" element={<AdminAnalytics />} />
                 <Route path="/admin/content-generator" element={<ContentGenerator />} />
                 <Route path="/admin/gradebook" element={<Gradebook />} />
                 

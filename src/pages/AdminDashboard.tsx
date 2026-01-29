@@ -164,7 +164,32 @@ export default function AdminDashboard() {
 
         <TabsContent value="courses" className="space-y-4">
           {/* Quick Access Cards */}
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-3">
+            {/* Analytics Dashboard Link */}
+            <Card className="border-2 border-dashed border-warning/40 bg-warning/5 hover:border-warning/60 transition-all">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-warning/20">
+                      <DollarSign className="h-5 w-5 text-warning" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold">Analytics</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Revenue & engagement metrics
+                      </p>
+                    </div>
+                  </div>
+                  <Button asChild className="bg-warning/20 text-warning border-warning/30 hover:bg-warning/30">
+                    <Link to="/admin/analytics">
+                      <DollarSign className="mr-2 h-4 w-4" />
+                      Open
+                    </Link>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
             {/* AI Content Generator Link */}
             <Card className="border-2 border-dashed border-primary/40 bg-primary/5 hover:border-primary/60 transition-all">
               <CardContent className="p-4">
@@ -174,9 +199,9 @@ export default function AdminDashboard() {
                       <Sparkles className="h-5 w-5 text-primary" />
                     </div>
                     <div>
-                      <h3 className="font-semibold">AI Content Generator</h3>
+                      <h3 className="font-semibold">AI Generator</h3>
                       <p className="text-sm text-muted-foreground">
-                        Generate courses, lessons, quizzes with AI
+                        Generate content with AI
                       </p>
                     </div>
                   </div>
@@ -201,7 +226,7 @@ export default function AdminDashboard() {
                     <div>
                       <h3 className="font-semibold">Gradebook</h3>
                       <p className="text-sm text-muted-foreground">
-                        Track student progress and scores
+                        Student progress & scores
                       </p>
                     </div>
                   </div>
