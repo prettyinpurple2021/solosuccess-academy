@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
-export type ContentType = 'course_outline' | 'lesson_content' | 'quiz' | 'worksheet' | 'activity' | 'exam' | 'textbook_chapter' | 'textbook_page';
+export type ContentType = 'course_outline' | 'lesson_content' | 'quiz' | 'worksheet' | 'activity' | 'exam' | 'textbook_chapter' | 'textbook_page' | 'bulk_curriculum';
 
 export interface GenerateContext {
   courseTitle?: string;
@@ -14,6 +14,8 @@ export interface GenerateContext {
   questionCount?: number;
   chapterTitle?: string;
   pageCount?: number;
+  documentContent?: string;
+  documentFileName?: string;
 }
 
 export interface GeneratedCourseOutline {
@@ -87,6 +89,43 @@ export interface GeneratedTextbookPage {
     correctAnswer: number;
     explanation: string;
   } | null;
+}
+
+export interface GeneratedBulkCurriculum {
+  course: {
+    title: string;
+    description: string;
+    discussion_question: string;
+    project_title: string;
+    project_description: string;
+  };
+  lessons: Array<{
+    title: string;
+    type: string;
+    content?: string;
+    quiz_data?: any;
+    worksheet_data?: any;
+    activity_data?: any;
+  }>;
+  textbook_chapters: Array<{
+    title: string;
+    pages: Array<{
+      content: string;
+      embedded_quiz: any | null;
+    }>;
+  }>;
+  final_exam: {
+    title: string;
+    instructions: string;
+    passingScore: number;
+    questions: Array<{
+      question: string;
+      options: string[];
+      correctIndex: number;
+      explanation: string;
+      points: number;
+    }>;
+  };
 }
 
 export function useContentGenerator() {

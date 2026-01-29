@@ -34,6 +34,8 @@ import {
 } from '@/hooks/useTextbook';
 import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
+import { DocumentUpload } from './DocumentUpload';
+import { useDocumentParser } from '@/hooks/useDocumentParser';
 
 interface TextbookGenerateDialogProps {
   courseId: string;
@@ -95,6 +97,7 @@ export function TextbookGenerateDialog({
   const { data: existingPages } = useTextbookPages(chapterId || '');
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { documentContent, fileName, handleDocumentParsed, clearDocument } = useDocumentParser();
 
   // Update prompt when inputs change
   useEffect(() => {
@@ -116,6 +119,8 @@ export function TextbookGenerateDialog({
       topic,
       difficulty,
       pageCount: mode === 'chapter' ? pageCount : undefined,
+      documentContent: documentContent || undefined,
+      documentFileName: fileName || undefined,
     };
 
     const content = await generateContent(contentType, context, customPrompt);
@@ -211,6 +216,7 @@ export function TextbookGenerateDialog({
     setIsApplying(false);
     setShowPromptEditor(false);
     setCustomPrompt('');
+    clearDocument();
   };
 
   const handleOpenChange = (newOpen: boolean) => {
@@ -355,6 +361,15 @@ export function TextbookGenerateDialog({
                 />
               </div>
             )}
+
+            {/* Document Upload Section */}
+            <DocumentUpload
+              onDocumentParsed={handleDocumentParsed}
+              onClear={clearDocument}
+              documentContent={documentContent}
+              fileName={fileName}
+              isLoading={isGenerating}
+            />
 
             {/* Editable Prompt Section */}
             <div className="space-y-2">

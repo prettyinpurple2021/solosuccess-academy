@@ -15,7 +15,7 @@ const RATE_LIMIT_CONFIG = {
 };
 
 interface GenerateRequest {
-  type: "course_outline" | "lesson_content" | "quiz" | "worksheet" | "activity" | "exam" | "textbook_chapter" | "textbook_page";
+  type: "course_outline" | "lesson_content" | "quiz" | "worksheet" | "activity" | "exam" | "textbook_chapter" | "textbook_page" | "bulk_curriculum";
   context: {
     courseTitle?: string;
     courseDescription?: string;
@@ -26,6 +26,8 @@ interface GenerateRequest {
     questionCount?: number;
     chapterTitle?: string;
     pageCount?: number;
+    documentContent?: string;
+    documentFileName?: string;
   };
   customPrompt?: string;
 }
@@ -167,7 +169,59 @@ Generate in JSON format:
     "explanation": "Why this answer is correct"
   }
 }
-Make the content actionable and relevant to entrepreneurs.`
+Make the content actionable and relevant to entrepreneurs.`,
+
+  bulk_curriculum: `You are an expert curriculum designer and content creator for SoloSuccess Academy, an online learning platform for solo founders and small business owners.
+
+You will be given a source document containing educational content, research, notes, or other material. Your task is to analyze this document and create a comprehensive curriculum from it.
+
+Generate a complete curriculum package in JSON format:
+{
+  "course": {
+    "title": "Course Title derived from the document content",
+    "description": "2-3 paragraph course description",
+    "discussion_question": "A thought-provoking question for community discussion",
+    "project_title": "Capstone Project Title",
+    "project_description": "Clear description of the final project students will complete"
+  },
+  "lessons": [
+    {
+      "title": "Lesson Title",
+      "type": "text|quiz|worksheet|activity",
+      "content": "Full lesson content in markdown (for text lessons, 800-1500 words)",
+      "quiz_data": null or { "questions": [...] } (for quiz lessons),
+      "worksheet_data": null or { "title": "...", "instructions": "...", "sections": [...] } (for worksheet lessons),
+      "activity_data": null or { "title": "...", "description": "...", "objectives": [...], "steps": [...] } (for activity lessons)
+    }
+  ],
+  "textbook_chapters": [
+    {
+      "title": "Chapter Title",
+      "pages": [
+        {
+          "content": "Page content in markdown (300-500 words)",
+          "embedded_quiz": null or { "question": "...", "options": [...], "correctAnswer": 0, "explanation": "..." }
+        }
+      ]
+    }
+  ],
+  "final_exam": {
+    "title": "Final Exam Title",
+    "instructions": "Exam instructions",
+    "passingScore": 70,
+    "questions": [
+      {
+        "question": "Question text",
+        "options": ["A", "B", "C", "D"],
+        "correctIndex": 0,
+        "explanation": "Why this is correct",
+        "points": 5
+      }
+    ]
+  }
+}
+
+Extract key concepts, organize them logically, and create comprehensive educational materials. Include a mix of lesson types for varied learning experiences. Ensure quizzes test understanding of the source material.`
 };
 
 serve(async (req) => {
@@ -232,19 +286,24 @@ serve(async (req) => {
       );
     }
 
+    // Check if document content is provided and prepend it
+    const documentPrefix = context.documentContent
+      ? `## SOURCE DOCUMENT: "${context.documentFileName || 'Uploaded Document'}"\n\n${context.documentContent.substring(0, 50000)}\n\n---\n\nUsing the above source document, `
+      : "";
+
     // Use custom prompt if provided, otherwise build default prompt
     let userPrompt = customPrompt || "";
     
     if (!customPrompt) {
       switch (type) {
         case "course_outline":
-          userPrompt = `Create a course outline about: ${context.topic || "building a successful solo business"}
+          userPrompt = `${documentPrefix}Create a course outline about: ${context.topic || "building a successful solo business"}
 Target audience: Solo founders and small business owners
 Difficulty level: ${context.difficulty || "intermediate"}`;
           break;
 
         case "lesson_content":
-          userPrompt = `Create lesson content for:
+          userPrompt = `${documentPrefix}Create lesson content for:
 Course: ${context.courseTitle || "Solo Business Mastery"}
 Lesson Title: ${context.lessonTitle || context.topic || "Getting Started"}
 Difficulty: ${context.difficulty || "intermediate"}
@@ -252,35 +311,35 @@ ${context.topic ? `Topic focus: ${context.topic}` : ""}`;
           break;
 
         case "quiz":
-          userPrompt = `Create ${context.questionCount || 5} quiz questions about:
+          userPrompt = `${documentPrefix}Create ${context.questionCount || 5} quiz questions about:
 Topic: ${context.topic || context.lessonTitle || "business fundamentals"}
 Course context: ${context.courseTitle || "Solo Business"}
 Difficulty: ${context.difficulty || "intermediate"}`;
           break;
 
         case "worksheet":
-          userPrompt = `Create a practical worksheet for:
+          userPrompt = `${documentPrefix}Create a practical worksheet for:
 Topic: ${context.topic || context.lessonTitle || "strategic planning"}
 Course: ${context.courseTitle || "Solo Business Mastery"}
 Focus on actionable exercises that entrepreneurs can apply immediately.`;
           break;
 
         case "activity":
-          userPrompt = `Create an interactive activity for:
+          userPrompt = `${documentPrefix}Create an interactive activity for:
 Topic: ${context.topic || context.lessonTitle || "business strategy"}
 Course: ${context.courseTitle || "Solo Business Mastery"}
 Make it hands-on and practical for solo entrepreneurs.`;
           break;
 
         case "exam":
-          userPrompt = `Create a comprehensive final exam for:
+          userPrompt = `${documentPrefix}Create a comprehensive final exam for:
 Course: ${context.courseTitle || "Solo Business Mastery"}
 Course Description: ${context.courseDescription || "A course for solo entrepreneurs"}
 Include ${context.questionCount || 15} questions covering all major topics.`;
           break;
 
         case "textbook_chapter":
-          userPrompt = `Create a complete textbook chapter for:
+          userPrompt = `${documentPrefix}Create a complete textbook chapter for:
 Course: ${context.courseTitle || "Solo Business Mastery"}
 Chapter Title: ${context.chapterTitle || context.topic || "Introduction"}
 Number of pages: ${context.pageCount || 5}
@@ -289,14 +348,42 @@ Make it comprehensive and practical for solo entrepreneurs.`;
           break;
 
         case "textbook_page":
-          userPrompt = `Create a textbook page for:
+          userPrompt = `${documentPrefix}Create a textbook page for:
 Course: ${context.courseTitle || "Solo Business Mastery"}
 Chapter: ${context.chapterTitle || "Introduction"}
 Topic: ${context.topic || "Key Concepts"}
 Difficulty: ${context.difficulty || "intermediate"}
 Include an embedded quiz to test understanding.`;
           break;
+
+        case "bulk_curriculum":
+          if (!context.documentContent) {
+            return new Response(
+              JSON.stringify({ error: "Document content is required for bulk curriculum generation" }),
+              { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            );
+          }
+          userPrompt = `## SOURCE DOCUMENT: "${context.documentFileName || 'Uploaded Document'}"
+
+${context.documentContent.substring(0, 80000)}
+
+---
+
+Analyze the above source document thoroughly and create a complete curriculum package including:
+1. A comprehensive course with title, description, discussion question, and capstone project
+2. 6-10 lessons with varied types (text, quiz, worksheet, activity) with full content
+3. 2-4 textbook chapters with multiple pages each
+4. A final exam with 15-20 questions
+
+Difficulty level: ${context.difficulty || "intermediate"}
+Target audience: Solo founders and small business owners
+
+Extract all key concepts from the document and organize them into a logical learning progression.`;
+          break;
       }
+    } else if (context.documentContent) {
+      // If custom prompt is provided but also has document, prepend document
+      userPrompt = `${documentPrefix}${customPrompt}`;
     }
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -348,7 +435,8 @@ Include an embedded quiz to test understanding.`;
 
     // Try to parse JSON from the response for structured content types
     let parsedContent = generatedContent;
-    if (["course_outline", "quiz", "worksheet", "activity", "exam"].includes(type)) {
+    const jsonContentTypes = ["course_outline", "quiz", "worksheet", "activity", "exam", "textbook_chapter", "textbook_page", "bulk_curriculum"];
+    if (jsonContentTypes.includes(type)) {
       try {
         // Extract JSON from markdown code blocks if present
         const jsonMatch = generatedContent.match(/```(?:json)?\s*([\s\S]*?)```/);
