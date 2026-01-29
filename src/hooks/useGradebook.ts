@@ -49,11 +49,11 @@ export function useGradebook() {
       // Get unique user IDs
       const userIds = [...new Set(purchases.map(p => p.user_id))];
 
-      // Fetch profiles for all users
+      // Fetch profiles for all users using public view
       const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
+        .from('profiles_public' as any)
         .select('id, display_name, avatar_url')
-        .in('id', userIds);
+        .in('id', userIds) as { data: { id: string; display_name: string | null; avatar_url: string | null }[] | null; error: any };
 
       if (profilesError) throw profilesError;
 

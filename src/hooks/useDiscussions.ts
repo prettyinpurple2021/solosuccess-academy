@@ -51,10 +51,11 @@ export function useCourseDiscussions(courseId: string | undefined) {
 
       // Get unique user IDs and fetch profiles
       const userIds = [...new Set(discussions.map(d => d.user_id))];
+      // Use profiles_public view to only access public-safe fields
       const { data: profiles } = await supabase
-        .from('profiles')
+        .from('profiles_public' as any)
         .select('id, display_name, avatar_url')
-        .in('id', userIds);
+        .in('id', userIds) as { data: { id: string; display_name: string | null; avatar_url: string | null }[] | null };
 
       const profileMap: Record<string, { display_name: string | null; avatar_url: string | null }> = {};
       profiles?.forEach(p => {
@@ -102,12 +103,12 @@ export function useDiscussion(discussionId: string | undefined) {
       if (error) throw error;
       if (!data) return null;
 
-      // Fetch profile separately
+      // Fetch profile separately using public view
       const { data: profile } = await supabase
-        .from('profiles')
+        .from('profiles_public' as any)
         .select('display_name, avatar_url')
         .eq('id', data.user_id)
-        .single();
+        .single() as { data: { display_name: string | null; avatar_url: string | null } | null };
 
       return {
         ...data,
@@ -134,12 +135,12 @@ export function useDiscussionComments(discussionId: string | undefined) {
       if (error) throw error;
       if (!data || data.length === 0) return [];
 
-      // Fetch profiles separately
+      // Fetch profiles separately using public view
       const userIds = [...new Set(data.map(c => c.user_id))];
       const { data: profiles } = await supabase
-        .from('profiles')
+        .from('profiles_public' as any)
         .select('id, display_name, avatar_url')
-        .in('id', userIds);
+        .in('id', userIds) as { data: { id: string; display_name: string | null; avatar_url: string | null }[] | null };
 
       const profileMap: Record<string, { display_name: string | null; avatar_url: string | null }> = {};
       profiles?.forEach(p => {

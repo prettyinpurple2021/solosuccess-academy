@@ -350,12 +350,12 @@ export function useLeaderboard(limit = 10) {
 
       if (error) throw error;
 
-      // Fetch profile info for each user
+      // Fetch profile info for each user using public view
       const userIds = data?.map(d => d.user_id) || [];
       const { data: profiles } = await supabase
-        .from('profiles')
+        .from('profiles_public' as any)
         .select('id, display_name, avatar_url')
-        .in('id', userIds);
+        .in('id', userIds) as { data: { id: string; display_name: string | null; avatar_url: string | null }[] | null };
 
       const profileMap = new Map(profiles?.map(p => [p.id, p]));
 
