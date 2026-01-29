@@ -39,6 +39,7 @@ export function CurriculumPreviewEditor({ curriculum, onUpdate, documentContent 
   const [expandedChapters, setExpandedChapters] = useState<Record<number, boolean>>({});
   const [regeneratingLessonIndex, setRegeneratingLessonIndex] = useState<number | null>(null);
   const [regeneratingChapterIndex, setRegeneratingChapterIndex] = useState<number | null>(null);
+  const [regeneratingQuestionIndex, setRegeneratingQuestionIndex] = useState<number | null>(null);
   
   const { generateContent, isGenerating } = useContentGenerator();
   const { toast } = useToast();
@@ -227,6 +228,52 @@ export function CurriculumPreviewEditor({ curriculum, onUpdate, documentContent 
       ...curriculum,
       final_exam: { ...curriculum.final_exam, questions: newQuestions },
     });
+  };
+
+  // Regenerate individual exam question with AI
+  const handleRegenerateQuestion = async (qIndex: number) => {
+    const question = curriculum.final_exam.questions[qIndex];
+    setRegeneratingQuestionIndex(qIndex);
+    
+    try {
+      // Use quiz type to generate a single question
+      const result = await generateContent<{ questions: Array<{ question: string; options: string[]; correctIndex: number; explanation: string }> }>('quiz', {
+        courseTitle: curriculum.course.title,
+        lessonTitle: curriculum.final_exam.title,
+        topic: `Exam question ${qIndex + 1}: ${question.question}`,
+        questionCount: 1,
+        documentContent: documentContent,
+      });
+
+      if (result && result.questions && result.questions.length > 0) {
+        const newQ = result.questions[0];
+        const newQuestions = [...curriculum.final_exam.questions];
+        newQuestions[qIndex] = {
+          question: newQ.question || question.question,
+          options: newQ.options || question.options,
+          correctIndex: newQ.correctIndex ?? question.correctIndex,
+          explanation: newQ.explanation || question.explanation,
+          points: question.points || 10,
+        };
+        onUpdate({
+          ...curriculum,
+          final_exam: { ...curriculum.final_exam, questions: newQuestions },
+        });
+        toast({
+          title: 'Question regenerated',
+          description: `Question ${qIndex + 1} has been regenerated with AI.`,
+        });
+      }
+    } catch (error) {
+      console.error('Failed to regenerate question:', error);
+      toast({
+        title: 'Regeneration failed',
+        description: 'Could not regenerate the question. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setRegeneratingQuestionIndex(null);
+    }
   };
 
   return (
@@ -481,8 +528,23 @@ export function CurriculumPreviewEditor({ curriculum, onUpdate, documentContent 
                           <Button
                             variant="ghost"
                             size="icon"
+                            className="h-8 w-8 text-primary hover:text-primary hover:bg-primary/10"
+                            onClick={() => handleRegenerateQuestion(qIndex)}
+                            disabled={regeneratingQuestionIndex === qIndex}
+                            title="Regenerate with AI"
+                          >
+                            {regeneratingQuestionIndex === qIndex ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Sparkles className="h-4 w-4" />
+                            )}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
                             className="h-8 w-8 text-destructive"
                             onClick={() => handleDeleteExamQuestion(qIndex)}
+                            disabled={regeneratingQuestionIndex === qIndex}
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
