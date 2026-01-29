@@ -23,9 +23,11 @@ import {
   Sparkles,
   Loader2,
   Image,
+  Video,
 } from 'lucide-react';
 import { LessonEditCard, LessonData } from './LessonEditCard';
 import { ImageGenerateDialog } from './ImageGenerateDialog';
+import { VideoGenerateDialog } from './VideoGenerateDialog';
 import type { GeneratedBulkCurriculum } from '@/hooks/useContentGenerator';
 import { useContentGenerator } from '@/hooks/useContentGenerator';
 import { useToast } from '@/hooks/use-toast';
@@ -42,6 +44,8 @@ export function CurriculumPreviewEditor({ curriculum, onUpdate, documentContent 
   const [regeneratingLessonIndex, setRegeneratingLessonIndex] = useState<number | null>(null);
   const [regeneratingChapterIndex, setRegeneratingChapterIndex] = useState<number | null>(null);
   const [regeneratingQuestionIndex, setRegeneratingQuestionIndex] = useState<number | null>(null);
+  const [videoDialogOpen, setVideoDialogOpen] = useState(false);
+  const [videoDialogContext, setVideoDialogContext] = useState<{ topic: string; type: 'lesson_explainer' | 'concept_animation' | 'intro_video' } | null>(null);
   
   const { generateContent, isGenerating } = useContentGenerator();
   const { toast } = useToast();
@@ -441,6 +445,19 @@ export function CurriculumPreviewEditor({ curriculum, onUpdate, documentContent 
                         <Button
                           variant="ghost"
                           size="icon"
+                          className="h-8 w-8 text-secondary hover:text-secondary hover:bg-secondary/10"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setVideoDialogContext({ topic: chapter.title, type: 'concept_animation' });
+                            setVideoDialogOpen(true);
+                          }}
+                          title="Generate video for chapter"
+                        >
+                          <Video className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
                           className="h-8 w-8 text-primary hover:text-primary hover:bg-primary/10"
                           onClick={(e) => {
                             e.stopPropagation();
@@ -638,6 +655,19 @@ export function CurriculumPreviewEditor({ curriculum, onUpdate, documentContent 
           )}
         </TabsContent>
       </Tabs>
+
+      <VideoGenerateDialog
+        open={videoDialogOpen}
+        onOpenChange={setVideoDialogOpen}
+        context={videoDialogContext || undefined}
+        onVideoGenerated={(url) => {
+          toast({
+            title: 'Video generated!',
+            description: 'Your AI video has been created. You can use it in your lesson materials.',
+          });
+          setVideoDialogOpen(false);
+        }}
+      />
     </div>
   );
 }
