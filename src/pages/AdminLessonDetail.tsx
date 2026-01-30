@@ -25,11 +25,14 @@ import { useIsAdmin, useAdminLessons, useAdminCourses, useUpdateLesson, Lesson, 
 import { useTextbookChapters, useTextbookPages } from '@/hooks/useTextbook';
 import { useToast } from '@/hooks/use-toast';
 import { NeonSpinner } from '@/components/ui/neon-spinner';
-import { LessonContentSection } from '@/components/admin/lesson-detail/LessonContentSection';
-import { LessonQuizSection } from '@/components/admin/lesson-detail/LessonQuizSection';
-import { LessonWorksheetSection } from '@/components/admin/lesson-detail/LessonWorksheetSection';
-import { LessonActivitySection } from '@/components/admin/lesson-detail/LessonActivitySection';
-import { LessonTextbookSection } from '@/components/admin/lesson-detail/LessonTextbookSection';
+import { 
+  LessonContentSection,
+  LessonQuizSection,
+  LessonWorksheetSection,
+  LessonActivitySection,
+  LessonTextbookSection,
+  UnsavedChangesIndicator,
+} from '@/components/admin/lesson-detail';
 
 export default function AdminLessonDetail() {
   const { courseId, lessonId } = useParams<{ courseId: string; lessonId: string }>();
@@ -358,6 +361,13 @@ export default function AdminLessonDetail() {
           />
         </TabsContent>
       </Tabs>
+
+      {/* Sticky Unsaved Changes Indicator */}
+      <UnsavedChangesIndicator
+        hasChanges={hasChanges}
+        isSaving={updateLesson.isPending}
+        onSave={handleSave}
+      />
     </div>
   );
 }
