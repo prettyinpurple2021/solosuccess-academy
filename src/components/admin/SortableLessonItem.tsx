@@ -1,5 +1,6 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -53,6 +54,7 @@ export function SortableLessonItem({
   isUpdating,
   isDeleting 
 }: SortableLessonItemProps) {
+  const navigate = useNavigate();
   const {
     attributes,
     listeners,
@@ -67,6 +69,10 @@ export function SortableLessonItem({
     transition,
     opacity: isDragging ? 0.5 : 1,
     zIndex: isDragging ? 1 : 0,
+  };
+
+  const handleTitleClick = () => {
+    navigate(`/admin/courses/${lesson.course_id}/lessons/${lesson.id}`);
   };
 
   return (
@@ -98,7 +104,12 @@ export function SortableLessonItem({
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <h4 className="font-medium truncate">{lesson.title}</h4>
+              <button
+                onClick={handleTitleClick}
+                className="font-medium truncate text-left hover:text-primary hover:underline transition-colors cursor-pointer"
+              >
+                {lesson.title}
+              </button>
               <Badge variant={lesson.is_published ? 'default' : 'outline'} className="text-xs">
                 {lesson.is_published ? 'Published' : 'Draft'}
               </Badge>
