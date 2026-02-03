@@ -1,9 +1,11 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { encode as base64Encode } from "https://deno.land/std@0.168.0/encoding/base64.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { checkRateLimit, rateLimitResponse } from "../_shared/rateLimit.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
 serve(async (req) => {
@@ -12,6 +14,58 @@ serve(async (req) => {
   }
 
   try {
+    // Authentication check
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const userId = claimsData.claims.sub as string;
+
+    // Verify admin role
+    const { data: roleData } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId)
+      .eq("role", "admin")
+      .single();
+
+    if (!roleData) {
+      return new Response(
+        JSON.stringify({ error: "Admin access required" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Rate limiting - 20 requests per 60 minutes per user
+    const rateLimitResult = await checkRateLimit(userId, {
+      endpoint: "generate-voice",
+      maxRequests: 20,
+      windowMinutes: 60,
+    });
+
+    if (!rateLimitResult.allowed) {
+      return rateLimitResponse(rateLimitResult, corsHeaders);
+    }
+
     const ELEVENLABS_API_KEY = Deno.env.get('ELEVENLABS_API_KEY');
     
     if (!ELEVENLABS_API_KEY) {
@@ -26,6 +80,14 @@ serve(async (req) => {
     if (!text) {
       return new Response(
         JSON.stringify({ error: 'Text is required for voice generation' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Validate text length to prevent abuse
+    if (text.length > 10000) {
+      return new Response(
+        JSON.stringify({ error: 'Text exceeds maximum length of 10,000 characters' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -63,7 +125,7 @@ serve(async (req) => {
       const errorText = await response.text();
       console.error('ElevenLabs API error:', response.status, errorText);
       return new Response(
-        JSON.stringify({ error: `ElevenLabs API error: ${response.status} - ${errorText}` }),
+        JSON.stringify({ error: `Voice generation failed. Please try again.` }),
         { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -84,9 +146,8 @@ serve(async (req) => {
 
   } catch (error: unknown) {
     console.error('Voice generation error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Voice generation failed';
     return new Response(
-      JSON.stringify({ error: errorMessage }),
+      JSON.stringify({ error: 'Voice generation failed' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
