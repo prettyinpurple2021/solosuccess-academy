@@ -6,7 +6,6 @@ import { useCourses } from '@/hooks/useCourses';
 import { phaseMetadata, formatPrice, type CoursePhase } from '@/lib/courseData';
 import { 
   ArrowRight, 
-  Sparkles, 
   Rocket, 
   Brain, 
   Target, 
@@ -17,7 +16,11 @@ import {
   Trophy,
   Play,
   Terminal,
-  Cpu
+  Cpu,
+  GraduationCap,
+  Briefcase,
+  Lightbulb,
+  DollarSign
 } from 'lucide-react';
 import { NeonSpinner } from '@/components/ui/neon-spinner';
 
@@ -59,26 +62,6 @@ export default function Index() {
     },
   ];
 
-  const testimonials = [
-    {
-      name: 'Sarah Chen',
-      role: 'Founder, TechFlow',
-      content: 'This academy gave me the framework I needed to launch my SaaS. The AI feedback on my pitch was invaluable!',
-      avatar: 'SC',
-    },
-    {
-      name: 'Marcus Johnson',
-      role: 'Indie Hacker',
-      content: 'From zero to a validated business idea in just 10 courses. The automation course alone saved me 20+ hours a week.',
-      avatar: 'MJ',
-    },
-    {
-      name: 'Elena Rodriguez',
-      role: 'Creative Entrepreneur',
-      content: 'The branding course transformed how I present my business. My conversion rates doubled!',
-      avatar: 'ER',
-    },
-  ];
 
   return (
     <div className="flex-1 relative z-10">
@@ -129,43 +112,100 @@ export default function Index() {
                 </Button>
               </div>
 
-              {/* Social proof with neon styling */}
-              <div className="flex items-center justify-center gap-12 mt-16 pt-10 border-t border-primary/20">
+              {/* Academy highlights */}
+              <div className="flex flex-wrap items-center justify-center gap-8 mt-16 pt-10 border-t border-primary/20">
                 <div className="text-center group">
-                  <div className="text-3xl font-display font-bold text-foreground group-hover:text-primary transition-colors">10,000+</div>
-                  <div className="text-sm text-muted-foreground font-mono">Students</div>
+                  <div className="text-3xl font-display font-bold text-foreground group-hover:text-primary transition-colors">10</div>
+                  <div className="text-sm text-muted-foreground font-mono">Expert Courses</div>
                 </div>
                 <div className="text-center group">
-                  <div className="text-3xl font-display font-bold text-foreground group-hover:text-secondary transition-colors">10</div>
-                  <div className="text-sm text-muted-foreground font-mono">Courses</div>
+                  <div className="text-3xl font-display font-bold text-foreground group-hover:text-secondary transition-colors">3</div>
+                  <div className="text-sm text-muted-foreground font-mono">Learning Phases</div>
                 </div>
                 <div className="text-center group">
-                  <div className="flex items-center justify-center gap-1">
-                    <span className="text-3xl font-display font-bold text-foreground group-hover:text-accent transition-colors">4.9</span>
-                    <Star className="h-6 w-6 fill-warning text-warning" />
-                  </div>
-                  <div className="text-sm text-muted-foreground font-mono">Rating</div>
+                  <div className="text-3xl font-display font-bold text-foreground group-hover:text-accent transition-colors">$49-69</div>
+                  <div className="text-sm text-muted-foreground font-mono">Per Course</div>
+                </div>
+                <div className="text-center group">
+                  <div className="text-3xl font-display font-bold text-foreground group-hover:text-primary transition-colors">∞</div>
+                  <div className="text-sm text-muted-foreground font-mono">Lifetime Access</div>
                 </div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Features Section */}
+        {/* Who Is This For Section */}
         <section className="py-24 relative">
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/5 to-transparent" />
           
           <div className="container relative">
             <div className="text-center mb-16">
               <h2 className="text-4xl md:text-5xl font-display font-bold mb-6">
-                <span className="text-gradient-pink">WHY SOLO FOUNDERS</span>
+                <span className="text-gradient-pink">DESIGNED FOR</span>
                 <br />
-                <span className="text-foreground">CHOOSE US</span>
+                <span className="text-foreground">AMBITIOUS SOLO FOUNDERS</span>
               </h2>
               <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
-                Everything you need to go from idea to successful business, 
-                with AI assistance every step of the way.
+                Whether you're just starting out or scaling your existing business, 
+                this academy is built for founders who want to do it all themselves.
               </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+              <Card className="group glass-card glass-card-hover cursor-default group-hover:shadow-[0_0_30px_hsl(270_80%_60%/0.3)]">
+                <CardHeader>
+                  <div className="h-14 w-14 rounded-xl bg-primary/10 border border-primary/30 flex items-center justify-center mb-4 group-hover:shadow-[0_0_20px_hsl(270_80%_60%/0.4)] transition-all duration-300">
+                    <Lightbulb className="h-7 w-7 text-primary" />
+                  </div>
+                  <CardTitle className="text-xl">First-Time Founders</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground">New to entrepreneurship? Learn the complete journey from idea validation to your first paying customer.</p>
+                </CardContent>
+              </Card>
+
+              <Card className="group glass-card glass-card-hover cursor-default group-hover:shadow-[0_0_30px_hsl(185_80%_50%/0.3)]">
+                <CardHeader>
+                  <div className="h-14 w-14 rounded-xl bg-secondary/10 border border-secondary/30 flex items-center justify-center mb-4 group-hover:shadow-[0_0_20px_hsl(185_80%_50%/0.4)] transition-all duration-300">
+                    <Briefcase className="h-7 w-7 text-secondary" />
+                  </div>
+                  <CardTitle className="text-xl">Side Hustlers</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground">Building alongside a day job? Self-paced learning with lifetime access fits your busy schedule.</p>
+                </CardContent>
+              </Card>
+
+              <Card className="group glass-card glass-card-hover cursor-default group-hover:shadow-[0_0_30px_hsl(320_80%_60%/0.3)]">
+                <CardHeader>
+                  <div className="h-14 w-14 rounded-xl bg-accent/10 border border-accent/30 flex items-center justify-center mb-4 group-hover:shadow-[0_0_20px_hsl(320_80%_60%/0.4)] transition-all duration-300">
+                    <GraduationCap className="h-7 w-7 text-accent" />
+                  </div>
+                  <CardTitle className="text-xl">Career Changers</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground">Transitioning from corporate? Graduate with a professional portfolio and investor-ready pitch.</p>
+                </CardContent>
+              </Card>
+
+              <Card className="group glass-card glass-card-hover cursor-default group-hover:shadow-[0_0_30px_hsl(270_80%_60%/0.3)]">
+                <CardHeader>
+                  <div className="h-14 w-14 rounded-xl bg-primary/10 border border-primary/30 flex items-center justify-center mb-4 group-hover:shadow-[0_0_20px_hsl(270_80%_60%/0.4)] transition-all duration-300">
+                    <Users className="h-7 w-7 text-primary" />
+                  </div>
+                  <CardTitle className="text-xl">Indie Hackers</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground">Already building? Fill the gaps in your knowledge with targeted courses on branding, sales, and automation.</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Features Grid */}
+            <div className="text-center mb-12">
+              <h3 className="text-3xl font-display font-bold mb-4 text-foreground">Platform Features</h3>
+              <p className="text-muted-foreground max-w-xl mx-auto">Everything you need to succeed, built into one powerful learning platform.</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -185,6 +225,106 @@ export default function Index() {
                   </CardContent>
                 </Card>
               ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Pricing Section */}
+        <section className="py-24 relative">
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-secondary/5 to-transparent" />
+          
+          <div className="container relative">
+            <div className="text-center mb-16">
+              <h2 className="text-4xl md:text-5xl font-display font-bold mb-6">
+                <span className="text-gradient-cyan">SIMPLE PRICING</span>
+              </h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
+                Pay per course. No subscriptions. Lifetime access to everything you purchase.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+              <Card className="glass-card glass-card-hover text-center">
+                <CardHeader>
+                  <div className="h-16 w-16 mx-auto rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center mb-4">
+                    <DollarSign className="h-8 w-8 text-primary" />
+                  </div>
+                  <CardTitle className="text-2xl">Per Course</CardTitle>
+                  <CardDescription>Individual course access</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-4xl font-display font-bold text-primary mb-4">$49 - $69</div>
+                  <ul className="space-y-2 text-sm text-muted-foreground">
+                    <li className="flex items-center gap-2 justify-center">
+                      <CheckCircle2 className="h-4 w-4 text-success" />
+                      Lifetime access
+                    </li>
+                    <li className="flex items-center gap-2 justify-center">
+                      <CheckCircle2 className="h-4 w-4 text-success" />
+                      AI tutor included
+                    </li>
+                    <li className="flex items-center gap-2 justify-center">
+                      <CheckCircle2 className="h-4 w-4 text-success" />
+                      Certificate on completion
+                    </li>
+                  </ul>
+                </CardContent>
+              </Card>
+
+              <Card className="glass-card glass-card-hover text-center border-primary/40 shadow-[0_0_30px_hsl(270_80%_60%/0.2)]">
+                <CardHeader>
+                  <Badge className="w-fit mx-auto mb-4 bg-primary/20 text-primary border-primary/30">Most Popular</Badge>
+                  <div className="h-16 w-16 mx-auto rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center mb-4">
+                    <Target className="h-8 w-8 text-primary" />
+                  </div>
+                  <CardTitle className="text-2xl">Complete Phase</CardTitle>
+                  <CardDescription>3-4 courses bundled</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-4xl font-display font-bold text-primary mb-4">~$200</div>
+                  <ul className="space-y-2 text-sm text-muted-foreground">
+                    <li className="flex items-center gap-2 justify-center">
+                      <CheckCircle2 className="h-4 w-4 text-success" />
+                      All phase courses
+                    </li>
+                    <li className="flex items-center gap-2 justify-center">
+                      <CheckCircle2 className="h-4 w-4 text-success" />
+                      Project-based learning
+                    </li>
+                    <li className="flex items-center gap-2 justify-center">
+                      <CheckCircle2 className="h-4 w-4 text-success" />
+                      Community access
+                    </li>
+                  </ul>
+                </CardContent>
+              </Card>
+
+              <Card className="glass-card glass-card-hover text-center">
+                <CardHeader>
+                  <div className="h-16 w-16 mx-auto rounded-full bg-accent/20 border border-accent/30 flex items-center justify-center mb-4">
+                    <Trophy className="h-8 w-8 text-accent" />
+                  </div>
+                  <CardTitle className="text-2xl">Full Academy</CardTitle>
+                  <CardDescription>All 10 courses</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-4xl font-display font-bold text-accent mb-4">~$590</div>
+                  <ul className="space-y-2 text-sm text-muted-foreground">
+                    <li className="flex items-center gap-2 justify-center">
+                      <CheckCircle2 className="h-4 w-4 text-success" />
+                      Complete curriculum
+                    </li>
+                    <li className="flex items-center gap-2 justify-center">
+                      <CheckCircle2 className="h-4 w-4 text-success" />
+                      Portfolio website
+                    </li>
+                    <li className="flex items-center gap-2 justify-center">
+                      <CheckCircle2 className="h-4 w-4 text-success" />
+                      Pitch presentation
+                    </li>
+                  </ul>
+                </CardContent>
+              </Card>
             </div>
           </div>
         </section>
@@ -265,47 +405,6 @@ export default function Index() {
           </div>
         </section>
 
-        {/* Testimonials Section */}
-        <section className="py-24 relative">
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-secondary/5 to-transparent" />
-          
-          <div className="container relative">
-            <div className="text-center mb-16">
-              <h2 className="text-4xl md:text-5xl font-display font-bold mb-6">
-                <span className="text-gradient-cyan">SUCCESS STORIES</span>
-              </h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
-                Join thousands of solo founders who've transformed their businesses.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {testimonials.map((testimonial) => (
-                <Card key={testimonial.name} className="glass-card glass-card-hover">
-                  <CardContent className="pt-6">
-                    <div className="flex items-center gap-1 mb-4">
-                      {[...Array(5)].map((_, i) => (
-                        <Star key={i} className="h-4 w-4 fill-warning text-warning" />
-                      ))}
-                    </div>
-                    <p className="text-muted-foreground mb-6 italic">
-                      "{testimonial.content}"
-                    </p>
-                    <div className="flex items-center gap-3">
-                      <div className="h-12 w-12 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-sm font-display font-bold text-primary shadow-[0_0_15px_hsl(270_80%_60%/0.3)]">
-                        {testimonial.avatar}
-                      </div>
-                      <div>
-                        <div className="font-display font-medium">{testimonial.name}</div>
-                        <div className="text-xs text-muted-foreground font-mono">{testimonial.role}</div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        </section>
 
         {/* CTA Section */}
         <section className="py-24">
