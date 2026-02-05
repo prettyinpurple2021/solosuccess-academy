@@ -1,4 +1,4 @@
-project_id = "fkqzwlpwdgdiwpsvhavt"
+project_id = "uiayptizkarnbomkajot"
 
 [functions.create-checkout]
 verify_jwt = false
