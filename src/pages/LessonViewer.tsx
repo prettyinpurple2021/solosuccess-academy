@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -12,6 +12,10 @@ import { LessonSidebar } from '@/components/lesson/LessonSidebar';
 import { AITutorChat } from '@/components/lesson/AITutorChat';
 import { CourseBreadcrumb } from '@/components/navigation/CourseBreadcrumb';
 import { CertificateModal } from '@/components/certificates/CertificateModal';
+import { LessonProgressBar } from '@/components/lesson/LessonProgressBar';
+import { ReadingProgressBar } from '@/components/lesson/ReadingProgressBar';
+import { KeyboardNavigation } from '@/components/lesson/KeyboardNavigation';
+import { PageTransition, ContentTransition } from '@/components/lesson/PageTransition';
 import { fireCourseCompletionConfetti } from '@/hooks/useConfetti';
 import { useGamification } from '@/components/gamification/GamificationProvider';
 import { useCourseCertificate, useGenerateCertificate } from '@/hooks/useCertificates';
@@ -60,6 +64,11 @@ export default function LessonViewer() {
   const isCompleted = progressData?.progress?.some(
     p => p.lesson_id === lessonId && p.completed
   ) ?? false;
+
+  // Memoized toggle handlers for keyboard navigation - must be before early returns
+  const handleToggleAITutor = useCallback(() => {
+    setShowAITutor(prev => !prev);
+  }, []);
 
   const handleMarkComplete = async () => {
     if (!user?.id || !lessonId) return;
@@ -175,8 +184,20 @@ export default function LessonViewer() {
 
   return (
     <div className="flex flex-col h-full">
+      {/* Reading Progress Bar */}
+      <ReadingProgressBar />
+
+      {/* Keyboard Navigation Helper */}
+      <KeyboardNavigation
+        courseId={courseId || ''}
+        prevLessonId={prevLesson?.id}
+        nextLessonId={nextLesson?.id}
+        onToggleComplete={handleMarkComplete}
+        onToggleAITutor={handleToggleAITutor}
+      />
+
       {/* Top Navigation Bar */}
-      <header className="h-14 border-b border-primary/20 bg-black/60 backdrop-blur-xl flex items-center px-4 gap-4 sticky top-0 z-40 shadow-[0_4px_20px_rgba(168,85,247,0.15)]">
+      <header className="h-14 border-b border-primary/20 bg-background/60 backdrop-blur-xl flex items-center px-4 gap-4 sticky top-0 z-40 shadow-[0_4px_20px_hsl(var(--primary)/0.15)]">
         {/* Mobile Sidebar Toggle */}
         <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
           <SheetTrigger asChild>
@@ -184,7 +205,7 @@ export default function LessonViewer() {
               <Menu className="h-5 w-5" />
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="p-0 w-80 bg-black/90 backdrop-blur-xl border-r border-primary/30">
+          <SheetContent side="left" className="p-0 w-80 bg-background/90 backdrop-blur-xl border-r border-primary/30">
             <LessonSidebar
               lessons={lessons || []}
               currentLessonId={lessonId || ''}
@@ -208,17 +229,26 @@ export default function LessonViewer() {
           variant={showAITutor ? 'neon' : 'outline'}
           size="sm"
           onClick={() => setShowAITutor(true)}
-          className="gap-2 border-cyan-500/50 hover:border-cyan-400"
+          className="gap-2 border-secondary/50 hover:border-secondary"
         >
           <Bot className="h-4 w-4" />
           <span className="hidden sm:inline">AI Tutor</span>
         </Button>
       </header>
 
+      {/* Lesson Progress Bar - Shows position in course */}
+      <div className="py-3 border-b border-primary/10 bg-background/40 backdrop-blur-sm">
+        <LessonProgressBar
+          lessons={lessons || []}
+          currentLessonId={lessonId || ''}
+          courseId={courseId || ''}
+          progress={progressData?.progress || []}
+        />
+      </div>
       <div className="flex-1 flex overflow-hidden">
         {/* Desktop Sidebar */}
         <aside className="hidden lg:block w-80 flex-shrink-0">
-          <div className="h-full bg-black/40 backdrop-blur-xl border-r border-primary/20 overflow-auto">
+          <div className="h-full bg-background/40 backdrop-blur-xl border-r border-primary/20 overflow-auto">
             <LessonSidebar
               lessons={lessons || []}
               currentLessonId={lessonId || ''}
@@ -230,58 +260,64 @@ export default function LessonViewer() {
 
         {/* Main Content */}
         <main className="flex-1 overflow-auto">
-          <div className="max-w-4xl mx-auto p-6 md:p-8 lg:p-12">
-            <div className="glass-card p-6 md:p-8">
-              <LessonContent lesson={currentLesson} />
+          <PageTransition>
+            <div className="max-w-4xl mx-auto p-6 md:p-8 lg:p-12">
+              <ContentTransition>
+                <div className="glass-card p-6 md:p-8">
+                  <LessonContent lesson={currentLesson} />
 
-              {/* Completion & Navigation */}
-              <div className="mt-12 pt-8 border-t border-primary/20 space-y-6">
-                {/* Mark Complete Button */}
-                <div className="flex justify-center">
-                  <Button
-                    variant={isCompleted ? 'outline' : 'neon'}
-                    size="lg"
-                    onClick={handleMarkComplete}
-                    disabled={markComplete.isPending}
-                    className="gap-2"
-                  >
-                    <CheckCircle2 className={`h-5 w-5 ${isCompleted ? 'text-green-400' : ''}`} />
-                    {isCompleted ? 'Mark as Incomplete' : 'Mark as Complete'}
-                  </Button>
+                  {/* Completion & Navigation */}
+                  <div className="mt-12 pt-8 border-t border-primary/20 space-y-6">
+                    {/* Mark Complete Button */}
+                    <div className="flex justify-center">
+                      <Button
+                        variant={isCompleted ? 'outline' : 'neon'}
+                        size="lg"
+                        onClick={handleMarkComplete}
+                        disabled={markComplete.isPending}
+                        className="gap-2 transition-all duration-300"
+                      >
+                        <CheckCircle2 className={`h-5 w-5 transition-colors ${isCompleted ? 'text-success' : ''}`} />
+                        {isCompleted ? 'Mark as Incomplete' : 'Mark as Complete'}
+                      </Button>
+                    </div>
+
+                    {/* Navigation */}
+                    <div className="flex items-center justify-between gap-4">
+                      {prevLesson ? (
+                        <Button variant="outline" asChild className="gap-2 border-primary/30 hover:border-primary hover:bg-primary/10 transition-all duration-300">
+                          <Link to={`/courses/${courseId}/lessons/${prevLesson.id}`}>
+                            <ArrowLeft className="h-4 w-4" />
+                            <span className="hidden sm:inline">Previous:</span> 
+                            <span className="max-w-[120px] truncate">{prevLesson.title}</span>
+                          </Link>
+                        </Button>
+                      ) : (
+                        <div />
+                      )}
+
+                      {nextLesson ? (
+                        <Button asChild variant="neon" className="gap-2 transition-all duration-300">
+                          <Link to={`/courses/${courseId}/lessons/${nextLesson.id}`}>
+                            <span className="hidden sm:inline">Next:</span> 
+                            <span className="max-w-[120px] truncate">{nextLesson.title}</span>
+                            <ArrowRight className="h-4 w-4" />
+                          </Link>
+                        </Button>
+                      ) : (
+                        <Button asChild variant="neon" className="gap-2">
+                          <Link to={`/courses/${courseId}`}>
+                            Complete Course
+                            <CheckCircle2 className="h-4 w-4" />
+                          </Link>
+                        </Button>
+                      )}
+                    </div>
+                  </div>
                 </div>
-
-                {/* Navigation */}
-                <div className="flex items-center justify-between gap-4">
-                  {prevLesson ? (
-                    <Button variant="outline" asChild className="gap-2 border-primary/30 hover:border-primary hover:bg-primary/10">
-                      <Link to={`/courses/${courseId}/lessons/${prevLesson.id}`}>
-                        <ArrowLeft className="h-4 w-4" />
-                        <span className="hidden sm:inline">Previous:</span> {prevLesson.title}
-                      </Link>
-                    </Button>
-                  ) : (
-                    <div />
-                  )}
-
-                  {nextLesson ? (
-                    <Button asChild variant="neon" className="gap-2">
-                      <Link to={`/courses/${courseId}/lessons/${nextLesson.id}`}>
-                        <span className="hidden sm:inline">Next:</span> {nextLesson.title}
-                        <ArrowRight className="h-4 w-4" />
-                      </Link>
-                    </Button>
-                  ) : (
-                    <Button asChild variant="neon" className="gap-2">
-                      <Link to={`/courses/${courseId}`}>
-                        Complete Course
-                        <CheckCircle2 className="h-4 w-4" />
-                      </Link>
-                    </Button>
-                  )}
-                </div>
-              </div>
+              </ContentTransition>
             </div>
-          </div>
+          </PageTransition>
         </main>
       </div>
 
