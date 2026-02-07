@@ -20,18 +20,25 @@ import { HighlightToolbar } from './HighlightToolbar';
 import { HighlightsPanel } from './HighlightsPanel';
 import { FlashcardsPanel } from './FlashcardsPanel';
 import { NoteDialog } from './NoteDialog';
+import { TextbookKeyboardHelp } from './TextbookKeyboardHelp';
 import { 
   ChevronLeft, 
   ChevronRight, 
   Search, 
   BookOpen, 
   List,
-  Loader2
+  Loader2,
+  Keyboard
 } from 'lucide-react';
 import { NeonSpinner } from '@/components/ui/neon-spinner';
 import { useToast } from '@/hooks/use-toast';
 import { ContentTransition } from '@/components/lesson/PageTransition';
 import { cn } from '@/lib/utils';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 interface TextbookViewerProps {
   courseId: string;
@@ -63,6 +70,10 @@ export function TextbookViewer({ courseId, courseName }: TextbookViewerProps) {
   const [isSearching, setIsSearching] = useState(false);
   const [selection, setSelection] = useState<TextSelection | null>(null);
   const [noteDialogOpen, setNoteDialogOpen] = useState(false);
+  const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
+  
+  // Touch gesture state
+  const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
   
   const { data: pages, isLoading } = useAllTextbookPages(courseId);
   const { data: bookmark } = useTextbookBookmark(courseId);
@@ -116,6 +127,12 @@ export function TextbookViewer({ courseId, courseName }: TextbookViewerProps) {
   // Keyboard navigation for textbook
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if user is typing in an input
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+        return;
+      }
+
       // Left arrow: previous page
       if (e.key === 'ArrowLeft' && currentPage > 0) {
         e.preventDefault();
@@ -126,11 +143,67 @@ export function TextbookViewer({ courseId, courseName }: TextbookViewerProps) {
         e.preventDefault();
         goToNext();
       }
+      // Home: first page
+      else if (e.key === 'Home') {
+        e.preventDefault();
+        goToPage(0);
+      }
+      // End: last page
+      else if (e.key === 'End' && pages?.length) {
+        e.preventDefault();
+        goToPage(pages.length - 1);
+      }
+      // B: bookmark
+      else if (e.key === 'b' || e.key === 'B') {
+        e.preventDefault();
+        handleBookmark();
+      }
+      // ?: toggle help
+      else if (e.key === '?') {
+        e.preventDefault();
+        setShowKeyboardHelp(prev => !prev);
+      }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [currentPage, pages?.length]);
+
+  // Touch gesture handlers for improved mobile navigation
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    touchStartRef.current = {
+      x: touch.clientX,
+      y: touch.clientY,
+      time: Date.now(),
+    };
+  }, []);
+
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    if (!touchStartRef.current) return;
+
+    const touch = e.changedTouches[0];
+    const deltaX = touch.clientX - touchStartRef.current.x;
+    const deltaY = touch.clientY - touchStartRef.current.y;
+    const deltaTime = Date.now() - touchStartRef.current.time;
+
+    // Minimum swipe distance and maximum time for a valid swipe
+    const minSwipeDistance = 50;
+    const maxSwipeTime = 300;
+
+    // Check if horizontal swipe (more horizontal than vertical)
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > minSwipeDistance && deltaTime < maxSwipeTime) {
+      if (deltaX > 0) {
+        // Swipe right -> previous page
+        goToPrev();
+      } else {
+        // Swipe left -> next page
+        goToNext();
+      }
+    }
+
+    touchStartRef.current = null;
+  }, []);
 
   const handleFlip = useCallback((e: any) => {
     setCurrentPage(e.data);
@@ -404,15 +477,37 @@ export function TextbookViewer({ courseId, courseName }: TextbookViewerProps) {
         <h2 className="text-lg font-display font-semibold text-center flex-1 neon-text">{courseName}</h2>
 
         <div className="flex items-center gap-2">
+          {/* Keyboard help button */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowKeyboardHelp(true)}
+                className="h-8 w-8 hover:bg-primary/20"
+              >
+                <Keyboard className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="bg-black/90 border-primary/30">
+              <p className="text-sm">Keyboard shortcuts <kbd className="ml-1 px-1 py-0.5 text-xs bg-black/50 border border-primary/40 rounded">?</kbd></p>
+            </TooltipContent>
+          </Tooltip>
+          
           <span className="text-sm text-cyan-300">
             Page <span className="text-primary font-bold">{currentPage + 1}</span> of {pages.length}
           </span>
         </div>
       </div>
 
-      {/* Book */}
+      {/* Book with touch gesture support */}
       <ContentTransition>
-        <div className="relative w-full max-w-4xl" style={{ perspective: '2000px' }}>
+        <div 
+          className="relative w-full max-w-4xl" 
+          style={{ perspective: '2000px' }}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+        >
           <HTMLFlipBook
             ref={bookRef}
             width={550}
@@ -505,6 +600,12 @@ export function TextbookViewer({ courseId, courseName }: TextbookViewerProps) {
         onOpenChange={setNoteDialogOpen}
         selectedText={selection?.text || ''}
         onSave={handleSaveNote}
+      />
+
+      {/* Keyboard Shortcuts Help Dialog */}
+      <TextbookKeyboardHelp
+        open={showKeyboardHelp}
+        onOpenChange={setShowKeyboardHelp}
       />
     </div>
   );
