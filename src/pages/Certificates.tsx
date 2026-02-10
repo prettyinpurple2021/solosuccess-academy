@@ -6,11 +6,12 @@ import { useUserCertificates } from '@/hooks/useCertificates';
 import { useCourses } from '@/hooks/useCourses';
 import { CertificateCard } from '@/components/certificates/CertificateCard';
 import { NeonSpinner } from '@/components/ui/neon-spinner';
+import { ErrorView } from '@/components/ui/error-view';
 import { Award, BookOpen, ArrowRight } from 'lucide-react';
 
 export default function Certificates() {
   const { user } = useAuth();
-  const { data: certificates, isLoading } = useUserCertificates(user?.id);
+  const { data: certificates, isLoading, isError, error, refetch } = useUserCertificates(user?.id);
   const { data: courses } = useCourses();
 
   // Map course IDs to order numbers
@@ -22,6 +23,21 @@ export default function Certificates() {
     return (
       <div className="flex-1 flex items-center justify-center py-16">
         <NeonSpinner size="lg" />
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="py-8">
+        <div className="container max-w-5xl">
+          <ErrorView
+            message={error?.message}
+            onRetry={refetch}
+            backTo="/dashboard"
+            backLabel="Back to dashboard"
+          />
+        </div>
       </div>
     );
   }

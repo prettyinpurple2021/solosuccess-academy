@@ -18,7 +18,8 @@ export default function Auth() {
   const { toast } = useToast();
 
   const defaultTab = searchParams.get('mode') === 'signup' ? 'signup' : 'signin';
-  const from = (location.state as any)?.from?.pathname || '/dashboard';
+  const fromRaw = (location.state as { from?: { pathname?: string } })?.from?.pathname || '/dashboard';
+  const from = fromRaw && fromRaw !== '/auth' ? fromRaw : '/dashboard';
 
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -64,7 +65,7 @@ export default function Auth() {
         title: 'Account created!',
         description: 'Welcome to SoloSuccess Academy. You can now access your dashboard.',
       });
-      navigate('/dashboard', { replace: true });
+      navigate(from, { replace: true });
     } catch (error: any) {
       toast({
         title: 'Error creating account',

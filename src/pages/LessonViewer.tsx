@@ -19,10 +19,12 @@ import { PageTransition, ContentTransition } from '@/components/lesson/PageTrans
 import { fireCourseCompletionConfetti } from '@/hooks/useConfetti';
 import { useGamification } from '@/components/gamification/GamificationProvider';
 import { useCourseCertificate, useGenerateCertificate } from '@/hooks/useCertificates';
+import { useSetContinueLater } from '@/hooks/useContinueLater';
 import { 
   ArrowLeft,
   ArrowRight, 
   Bot, 
+  Bookmark,
   CheckCircle2, 
   Menu,
   Lock
@@ -51,6 +53,7 @@ export default function LessonViewer() {
   const { data: existingCertificate } = useCourseCertificate(user?.id, courseId);
   const generateCertificate = useGenerateCertificate();
   const markComplete = useMarkLessonComplete();
+  const setContinueLater = useSetContinueLater();
 
   const isLoading = courseLoading || lessonsLoading || purchaseLoading || progressLoading;
 
@@ -223,6 +226,31 @@ export default function LessonViewer() {
           ]}
           className="flex-1 min-w-0"
         />
+
+        {/* Continue later */}
+        {user?.id && courseId && lessonId && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={async () => {
+              try {
+                await setContinueLater.mutateAsync({
+                  userId: user.id,
+                  courseId,
+                  lessonId,
+                });
+                toast({ title: 'Saved!', description: 'This lesson is set as your continue point. Find it on your Dashboard.' });
+              } catch {
+                toast({ title: 'Could not save', variant: 'destructive' });
+              }
+            }}
+            disabled={setContinueLater.isPending}
+            className="gap-2 border-primary/30 hover:bg-primary/10"
+          >
+            <Bookmark className="h-4 w-4" />
+            <span className="hidden sm:inline">Continue later</span>
+          </Button>
+        )}
 
         {/* AI Tutor Button */}
         <Button

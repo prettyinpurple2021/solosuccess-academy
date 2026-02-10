@@ -6,7 +6,7 @@ export function PublicLayout() {
   return (
     <div className="min-h-screen flex flex-col cyber-bg">
       <PublicHeader />
-      <main className="flex-1 relative">
+      <main id="main-content" tabIndex={-1} className="flex-1 relative">
         <div className="cyber-grid" />
         <Outlet />
       </main>

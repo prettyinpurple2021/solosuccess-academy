@@ -9,6 +9,7 @@ import { ThemeProvider } from "next-themes";
 import { GamificationProvider } from "@/components/gamification/GamificationProvider";
 import { NeonSpinner } from "@/components/ui/neon-spinner";
 import { ErrorBoundary } from "@/components/layout/ErrorBoundary";
+import { SkipLink } from "@/components/layout/SkipLink";
 
 // Layouts (eager - needed for initial shell)
 import { PublicLayout } from "@/components/layout/PublicLayout";
@@ -58,6 +59,7 @@ const App = () => (
             <Toaster />
             <Sonner />
             <BrowserRouter>
+            <SkipLink />
             <Suspense
               fallback={
                 <div className="flex min-h-screen items-center justify-center cyber-bg">

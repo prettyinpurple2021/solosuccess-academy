@@ -17,16 +17,31 @@ import {
   Zap
 } from 'lucide-react';
 import { PageMeta } from '@/components/layout/PageMeta';
+import { ErrorView } from '@/components/ui/error-view';
 
 export default function VerifyCertificate() {
   const { verificationCode } = useParams<{ verificationCode: string }>();
-  const { data: certificate, isLoading, error } = useVerifyCertificate(verificationCode);
+  const { data: certificate, isLoading, error, refetch } = useVerifyCertificate(verificationCode);
 
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center cyber-bg">
         <div className="cyber-grid" />
         <NeonSpinner size="lg" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen cyber-bg flex items-center justify-center p-4">
+        <div className="cyber-grid" />
+        <ErrorView
+          message={error.message}
+          onRetry={() => refetch()}
+          backTo="/"
+          backLabel="Go home"
+        />
       </div>
     );
   }

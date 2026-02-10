@@ -36,6 +36,7 @@ import {
 } from 'lucide-react';
 import { NeonSpinner } from '@/components/ui/neon-spinner';
 import { PageMeta } from '@/components/layout/PageMeta';
+import { ErrorView } from '@/components/ui/error-view';
 
 export default function CourseDetail() {
   const { courseId } = useParams<{ courseId: string }>();
@@ -45,13 +46,19 @@ export default function CourseDetail() {
   const { toast } = useToast();
   const [isPurchasing, setIsPurchasing] = useState(false);
 
-  const { data: course, isLoading: courseLoading } = useCourse(courseId);
-  const { data: lessons, isLoading: lessonsLoading } = useCourseLessons(courseId);
+  const { data: course, isLoading: courseLoading, isError: courseError, error: courseErr, refetch: refetchCourse } = useCourse(courseId);
+  const { data: lessons, isLoading: lessonsLoading, isError: lessonsError, error: lessonsErr, refetch: refetchLessons } = useCourseLessons(courseId);
   const { data: hasPurchased } = useHasPurchasedCourse(user?.id, courseId);
   const { data: progressData } = useCourseProgress(user?.id, courseId);
   const { data: certificate } = useCourseCertificate(user?.id, courseId);
 
   const isLoading = courseLoading || lessonsLoading;
+  const isError = courseError || lessonsError;
+  const error = courseErr ?? lessonsErr;
+  const refetch = () => {
+    refetchCourse();
+    refetchLessons();
+  };
 
   const handlePurchase = async () => {
     if (!isAuthenticated) {
@@ -101,6 +108,24 @@ export default function CourseDetail() {
         <main className="flex-1 flex items-center justify-center relative">
           <div className="cyber-grid" />
           <NeonSpinner size="lg" />
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="min-h-screen flex flex-col cyber-bg">
+        <Header />
+        <main className="flex-1 flex items-center justify-center relative">
+          <div className="cyber-grid" />
+          <ErrorView
+            message={error?.message}
+            onRetry={refetch}
+            backTo="/courses"
+            backLabel="Back to courses"
+          />
         </main>
         <Footer />
       </div>
@@ -200,6 +225,12 @@ export default function CourseDetail() {
 
                 {/* Stats */}
                 <div className="flex flex-wrap items-center gap-6 text-sm">
+                  {hasPurchased && (
+                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-success/10 border border-success/20">
+                      <CheckCircle2 className="h-4 w-4 text-success" />
+                      <span>Your progress: {progressData?.completedCount ?? 0}/{progressData?.lessonCount ?? 0} lessons</span>
+                    </div>
+                  )}
                   <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20">
                     <BookOpen className="h-4 w-4 text-primary" />
                     <span>{lessons?.length || 0} Lessons</span>

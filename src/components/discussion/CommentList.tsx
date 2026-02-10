@@ -9,6 +9,7 @@ import {
   useCreateComment, 
   useDeleteComment 
 } from '@/hooks/useDiscussions';
+import { supabase } from '@/integrations/supabase/client';
 import { formatDistanceToNow } from 'date-fns';
 import { Loader2, Reply, Trash2, MessageSquare } from 'lucide-react';
 import { z } from 'zod';
@@ -21,9 +22,10 @@ interface CommentListProps {
   comments: DiscussionComment[];
   discussionId: string;
   userId: string;
+  discussionAuthorId?: string;
 }
 
-export function CommentList({ comments, discussionId, userId }: CommentListProps) {
+export function CommentList({ comments, discussionId, userId, discussionAuthorId }: CommentListProps) {
   const { toast } = useToast();
   const { awardXP, checkAndAwardBadges } = useGamification();
   const createComment = useCreateComment();
@@ -45,7 +47,7 @@ export function CommentList({ comments, discussionId, userId }: CommentListProps
     }
 
     try {
-      await createComment.mutateAsync({
+      const newCommentData = await createComment.mutateAsync({
         discussionId,
         userId,
         content: result.data.content,
@@ -53,6 +55,16 @@ export function CommentList({ comments, discussionId, userId }: CommentListProps
 
       setNewComment('');
       toast({ title: 'Comment posted!' });
+
+      if (discussionAuthorId && discussionAuthorId !== userId) {
+        try {
+          await supabase.functions.invoke('notify-discussion-reply', {
+            body: { discussionId, commentId: newCommentData.id },
+          });
+        } catch {
+          // Non-blocking: notification failure should not affect UX
+        }
+      }
 
       // Award XP for posting a comment
       await awardXP('COMMENT_POST');
@@ -78,7 +90,7 @@ export function CommentList({ comments, discussionId, userId }: CommentListProps
     }
 
     try {
-      await createComment.mutateAsync({
+      const newReplyData = await createComment.mutateAsync({
         discussionId,
         userId,
         content: result.data.content,
@@ -88,6 +100,16 @@ export function CommentList({ comments, discussionId, userId }: CommentListProps
       setReplyingTo(null);
       setReplyContent('');
       toast({ title: 'Reply posted!' });
+
+      if (discussionAuthorId && discussionAuthorId !== userId) {
+        try {
+          await supabase.functions.invoke('notify-discussion-reply', {
+            body: { discussionId, commentId: newReplyData.id },
+          });
+        } catch {
+          // Non-blocking
+        }
+      }
 
       // Award XP for posting a reply
       await awardXP('COMMENT_POST');

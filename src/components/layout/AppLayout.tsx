@@ -39,7 +39,7 @@ export function AppLayout() {
             <SidebarTrigger />
           </header>
           
-          <main className="flex-1 relative z-10">
+          <main id="main-content" tabIndex={-1} className="flex-1 relative z-10">
             <Outlet />
           </main>
         </div>

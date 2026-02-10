@@ -125,7 +125,7 @@ serve(async (req: Request): Promise<Response> => {
 
     const { data: lessons } = await supabase
       .from("lessons")
-      .select("id, course_id");
+      .select("id, course_id, title, order_number");
 
     // Get profiles for notification preferences
     const { data: profiles, error: profilesError } = await supabase
@@ -170,22 +170,36 @@ serve(async (req: Request): Promise<Response> => {
           ? Math.floor((Date.now() - lastActivity.getTime()) / (1000 * 60 * 60 * 24))
           : INACTIVE_DAYS_THRESHOLD;
 
-        // Calculate incomplete lessons across all courses
+        // Calculate incomplete lessons and find next lesson (first incomplete by order)
         let totalIncomplete = 0;
         let primaryCourseTitle = "";
+        let nextLessonTitle: string | null = null;
+        let nextLessonCourseId: string | null = null;
+        let nextLessonId: string | null = null;
 
         for (const purchase of userPurchases) {
-          const courseLessons = lessons?.filter(l => l.course_id === purchase.course_id) || [];
-          const completedLessonIds = userProgress
-            .filter(p => p.completed && courseLessons.some(l => l.id === p.lesson_id))
-            .map(p => p.lesson_id);
-          
-          const incomplete = courseLessons.length - completedLessonIds.length;
+          const courseLessons = (lessons?.filter(l => l.course_id === purchase.course_id) || [])
+            .sort((a, b) => (a.order_number ?? 0) - (b.order_number ?? 0));
+          const completedLessonIds = new Set(
+            userProgress
+              .filter(p => p.completed && courseLessons.some(l => l.id === p.lesson_id))
+              .map(p => p.lesson_id)
+          );
+          const incomplete = courseLessons.length - completedLessonIds.size;
           totalIncomplete += incomplete;
 
           if (!primaryCourseTitle && incomplete > 0) {
             const course = courses?.find(c => c.id === purchase.course_id);
             primaryCourseTitle = course?.title || "your course";
+          }
+          // First incomplete lesson in this course is "next lesson"
+          if (!nextLessonTitle && incomplete > 0) {
+            const firstIncomplete = courseLessons.find(l => !completedLessonIds.has(l.id));
+            if (firstIncomplete) {
+              nextLessonTitle = (firstIncomplete as { title?: string }).title ?? "Next lesson";
+              nextLessonCourseId = purchase.course_id;
+              nextLessonId = firstIncomplete.id;
+            }
           }
         }
 
@@ -200,6 +214,15 @@ serve(async (req: Request): Promise<Response> => {
         }
 
         const studentName = profile.display_name || userData.user.email.split("@")[0];
+        const nextLessonBlurb = nextLessonTitle
+          ? `<p><strong>Next lesson:</strong> <span class="stat">${nextLessonTitle}</span> in ${primaryCourseTitle}</p>`
+          : "";
+        const notificationLink = nextLessonCourseId && nextLessonId
+          ? `/courses/${nextLessonCourseId}/lessons/${nextLessonId}`
+          : "/courses";
+        const notificationMessage = nextLessonTitle
+          ? `You haven't been active for ${daysInactive} days. Next up: "${nextLessonTitle}" in ${primaryCourseTitle}.`
+          : `You haven't been active for ${daysInactive} days. You have ${totalIncomplete} lesson${totalIncomplete !== 1 ? 's' : ''} waiting in ${primaryCourseTitle}.`;
 
         // Send reminder email
         const subject = "Don't fall behind - continue your learning journey!";
@@ -226,6 +249,7 @@ serve(async (req: Request): Promise<Response> => {
                 <p>Hi ${studentName},</p>
                 <p>We noticed you haven't been active for <span class="stat">${daysInactive} days</span>.</p>
                 <p>You have <span class="stat">${totalIncomplete} lesson${totalIncomplete !== 1 ? 's' : ''}</span> waiting for you in <strong>${primaryCourseTitle}</strong>.</p>
+                ${nextLessonBlurb}
                 <p>Just a few minutes a day can help you reach your goals! 🚀</p>
                 <p>Your learning journey is important to us. Pick up where you left off today!</p>
               </div>
@@ -241,8 +265,8 @@ serve(async (req: Request): Promise<Response> => {
             user_id: userId,
             type: "progress_reminder",
             title: "Time to get back on track!",
-            message: `You haven't been active for ${daysInactive} days. You have ${totalIncomplete} lesson${totalIncomplete !== 1 ? 's' : ''} waiting in ${primaryCourseTitle}.`,
-            link: "/courses",
+            message: notificationMessage,
+            link: notificationLink,
           });
 
         if (notificationError) {

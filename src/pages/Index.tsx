@@ -24,9 +24,10 @@ import {
 } from 'lucide-react';
 import { NeonSpinner } from '@/components/ui/neon-spinner';
 import { PageMeta } from '@/components/layout/PageMeta';
+import { ErrorView } from '@/components/ui/error-view';
 
 export default function Index() {
-  const { data: courses, isLoading } = useCourses();
+  const { data: courses, isLoading, isError, error, refetch } = useCourses();
 
   // Group courses by phase
   const coursesByPhase = courses?.reduce((acc, course) => {
@@ -63,6 +64,19 @@ export default function Index() {
     },
   ];
 
+  if (isError) {
+    return (
+      <div className="flex-1 relative z-10">
+        <PageMeta path="/" />
+        <ErrorView
+          message={error?.message}
+          onRetry={() => refetch()}
+          backTo="/"
+          backLabel="Go home"
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 relative z-10">

@@ -9,11 +9,12 @@ import { phaseMetadata, formatPrice, getPhaseClasses, type CoursePhase } from '@
 import { ArrowRight, BookOpen, CheckCircle2, Lock, ShoppingCart, Terminal, Zap } from 'lucide-react';
 import { NeonSpinner } from '@/components/ui/neon-spinner';
 import { PageMeta } from '@/components/layout/PageMeta';
+import { QueryStateGuard } from '@/components/ui/query-state-guard';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 export default function Courses() {
-  const { data: courses, isLoading } = useCourses();
+  const { data: courses, isLoading, isError, error, refetch } = useCourses();
   const { user, isAuthenticated } = useAuth();
 
   // Fetch user purchases if authenticated
@@ -104,11 +105,15 @@ export default function Courses() {
             </p>
           </div>
 
-          {isLoading ? (
-            <div className="flex justify-center py-16">
-              <NeonSpinner size="xl" />
-            </div>
-          ) : (
+          <QueryStateGuard
+            isLoading={isLoading}
+            isError={isError}
+            error={error}
+            refetch={refetch}
+            loadingMessage="Loading courses..."
+            backTo="/courses"
+            backLabel="Back to courses"
+          >
             <div className="space-y-20">
               {(['initialization', 'orchestration', 'launch'] as CoursePhase[]).map((phase) => {
                 const meta = phaseMetadata[phase];
@@ -214,13 +219,13 @@ export default function Courses() {
                           </Card>
                         );
                       })}
-                    </div>
-                  </section>
-                );
-              })}
+                </div>
+              </section>
+            );
+          })}
             </div>
-          )}
-        </div>
+          </QueryStateGuard>
+      </div>
     </section>
   );
 }

@@ -1,9 +1,9 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { downloadCertificate } from '@/lib/certificateGenerator';
+import { downloadCertificate, downloadCertificateShareImage } from '@/lib/certificateGenerator';
 import { getThemeByCourseTitle } from '@/lib/certificateThemes';
-import { Download, Share2, Award, PartyPopper, ExternalLink } from 'lucide-react';
+import { Download, Share2, Award, PartyPopper, ExternalLink, Image } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 
@@ -61,6 +61,20 @@ export function CertificateModal({
     }
   };
 
+  const handleDownloadImage = () => {
+    downloadCertificateShareImage({
+      studentName,
+      courseTitle,
+      courseOrderNumber,
+      verificationCode,
+      issuedAt,
+    });
+    toast({
+      title: 'Image Downloaded!',
+      description: 'Share this image on LinkedIn or Twitter.',
+    });
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-lg glass-card border-primary/30">
@@ -116,10 +130,10 @@ export function CertificateModal({
         </div>
 
         {/* Actions */}
-        <div className="flex gap-3 mt-6">
+        <div className="flex flex-wrap gap-3 mt-6">
           <Button 
             variant="neon" 
-            className="flex-1 gap-2"
+            className="flex-1 min-w-[140px] gap-2"
             onClick={handleDownload}
           >
             <Download className="h-4 w-4" />
@@ -128,10 +142,18 @@ export function CertificateModal({
           <Button 
             variant="outline" 
             className="gap-2 border-primary/30 hover:bg-primary/10"
+            onClick={handleDownloadImage}
+          >
+            <Image className="h-4 w-4" />
+            Share image
+          </Button>
+          <Button 
+            variant="outline" 
+            className="gap-2 border-primary/30 hover:bg-primary/10"
             onClick={handleShare}
           >
             <Share2 className="h-4 w-4" />
-            Share
+            Copy link
           </Button>
         </div>
 

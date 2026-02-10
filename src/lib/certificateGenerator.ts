@@ -2,6 +2,9 @@ import jsPDF from 'jspdf';
 import { CertificateTheme, getThemeByOrderNumber } from './certificateThemes';
 import { format } from 'date-fns';
 
+const SHARE_IMAGE_WIDTH = 1200;
+const SHARE_IMAGE_HEIGHT = 630;
+
 export interface CertificateData {
   studentName: string;
   courseTitle: string;
@@ -242,4 +245,98 @@ export function downloadCertificate(data: CertificateData) {
   const doc = generateCertificatePDF(data);
   const filename = `Certificate-${data.courseTitle.replace(/\s+/g, '-')}-${data.studentName.replace(/\s+/g, '-')}.pdf`;
   doc.save(filename);
+}
+
+/** Generate a 1200x630 shareable image for LinkedIn/Twitter with course name + verification code. */
+export function generateCertificateShareImage(data: CertificateData): Promise<Blob> {
+  const theme = getThemeByOrderNumber(data.courseOrderNumber);
+  const canvas = document.createElement('canvas');
+  canvas.width = SHARE_IMAGE_WIDTH;
+  canvas.height = SHARE_IMAGE_HEIGHT;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return Promise.reject(new Error('Canvas not available'));
+
+  // Background
+  ctx.fillStyle = theme.backgroundColor;
+  ctx.fillRect(0, 0, SHARE_IMAGE_WIDTH, SHARE_IMAGE_HEIGHT);
+
+  // Border
+  const margin = 24;
+  ctx.strokeStyle = theme.primaryColor;
+  ctx.lineWidth = 6;
+  ctx.strokeRect(margin, margin, SHARE_IMAGE_WIDTH - margin * 2, SHARE_IMAGE_HEIGHT - margin * 2);
+  ctx.strokeStyle = theme.secondaryColor;
+  ctx.lineWidth = 2;
+  ctx.strokeRect(margin + 12, margin + 12, SHARE_IMAGE_WIDTH - margin * 2 - 24, SHARE_IMAGE_HEIGHT - margin * 2 - 24);
+
+  // Academy line
+  ctx.fillStyle = theme.primaryColor;
+  ctx.font = 'bold 28px system-ui, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('SOLOSUCCESS ACADEMY', SHARE_IMAGE_WIDTH / 2, 100);
+
+  // Certificate of Completion
+  ctx.fillStyle = theme.textColor;
+  ctx.font = 'bold 48px system-ui, sans-serif';
+  ctx.fillText('Certificate of Completion', SHARE_IMAGE_WIDTH / 2, 175);
+
+  // Course title
+  ctx.fillStyle = theme.primaryColor;
+  ctx.font = 'bold 42px system-ui, sans-serif';
+  const courseLines = wrapText(ctx, data.courseTitle, SHARE_IMAGE_WIDTH - 160);
+  let y = 250;
+  courseLines.forEach((line: string) => {
+    ctx.fillText(line, SHARE_IMAGE_WIDTH / 2, y);
+    y += 52;
+  });
+
+  // Student name
+  ctx.fillStyle = theme.textColor;
+  ctx.font = '32px system-ui, sans-serif';
+  ctx.fillText(`Awarded to ${data.studentName}`, SHARE_IMAGE_WIDTH / 2, y + 30);
+
+  // Verification code prominent
+  ctx.fillStyle = theme.primaryColor;
+  ctx.font = 'bold 36px monospace';
+  ctx.fillText(data.verificationCode, SHARE_IMAGE_WIDTH / 2, SHARE_IMAGE_HEIGHT - 80);
+  ctx.fillStyle = theme.textColor;
+  ctx.font = '22px system-ui, sans-serif';
+  ctx.fillText(`Verify at ${typeof window !== 'undefined' ? window.location.origin : ''}/verify/${data.verificationCode}`, SHARE_IMAGE_WIDTH / 2, SHARE_IMAGE_HEIGHT - 40);
+
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => (blob ? resolve(blob) : reject(new Error('Failed to create image'))),
+      'image/png',
+      0.95
+    );
+  });
+}
+
+function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {
+  const words = text.split(/\s+/);
+  const lines: string[] = [];
+  let current = '';
+  for (const w of words) {
+    const next = current ? `${current} ${w}` : w;
+    const m = ctx.measureText(next);
+    if (m.width > maxWidth && current) {
+      lines.push(current);
+      current = w;
+    } else {
+      current = next;
+    }
+  }
+  if (current) lines.push(current);
+  return lines;
+}
+
+export function downloadCertificateShareImage(data: CertificateData): void {
+  generateCertificateShareImage(data).then((blob) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Certificate-${data.courseTitle.replace(/\s+/g, '-')}-${data.verificationCode}.png`;
+    a.click();
+    URL.revokeObjectURL(url);
+  });
 }
