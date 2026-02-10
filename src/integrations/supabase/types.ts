@@ -826,52 +826,6 @@ export type Database = {
         }
         Relationships: []
       }
-      continue_later: {
-        Row: {
-          user_id: string
-          course_id: string
-          lesson_id: string | null
-          textbook_page: number | null
-          updated_at: string
-        }
-        Insert: {
-          user_id: string
-          course_id: string
-          lesson_id?: string | null
-          textbook_page?: number | null
-          updated_at?: string
-        }
-        Update: {
-          user_id?: string
-          course_id?: string
-          lesson_id?: string | null
-          textbook_page?: number | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "continue_later_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: true
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "continue_later_course_id_fkey"
-            columns: ["course_id"]
-            isOneToOne: false
-            referencedRelation: "courses"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "continue_later_lesson_id_fkey"
-            columns: ["lesson_id"]
-            isOneToOne: false
-            referencedRelation: "lessons"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       user_textbook_bookmarks: {
         Row: {
           chapter_id: string

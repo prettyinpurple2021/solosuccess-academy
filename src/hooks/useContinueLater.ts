@@ -19,7 +19,7 @@ export function useContinueLater(userId: string | undefined) {
     queryKey: ['continue-later', userId],
     queryFn: async (): Promise<ContinueLaterWithDetails | null> => {
       if (!userId) return null;
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('continue_later')
         .select('user_id, course_id, lesson_id, textbook_page, updated_at, courses(title), lessons(title)')
         .eq('user_id', userId)
@@ -58,7 +58,7 @@ export function useSetContinueLater() {
       lessonId?: string | null;
       textbookPage?: number | null;
     }) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('continue_later')
         .upsert(
           {
