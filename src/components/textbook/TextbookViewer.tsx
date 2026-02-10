@@ -21,6 +21,7 @@ import { HighlightsPanel } from './HighlightsPanel';
 import { FlashcardsPanel } from './FlashcardsPanel';
 import { NoteDialog } from './NoteDialog';
 import { TextbookKeyboardHelp } from './TextbookKeyboardHelp';
+import { ChapterDots } from './ChapterDots';
 import { 
   ChevronLeft, 
   ChevronRight, 
@@ -338,6 +339,17 @@ export function TextbookViewer({ courseId, courseName }: TextbookViewerProps) {
     return acc;
   }, {} as Record<string, { chapter: TextbookChapter; firstPageIndex: number; pages: { page: typeof pages[0]; index: number }[] }>);
 
+  // Build a flat list of chapter info for the chapter dots indicator
+  const chaptersList = useMemo(() => {
+    if (!tableOfContents) return [];
+    return Object.values(tableOfContents).map(({ chapter, firstPageIndex, pages: chapterPages }) => ({
+      id: chapter.id,
+      title: chapter.title,
+      firstPageIndex,
+      pageCount: chapterPages.length,
+    }));
+  }, [tableOfContents]);
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-[600px]">
@@ -551,6 +563,14 @@ export function TextbookViewer({ courseId, courseName }: TextbookViewerProps) {
           </HTMLFlipBook>
         </div>
       </ContentTransition>
+
+      {/* Chapter Dots Indicator */}
+      <ChapterDots
+        chapters={chaptersList}
+        currentPage={currentPage}
+        totalPages={pages.length}
+        onNavigate={goToPage}
+      />
 
       {/* Navigation */}
       <motion.div 
