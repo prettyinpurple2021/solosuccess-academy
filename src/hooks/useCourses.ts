@@ -7,9 +7,10 @@ export function useCourses() {
   return useQuery({
     queryKey: ['courses'],
     queryFn: async (): Promise<Course[]> => {
+      // Only select fields needed by the client – excludes sensitive Stripe IDs
       const { data, error } = await supabase
         .from('courses')
-        .select('*')
+        .select('id, title, description, phase, order_number, price_cents, project_title, project_description, discussion_question, plug_and_play_asset, is_published, created_at, updated_at')
         .eq('is_published', true)
         .order('order_number', { ascending: true });
 
@@ -28,7 +29,7 @@ export function useCourse(courseId: string | undefined) {
 
       const { data, error } = await supabase
         .from('courses')
-        .select('*')
+        .select('id, title, description, phase, order_number, price_cents, project_title, project_description, discussion_question, plug_and_play_asset, is_published, created_at, updated_at')
         .eq('id', courseId)
         .eq('is_published', true)
         .maybeSingle();
