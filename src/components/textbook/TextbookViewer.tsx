@@ -22,6 +22,11 @@ import { FlashcardsPanel } from './FlashcardsPanel';
 import { NoteDialog } from './NoteDialog';
 import { TextbookKeyboardHelp } from './TextbookKeyboardHelp';
 import { ChapterDots } from './ChapterDots';
+import { VocabularyGlossary, type GlossaryTerm } from './VocabularyGlossary';
+import { ReadingMilestones } from './ReadingMilestones';
+import { type MiniGameData } from './MiniGame';
+import { useAuth } from '@/hooks/useAuth';
+import { useAwardXP, XP_VALUES } from '@/hooks/useGamification';
 import { 
   ChevronLeft, 
   ChevronRight, 
@@ -82,6 +87,8 @@ export function TextbookViewer({ courseId, courseName }: TextbookViewerProps) {
   const { data: searchResults } = useTextbookSearch(courseId, isSearching ? searchQuery : '');
   const createHighlight = useCreateHighlight();
   const { toast } = useToast();
+  const { user } = useAuth();
+  const awardXP = useAwardXP();
 
   // Get all page IDs for fetching highlights
   const pageIds = useMemo(() => pages?.map(p => p.id) || [], [pages]);
@@ -101,6 +108,72 @@ export function TextbookViewer({ courseId, courseName }: TextbookViewerProps) {
     if (!pages?.[currentPage]) return [];
     return highlights.filter(h => h.page_id === pages[currentPage].id);
   }, [highlights, pages, currentPage]);
+
+  /**
+   * Extract glossary terms from textbook content.
+   * Terms are detected via **bold** markdown patterns (e.g., **Revenue** means "Revenue" is a key term).
+   * The sentence containing the term is used as its definition.
+   */
+  const glossaryTerms = useMemo<GlossaryTerm[]>(() => {
+    if (!pages?.length) return [];
+    const termMap = new Map<string, GlossaryTerm>();
+    
+    for (const page of pages) {
+      // Find **bold** terms in content — these are key vocabulary
+      const boldPattern = /\*\*([^*]+)\*\*/g;
+      let match;
+      while ((match = boldPattern.exec(page.content)) !== null) {
+        const term = match[1].trim();
+        if (term.length < 2 || term.length > 60 || termMap.has(term.toLowerCase())) continue;
+        
+        // Extract the sentence around the term as the definition
+        const start = Math.max(0, page.content.lastIndexOf('.', match.index) + 1);
+        const end = page.content.indexOf('.', match.index + match[0].length);
+        const sentence = page.content
+          .substring(start, end > 0 ? end + 1 : match.index + match[0].length + 80)
+          .replace(/\*\*/g, '')
+          .trim();
+
+        termMap.set(term.toLowerCase(), {
+          term,
+          definition: sentence || term,
+          chapter: page.chapter.title,
+        });
+      }
+    }
+    return Array.from(termMap.values());
+  }, [pages]);
+
+  /**
+   * Extract mini game data from page content.
+   * Admins embed games via special markdown blocks:
+   *   [SCRAMBLE: word | hint text]
+   *   [FILLBLANK: sentence with ___ | answer | hint]
+   */
+  const miniGameForPage = useCallback((pageContent: string): MiniGameData | null => {
+    // Check for word scramble
+    const scrambleMatch = pageContent.match(/\[SCRAMBLE:\s*(.+?)\s*\|\s*(.+?)\s*\]/i);
+    if (scrambleMatch) {
+      return { type: 'word_scramble', word: scrambleMatch[1], hint: scrambleMatch[2] };
+    }
+    // Check for fill in the blank
+    const fillMatch = pageContent.match(/\[FILLBLANK:\s*(.+?)\s*\|\s*(.+?)(?:\s*\|\s*(.+?))?\s*\]/i);
+    if (fillMatch) {
+      return { type: 'fill_blank', sentence: fillMatch[1], answer: fillMatch[2], hint: fillMatch[3] };
+    }
+    return null;
+  }, []);
+
+  /**
+   * Handle reading milestone XP awards.
+   */
+  const handleMilestoneReached = useCallback(
+    (type: 'chapter_complete' | 'halfway' | 'textbook_complete', xp: number) => {
+      if (!user?.id) return;
+      awardXP.mutate({ userId: user.id, xpAmount: xp, action: `reading_${type}` });
+    },
+    [user?.id, awardXP]
+  );
 
   // Go to bookmarked page on load
   useEffect(() => {
@@ -484,6 +557,9 @@ export function TextbookViewer({ courseId, courseName }: TextbookViewerProps) {
             highlights={highlights}
             pageContents={pageContents}
           />
+
+          {/* Vocabulary Glossary */}
+          <VocabularyGlossary terms={glossaryTerms} />
         </div>
 
         <h2 className="text-lg font-display font-semibold text-center flex-1 neon-text">{courseName}</h2>
@@ -555,6 +631,7 @@ export function TextbookViewer({ courseId, courseName }: TextbookViewerProps) {
                   totalPages={pages.length}
                   highlights={highlights.filter(h => h.page_id === page.id)}
                   isBookmarked={bookmark?.page_id === page.id}
+                  miniGame={miniGameForPage(page.content)}
                   onBookmark={handleBookmark}
                   onTextSelect={index === currentPage ? handleTextSelect : undefined}
                 />
@@ -570,6 +647,14 @@ export function TextbookViewer({ courseId, courseName }: TextbookViewerProps) {
         currentPage={currentPage}
         totalPages={pages.length}
         onNavigate={goToPage}
+      />
+
+      {/* Reading Milestones — XP rewards + confetti on chapter completion */}
+      <ReadingMilestones
+        currentPage={currentPage}
+        totalPages={pages.length}
+        chapters={chaptersList}
+        onMilestoneReached={handleMilestoneReached}
       />
 
       {/* Navigation */}

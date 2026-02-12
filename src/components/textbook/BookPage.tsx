@@ -5,6 +5,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { CheckCircle, XCircle, Bookmark } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { MiniGame, type MiniGameData } from './MiniGame';
 
 interface BookPageProps {
   page: TextbookPage & { chapter: TextbookChapter };
@@ -12,8 +13,12 @@ interface BookPageProps {
   totalPages: number;
   highlights?: TextbookHighlight[];
   isBookmarked?: boolean;
+  /** Optional mini game data for this page */
+  miniGame?: MiniGameData | null;
   onBookmark?: () => void;
   onTextSelect?: (selection: { text: string; startOffset: number; endOffset: number; rect: DOMRect }) => void;
+  /** Called when a mini game on this page is completed */
+  onMiniGameComplete?: () => void;
 }
 
 const HIGHLIGHT_COLORS: Record<string, string> = {
@@ -25,7 +30,7 @@ const HIGHLIGHT_COLORS: Record<string, string> = {
 };
 
 export const BookPage = forwardRef<HTMLDivElement, BookPageProps>(
-  ({ page, pageIndex, totalPages, highlights = [], isBookmarked, onBookmark, onTextSelect }, ref) => {
+  ({ page, pageIndex, totalPages, highlights = [], isBookmarked, miniGame, onBookmark, onTextSelect, onMiniGameComplete }, ref) => {
     const [quizAnswer, setQuizAnswer] = useState<number | null>(null);
     const [showResult, setShowResult] = useState(false);
     const contentRef = useRef<HTMLDivElement>(null);
@@ -253,6 +258,13 @@ export const BookPage = forwardRef<HTMLDivElement, BookPageProps>(
                   {page.embedded_quiz.explanation}
                 </p>
               )}
+            </div>
+          )}
+
+          {/* Mini Game — interactive word scramble or fill-in-the-blank */}
+          {miniGame && (
+            <div className="mt-6">
+              <MiniGame game={miniGame} onComplete={onMiniGameComplete} />
             </div>
           )}
         </div>
