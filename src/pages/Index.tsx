@@ -93,13 +93,12 @@ export default function Index() {
           <div className="container relative">
             <div className="max-w-5xl mx-auto text-center">
               {/* Terminal-style badge */}
-              <Badge 
-                variant="outline" 
-                className="mb-8 px-4 py-2 text-sm font-mono border-primary/40 bg-primary/10 shadow-[0_0_20px_hsl(270_80%_50%/0.3)] animate-pulse-glow"
+              <div 
+                className="mb-8 px-4 py-2 text-sm font-mono border border-primary/40 bg-primary/10 rounded-full inline-flex items-center shadow-[0_0_20px_hsl(270_80%_50%/0.3)] animate-pulse-glow"
               >
                 <Terminal className="mr-2 h-4 w-4 text-primary" />
                 <span className="text-primary">&gt;</span> AI-Powered Learning for Solo Founders
-              </Badge>
+              </div>
 
               <h1 className="text-5xl md:text-7xl lg:text-8xl font-display font-black tracking-tight mb-8 leading-tight">
                 <span className="text-foreground">BUILD YOUR</span>
