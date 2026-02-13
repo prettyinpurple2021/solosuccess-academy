@@ -1,3 +1,27 @@
+/**
+ * @file Dashboard.tsx — Student Dashboard (Home for Authenticated Users)
+ * 
+ * The main landing page after login. Shows:
+ * - Welcome message with user's display name
+ * - Stats cards (courses owned, lessons complete, overall progress, certificates)
+ * - "Continue Here" bookmark — resume from saved position
+ * - "Continue Learning" — first incomplete purchased course
+ * - "Your Courses" — list of all purchased courses with progress bars
+ * - "Your Roadmap" sidebar — overview of all 10 courses with completion status
+ * 
+ * DATA SOURCES:
+ * - useCourses() → all published courses (for roadmap)
+ * - purchases query → user's purchased courses
+ * - progress query → lesson completion data
+ * - useCertificateCount() → number of earned certificates
+ * - useContinueLater() → bookmarked lesson/textbook position
+ * 
+ * PRODUCTION TODO:
+ * - The progress calculation does a O(n²) lookup in forEach — optimize with a Map
+ * - Add skeleton loading states instead of blank content while data loads
+ * - Add a "Quick Actions" section (start discussion, submit project, etc.)
+ * - Consider server-side aggregation for stats to reduce client computation
+ */
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';

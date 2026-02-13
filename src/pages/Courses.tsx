@@ -1,3 +1,21 @@
+/**
+ * @file Courses.tsx — Course Catalog Page (Public)
+ * 
+ * Displays all published courses grouped by curriculum phase:
+ * - Phase 1: Initialization (Identity & Intel)
+ * - Phase 2: Orchestration (Building the Machine)
+ * - Phase 3: Launch Sequence (Sales & Future)
+ * 
+ * For authenticated users, shows purchase status and progress.
+ * For unauthenticated users, shows "View Details" button.
+ * 
+ * Uses QueryStateGuard for loading/error state handling.
+ * 
+ * PRODUCTION TODO:
+ * - Add search/filter functionality
+ * - Add course preview/trailer support
+ * - Consider pagination if course count grows significantly
+ */
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
