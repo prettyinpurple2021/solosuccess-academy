@@ -1,3 +1,27 @@
+/**
+ * @file AppLayout.tsx — Authenticated Application Shell
+ * 
+ * This layout wraps ALL protected (logged-in) routes. It provides:
+ * 1. Authentication gate — redirects to /auth if not logged in
+ * 2. Sidebar navigation (collapsible, using shadcn SidebarProvider)
+ * 3. Mobile-responsive header with hamburger menu trigger
+ * 4. Cyberpunk-themed background (cyber-bg + cyber-grid)
+ * 
+ * ROUTE STRUCTURE:
+ * AppLayout wraps:
+ *   /dashboard, /profile, /settings, /admin/*, /courses/:id/lessons/*, etc.
+ * 
+ * HOW AUTH GATE WORKS:
+ * - While checking auth status → shows loading spinner
+ * - If not authenticated → redirects to /auth with `state.from` so the user
+ *   returns to their original destination after login
+ * - If authenticated → renders sidebar + main content area
+ * 
+ * PRODUCTION TODO:
+ * - Add a <Footer> component inside the layout if needed
+ * - Consider adding a top notification banner slot
+ * - Add breadcrumb navigation for deeply nested routes
+ */
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
@@ -10,6 +34,7 @@ export function AppLayout() {
   const { isAuthenticated, isLoading } = useAuth();
   const location = useLocation();
 
+  // ── Loading state: Show spinner while checking auth ──
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center cyber-bg">
@@ -22,23 +47,29 @@ export function AppLayout() {
     );
   }
 
+  // ── Auth gate: Redirect unauthenticated users to login ──
+  // `state.from` allows redirecting back after successful login
   if (!isAuthenticated) {
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
+  // ── Authenticated layout: Sidebar + main content ──
   return (
     <SidebarProvider defaultOpen={true}>
       <div className="min-h-screen flex w-full cyber-bg">
+        {/* Background grid overlay (purely decorative) */}
         <div className="cyber-grid fixed inset-0 pointer-events-none" />
         
+        {/* Sidebar navigation — see AppSidebar.tsx for menu items */}
         <AppSidebar />
         
         <div className="flex-1 flex flex-col relative">
-          {/* Top bar with mobile menu trigger */}
+          {/* Mobile-only top bar with hamburger menu trigger */}
           <header className="sticky top-0 z-40 h-14 border-b border-primary/20 bg-background/80 backdrop-blur-xl flex items-center px-4 md:hidden">
             <SidebarTrigger />
           </header>
           
+          {/* Main content area — <Outlet /> renders the matched child route */}
           <main id="main-content" tabIndex={-1} className="flex-1 relative z-10">
             <Outlet />
           </main>

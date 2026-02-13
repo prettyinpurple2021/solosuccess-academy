@@ -1,3 +1,36 @@
+/**
+ * @file LessonViewer.tsx — Main Lesson Viewing Page
+ * 
+ * The core learning experience. Displays a single lesson with:
+ * - Sidebar navigation (desktop: always visible, mobile: sheet overlay)
+ * - Lesson content rendered by LessonContent component
+ * - Mark complete/incomplete toggle with XP awards
+ * - Previous/Next lesson navigation
+ * - AI Tutor chat panel (slide-in from right)
+ * - Reading progress bar (scroll-based)
+ * - Keyboard navigation (arrow keys, shortcuts)
+ * - "Continue Later" bookmark feature
+ * - Certificate generation on course completion
+ * 
+ * ROUTE: /courses/:courseId/lessons/:lessonId
+ * 
+ * ACCESS CONTROL:
+ * - Requires authentication (via AppLayout)
+ * - Requires course purchase (checked inline, shows lock screen)
+ * 
+ * COMPLETION FLOW:
+ * 1. User clicks "Mark as Complete"
+ * 2. Progress record upserted in user_progress table
+ * 3. XP awarded via gamification system (+25 XP)
+ * 4. Badge criteria checked after 1 second delay
+ * 5. If ALL lessons in course are done → confetti + certificate generated
+ * 
+ * PRODUCTION TODO:
+ * - Add lesson timer (track time spent per lesson)
+ * - Add note-taking inline (currently only via AI tutor)
+ * - Pre-fetch next lesson content for instant navigation
+ * - Add lesson-level error boundary
+ */
 import { useState, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';

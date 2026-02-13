@@ -1,3 +1,27 @@
+/**
+ * @file Auth.tsx — Authentication Page (Sign In / Sign Up)
+ * 
+ * Handles both sign-in and sign-up in a tabbed interface.
+ * 
+ * KEY BEHAVIORS:
+ * - Default tab can be set via URL param: /auth?mode=signup
+ * - After successful auth, redirects to the page the user came from
+ *   (stored in location.state.from by ProtectedRoute/AppLayout)
+ * - Falls back to /dashboard if no return URL
+ * - Shows password visibility toggle
+ * - Toast notifications for success/error feedback
+ * 
+ * SECURITY NOTE:
+ * - Email verification is enabled by default in production
+ * - Password minimum length is 6 characters (enforced by Supabase)
+ * 
+ * PRODUCTION TODO:
+ * - Add "Forgot Password" flow with resetPassword() from useAuth
+ * - Add OAuth buttons (Google, GitHub) for social login
+ * - Add password strength indicator
+ * - Add rate limiting feedback for too many failed attempts
+ * - Add CAPTCHA for sign-up to prevent bot registrations
+ */
 import { useState } from 'react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
