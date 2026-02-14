@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Navigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -9,9 +9,10 @@ import { CourseEditor } from '@/components/admin/CourseEditor';
 import { TextbookEditor } from '@/components/admin/TextbookEditor';
 import { SeedCurriculumButton } from '@/components/admin/SeedCurriculumButton';
 import { QuickGenerateDialog } from '@/components/admin/QuickGenerateDialog';
-import { useAuth } from '@/hooks/useAuth';
-import { useIsAdmin, useAdminCourses, useUpdateCourse } from '@/hooks/useAdmin';
+import { useAdminCourses, useUpdateCourse } from '@/hooks/useAdmin';
 import { useToast } from '@/hooks/use-toast';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { 
   Shield, 
   BookOpen, 
@@ -27,8 +28,6 @@ import {
 import { NeonSpinner } from '@/components/ui/neon-spinner';
 
 export default function AdminDashboard() {
-  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
-  const { data: isAdmin, isLoading: adminLoading } = useIsAdmin(user?.id);
   const { data: courses, isLoading: coursesLoading } = useAdminCourses();
   const updateCourse = useUpdateCourse();
   const { toast } = useToast();
@@ -36,20 +35,35 @@ export default function AdminDashboard() {
   const [isCreatingCourse, setIsCreatingCourse] = useState(false);
   const [activeTab, setActiveTab] = useState('courses');
 
-  const isLoading = authLoading || adminLoading;
+  // Fetch real student count (unique users with purchases or progress)
+  const { data: studentCount } = useQuery({
+    queryKey: ['admin-student-count'],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true });
+      return count || 0;
+    },
+  });
 
-  // Loading state
-  if (isLoading) {
+  // Fetch real revenue (sum of purchases)
+  const { data: totalRevenue } = useQuery({
+    queryKey: ['admin-total-revenue'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('purchases')
+        .select('amount_cents');
+      if (!data) return 0;
+      return data.reduce((sum, p) => sum + p.amount_cents, 0);
+    },
+  });
+
+  if (coursesLoading) {
     return (
       <div className="flex-1 flex items-center justify-center py-12">
         <NeonSpinner size="lg" />
       </div>
     );
-  }
-
-  // Not authenticated or not admin - redirect
-  if (!isAuthenticated || !isAdmin) {
-    return <Navigate to="/" replace />;
   }
 
   const togglePublish = async (courseId: string, currentlyPublished: boolean) => {
@@ -119,7 +133,7 @@ export default function AdminDashboard() {
               <Users className="h-6 w-6 text-info" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-foreground">—</p>
+              <p className="text-2xl font-bold text-foreground">{studentCount ?? '—'}</p>
               <p className="text-sm text-muted-foreground">Total Students</p>
             </div>
           </div>
@@ -130,7 +144,11 @@ export default function AdminDashboard() {
               <DollarSign className="h-6 w-6 text-warning" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-foreground">—</p>
+              <p className="text-2xl font-bold text-foreground">
+                {totalRevenue != null 
+                  ? (totalRevenue / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD' }) 
+                  : '—'}
+              </p>
               <p className="text-sm text-muted-foreground">Revenue</p>
             </div>
           </div>

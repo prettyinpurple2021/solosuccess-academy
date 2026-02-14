@@ -1,9 +1,7 @@
-import { Navigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useAuth } from '@/hooks/useAuth';
-import { useIsAdmin } from '@/hooks/useAdmin';
 import {
   useRevenueAnalytics,
   useCourseCompletionAnalytics,
@@ -65,27 +63,12 @@ const chartConfig = {
 };
 
 export default function AdminAnalytics() {
-  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
-  const { data: isAdmin, isLoading: adminLoading } = useIsAdmin(user?.id);
   const { data: revenueData, isLoading: revenueLoading } = useRevenueAnalytics();
   const { data: completionData, isLoading: completionLoading } = useCourseCompletionAnalytics();
   const { data: engagementData, isLoading: engagementLoading } = useEngagementAnalytics();
   const { data: summary, isLoading: summaryLoading } = useAnalyticsSummary();
 
-  const isLoading = authLoading || adminLoading;
   const chartsLoading = revenueLoading || completionLoading || engagementLoading || summaryLoading;
-
-  if (isLoading) {
-    return (
-      <div className="flex-1 flex items-center justify-center py-12">
-        <NeonSpinner size="lg" />
-      </div>
-    );
-  }
-
-  if (!isAuthenticated || !isAdmin) {
-    return <Navigate to="/" replace />;
-  }
 
   return (
     <div className="p-6 md:p-8 lg:p-12">

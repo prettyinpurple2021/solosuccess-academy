@@ -1,3 +1,27 @@
+/**
+ * @file Dashboard.tsx — Student Dashboard (Home for Authenticated Users)
+ * 
+ * The main landing page after login. Shows:
+ * - Welcome message with user's display name
+ * - Stats cards (courses owned, lessons complete, overall progress, certificates)
+ * - "Continue Here" bookmark — resume from saved position
+ * - "Continue Learning" — first incomplete purchased course
+ * - "Your Courses" — list of all purchased courses with progress bars
+ * - "Your Roadmap" sidebar — overview of all 10 courses with completion status
+ * 
+ * DATA SOURCES:
+ * - useCourses() → all published courses (for roadmap)
+ * - purchases query → user's purchased courses
+ * - progress query → lesson completion data
+ * - useCertificateCount() → number of earned certificates
+ * - useContinueLater() → bookmarked lesson/textbook position
+ * 
+ * PRODUCTION TODO:
+ * - The progress calculation does a O(n²) lookup in forEach — optimize with a Map
+ * - Add skeleton loading states instead of blank content while data loads
+ * - Add a "Quick Actions" section (start discussion, submit project, etc.)
+ * - Consider server-side aggregation for stats to reduce client computation
+ */
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,12 +30,14 @@ import { Progress } from '@/components/ui/progress';
 import { useAuth } from '@/hooks/useAuth';
 import { useCourses } from '@/hooks/useCourses';
 import { useCertificateCount } from '@/hooks/useCertificates';
+import { useContinueLater } from '@/hooks/useContinueLater';
 import { phaseMetadata, formatPrice, getPhaseClasses, type CoursePhase } from '@/lib/courseData';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   ArrowRight, 
   BookOpen, 
+  Bookmark,
   CheckCircle2, 
   Trophy, 
   Target,
@@ -21,14 +47,17 @@ import {
   Zap,
   Terminal
 } from 'lucide-react';
+import { PageMeta } from '@/components/layout/PageMeta';
+import { ErrorView } from '@/components/ui/error-view';
 
 export default function Dashboard() {
   const { user, profile } = useAuth();
   const { data: courses } = useCourses();
   const { data: certificateCount } = useCertificateCount(user?.id);
+  const { data: continueLater } = useContinueLater(user?.id);
 
   // Fetch user purchases
-  const { data: purchases } = useQuery({
+  const { data: purchases, isError: purchasesError, error: purchasesErr, refetch: refetchPurchases } = useQuery({
     queryKey: ['purchases', user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
@@ -43,7 +72,7 @@ export default function Dashboard() {
   });
 
   // Fetch all progress data
-  const { data: progressData } = useQuery({
+  const { data: progressData, isError: progressError, error: progressErr, refetch: refetchProgress } = useQuery({
     queryKey: ['all-progress', user?.id],
     queryFn: async () => {
       if (!user?.id) return { progress: [], lessons: [] };
@@ -101,8 +130,30 @@ export default function Dashboard() {
     return progress && progress.completed < progress.total;
   });
 
+  const dataError = purchasesError || progressError;
+  const dataErrorMessage = purchasesErr?.message ?? progressErr?.message;
+  const refetchData = () => {
+    refetchPurchases();
+    refetchProgress();
+  };
+
+  if (dataError) {
+    return (
+      <div className="py-8">
+        <PageMeta title="Dashboard" path="/dashboard" noIndex />
+        <ErrorView
+          message={dataErrorMessage}
+          onRetry={refetchData}
+          backTo="/dashboard"
+          backLabel="Refresh dashboard"
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="py-8">
+      <PageMeta title="Dashboard" path="/dashboard" noIndex />
       <div className="container">
         {/* Welcome Section */}
         <div className="mb-10">
@@ -184,6 +235,39 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-8">
+            {/* Continue later (bookmark) */}
+            {continueLater && (
+              <Card className="glass-card border-secondary/30 overflow-hidden relative">
+                <div className="absolute inset-0 bg-gradient-to-r from-secondary/10 via-transparent to-transparent" />
+                <CardHeader className="relative">
+                  <div className="flex items-center gap-2 text-secondary mb-2">
+                    <Bookmark className="h-5 w-5" />
+                    <span className="text-sm font-display font-medium tracking-wide">CONTINUE HERE</span>
+                  </div>
+                  <CardTitle className="text-xl">
+                    {continueLater.course?.title ?? 'Course'} – {continueLater.lesson_id
+                      ? (continueLater.lesson?.title ?? 'Lesson')
+                      : 'Textbook'}
+                  </CardTitle>
+                  <CardDescription>
+                    Pick up where you left off.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="relative">
+                  <Button variant="outline" className="border-secondary/30 hover:bg-secondary/10" asChild>
+                    <Link to={continueLater.lesson_id
+                      ? `/courses/${continueLater.course_id}/lessons/${continueLater.lesson_id}`
+                      : `/courses/${continueLater.course_id}/textbook`}
+                    >
+                      <Play className="mr-2 h-4 w-4" />
+                      Continue
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Link>
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Continue Learning */}
             {continueCourse && (
               <Card className="glass-card border-primary/30 overflow-hidden relative">

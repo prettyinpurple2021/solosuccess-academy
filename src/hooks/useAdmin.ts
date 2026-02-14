@@ -1,60 +1,131 @@
+/**
+ * @file useAdmin.ts — Admin CRUD Hooks for Course & Lesson Management
+ * 
+ * Contains ALL admin-side data mutations for managing courses, lessons,
+ * quizzes, worksheets, and activities. This is the largest hook file
+ * in the project and handles the entire admin CMS workflow.
+ * 
+ * HOOKS IN THIS FILE:
+ * ─── Queries ─────────────────────────────────
+ * - useIsAdmin(userId)         → Check if user has admin role
+ * - useAdminCourses()          → Fetch ALL courses (including unpublished)
+ * - useAdminLessons(courseId)   → Fetch ALL lessons for a course
+ * 
+ * ─── Mutations ───────────────────────────────
+ * - useCreateCourse()          → Create a new course
+ * - useUpdateCourse()          → Update course fields
+ * - useCreateLesson()          → Create a new lesson
+ * - useUpdateLesson()          → Update lesson content/settings
+ * - useDeleteLesson()          → Delete a lesson
+ * - useReorderLessons()        → Drag-and-drop lesson reordering
+ * 
+ * ─── Standalone Functions ────────────────────
+ * - uploadLessonVideo()        → Upload video to Storage
+ * 
+ * DATA TYPES DEFINED HERE:
+ * - LessonType, CoursePhase (enums matching DB)
+ * - Lesson, QuizData, QuizQuestion, WorksheetData, ActivityData
+ * 
+ * SECURITY:
+ * - All mutations rely on RLS policies that check for admin role
+ * - The client-side AdminLayout gate prevents non-admin access to the UI
+ * - But the REAL security is the RLS policies on the database tables
+ * 
+ * PRODUCTION TODO:
+ * - This file is 365 lines — consider splitting into:
+ *   - useAdminCourses.ts (course CRUD)
+ *   - useAdminLessons.ts (lesson CRUD)
+ *   - adminTypes.ts (shared types)
+ * - Add optimistic updates for drag-and-drop reordering
+ * - Add bulk operations (publish/unpublish multiple lessons)
+ * - The `onProgress` parameter in uploadLessonVideo is unused — implement
+ *   it using tus protocol or XMLHttpRequest for progress tracking
+ */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Json } from '@/integrations/supabase/types';
 
+// ──────────────────────────────────────────────
+// TYPE DEFINITIONS
+// These types mirror the database schema and are
+// used by admin components to ensure type safety.
+// ──────────────────────────────────────────────
+
+/** All possible lesson content types (matches DB enum `lesson_type`) */
 export type LessonType = 'text' | 'video' | 'quiz' | 'assignment' | 'worksheet' | 'activity';
+
+/** The three curriculum phases (matches DB enum `course_phase`) */
 export type CoursePhase = 'initialization' | 'orchestration' | 'launch';
 
+/**
+ * Full lesson data including all content types.
+ * The `quiz_data`, `worksheet_data`, and `activity_data` fields are
+ * stored as JSONB in PostgreSQL and parsed into these typed shapes.
+ */
 export interface Lesson {
   id: string;
   course_id: string;
   title: string;
-  content: string | null;
-  video_url: string | null;
+  content: string | null;           // Markdown content for text lessons
+  video_url: string | null;          // Supabase Storage URL for video lessons
   type: LessonType;
-  order_number: number;
+  order_number: number;              // Controls display order (1-based)
   duration_minutes: number | null;
-  quiz_data: QuizData | null;
-  worksheet_data: WorksheetData | null;
-  activity_data: ActivityData | null;
-  is_published: boolean;
+  quiz_data: QuizData | null;        // Structured quiz for 'quiz' type lessons
+  worksheet_data: WorksheetData | null;  // Structured worksheet prompts
+  activity_data: ActivityData | null;    // Structured activity steps
+  is_published: boolean;             // Only published lessons visible to students
   created_at: string;
   updated_at: string;
 }
 
+/** A single quiz question with multiple choice options */
 export interface QuizQuestion {
-  id: string;
-  question: string;
-  options: string[];
-  correctAnswer: number;
-  explanation?: string;
+  id: string;                        // Client-generated UUID
+  question: string;                  // The question text
+  options: string[];                 // Array of answer choices (usually 4)
+  correctAnswer: number;             // Index of correct option (0-based)
+  explanation?: string;              // Optional explanation shown after answering
 }
 
+/** Quiz configuration stored in lessons.quiz_data JSONB column */
 export interface QuizData {
   questions: QuizQuestion[];
-  passingScore: number;
+  passingScore: number;              // Minimum percentage to pass (0-100)
 }
 
+/** Worksheet configuration stored in lessons.worksheet_data JSONB column */
 export interface WorksheetData {
-  instructions: string;
+  instructions: string;              // Overall worksheet instructions
   sections: {
-    id: string;
-    title: string;
-    prompts: string[];
+    id: string;                      // Client-generated UUID
+    title: string;                   // Section heading
+    prompts: string[];               // Writing prompts within the section
   }[];
 }
 
+/** Activity configuration stored in lessons.activity_data JSONB column */
 export interface ActivityData {
-  instructions: string;
+  instructions: string;              // Overall activity instructions
   type: 'reflection' | 'exercise' | 'case-study' | 'brainstorm';
   steps: {
-    id: string;
-    title: string;
-    description: string;
+    id: string;                      // Client-generated UUID
+    title: string;                   // Step heading
+    description: string;             // Step details/instructions
   }[];
 }
 
-// Check if user is admin
+// ──────────────────────────────────────────────
+// QUERY HOOKS
+// ──────────────────────────────────────────────
+
+/**
+ * Check if the current user has the 'admin' role.
+ * Queries the `user_roles` table for a matching row.
+ * 
+ * Used by AdminLayout to gate admin routes and by
+ * the sidebar to show/hide admin navigation links.
+ */
 export function useIsAdmin(userId: string | undefined) {
   return useQuery({
     queryKey: ['isAdmin', userId],
@@ -75,7 +146,13 @@ export function useIsAdmin(userId: string | undefined) {
   });
 }
 
-// Fetch all courses (admin view - includes unpublished)
+/**
+ * Fetch ALL courses (admin view — includes unpublished).
+ * Sorted by phase then order_number for consistent display.
+ * 
+ * NOTE: No RLS filter for is_published here — admin RLS policy
+ * allows admins to see all courses.
+ */
 export function useAdminCourses() {
   return useQuery({
     queryKey: ['admin-courses'],
@@ -92,7 +169,11 @@ export function useAdminCourses() {
   });
 }
 
-// Create a new course
+/**
+ * Create a new course in the database.
+ * Automatically assigns the next order_number within the phase.
+ * New courses default to unpublished (is_published: false).
+ */
 export function useCreateCourse() {
   const queryClient = useQueryClient();
 
@@ -103,7 +184,7 @@ export function useCreateCourse() {
       phase: CoursePhase;
       price_cents?: number;
     }) => {
-      // Get the next order number
+      // Get the highest existing order_number for this phase
       const { data: existing } = await supabase
         .from('courses')
         .select('order_number')
@@ -119,7 +200,7 @@ export function useCreateCourse() {
           title: course.title,
           description: course.description || null,
           phase: course.phase,
-          price_cents: course.price_cents || 4900,
+          price_cents: course.price_cents || 4900,  // Default $49.00
           order_number: nextOrder,
           is_published: false,
         }])
@@ -130,13 +211,17 @@ export function useCreateCourse() {
       return data;
     },
     onSuccess: () => {
+      // Invalidate both admin and student course caches
       queryClient.invalidateQueries({ queryKey: ['admin-courses'] });
       queryClient.invalidateQueries({ queryKey: ['courses'] });
     },
   });
 }
 
-// Helper to transform DB lesson to our Lesson type
+/**
+ * Transform a raw database lesson row into our typed Lesson interface.
+ * Casts JSONB fields to their proper TypeScript types.
+ */
 function transformLesson(dbLesson: any): Lesson {
   return {
     ...dbLesson,
@@ -148,7 +233,10 @@ function transformLesson(dbLesson: any): Lesson {
   };
 }
 
-// Fetch lessons for a course
+/**
+ * Fetch ALL lessons for a course (admin view).
+ * Returns lessons sorted by order_number for display in the admin editor.
+ */
 export function useAdminLessons(courseId: string | undefined) {
   return useQuery({
     queryKey: ['admin-lessons', courseId],
@@ -168,7 +256,15 @@ export function useAdminLessons(courseId: string | undefined) {
   });
 }
 
-// Create a new lesson
+// ──────────────────────────────────────────────
+// MUTATION HOOKS
+// ──────────────────────────────────────────────
+
+/**
+ * Create a new lesson within a course.
+ * All content fields are optional — the lesson type determines which
+ * content field is relevant (e.g., quiz_data for quiz type).
+ */
 export function useCreateLesson() {
   const queryClient = useQueryClient();
 
@@ -215,7 +311,13 @@ export function useCreateLesson() {
   });
 }
 
-// Update a lesson
+/**
+ * Update an existing lesson's content or settings.
+ * Only sends changed fields to the database (partial update).
+ * 
+ * NOTE: The explicit field-by-field check (vs spreading updates directly)
+ * prevents accidentally sending undefined values to Supabase.
+ */
 export function useUpdateLesson() {
   const queryClient = useQueryClient();
 
@@ -239,6 +341,7 @@ export function useUpdateLesson() {
         is_published?: boolean;
       };
     }) => {
+      // Build update payload — only include defined fields
       const dbUpdates: Record<string, any> = {};
       if (updates.title !== undefined) dbUpdates.title = updates.title;
       if (updates.type !== undefined) dbUpdates.type = updates.type;
@@ -266,7 +369,17 @@ export function useUpdateLesson() {
   });
 }
 
-// Delete a lesson
+/**
+ * Delete a lesson from a course.
+ * 
+ * WARNING: This is a hard delete with no undo. Consider adding
+ * soft delete (is_deleted flag) for production.
+ * 
+ * PRODUCTION TODO:
+ * - Also delete associated files from Storage (videos, etc.)
+ * - Clean up user_progress records for this lesson
+ * - Add confirmation dialog in the UI (handled by the component)
+ */
 export function useDeleteLesson() {
   const queryClient = useQueryClient();
 
@@ -285,7 +398,17 @@ export function useDeleteLesson() {
   });
 }
 
-// Reorder lessons
+/**
+ * Reorder lessons via drag-and-drop.
+ * Updates order_number for each affected lesson.
+ * 
+ * Uses Promise.all to update all lessons in parallel for speed.
+ * If any single update fails, the error is thrown.
+ * 
+ * PRODUCTION TODO:
+ * - Move to a single database function for atomicity
+ * - Add optimistic updates so the UI doesn't flicker
+ */
 export function useReorderLessons() {
   const queryClient = useQueryClient();
 
@@ -297,7 +420,6 @@ export function useReorderLessons() {
       courseId: string;
       updates: { id: string; order_number: number }[];
     }) => {
-      // Update each lesson's order_number
       const promises = updates.map(({ id, order_number }) =>
         supabase
           .from('lessons')
@@ -315,7 +437,12 @@ export function useReorderLessons() {
   });
 }
 
-// Update course
+/**
+ * Update a course's fields (title, description, price, etc.).
+ * Accepts any record of updates for flexibility.
+ * 
+ * PRODUCTION TODO: Add proper typing instead of Record<string, any>
+ */
 export function useUpdateCourse() {
   const queryClient = useQueryClient();
 
@@ -344,7 +471,28 @@ export function useUpdateCourse() {
   });
 }
 
-// Upload lesson video
+// ──────────────────────────────────────────────
+// STANDALONE FUNCTIONS
+// ──────────────────────────────────────────────
+
+/**
+ * Upload a video file to the 'lesson-videos' Storage bucket.
+ * 
+ * File path: {courseId}/{lessonId}-{timestamp}.{ext}
+ * Uses upsert: true so re-uploading for the same lesson replaces the old file.
+ * 
+ * @param courseId - The course this video belongs to
+ * @param lessonId - The lesson this video is for
+ * @param file - The video File object from an <input>
+ * @param onProgress - Optional progress callback (NOT YET IMPLEMENTED)
+ * @returns The public URL of the uploaded video
+ * 
+ * PRODUCTION TODO:
+ * - Implement onProgress using tus resumable uploads
+ * - Add video format validation (mp4, webm only)
+ * - Add file size limit (e.g., 500MB max)
+ * - Consider video transcoding via a background job
+ */
 export async function uploadLessonVideo(
   courseId: string,
   lessonId: string,

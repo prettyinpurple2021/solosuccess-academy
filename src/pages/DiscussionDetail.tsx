@@ -165,6 +165,7 @@ export default function DiscussionDetail() {
               comments={comments || []}
               discussionId={discussionId!}
               userId={user!.id}
+              discussionAuthorId={discussion.user_id}
             />
           )}
         </div>

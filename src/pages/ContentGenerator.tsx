@@ -42,8 +42,7 @@ import {
   Eye,
   Pencil,
 } from 'lucide-react';
-import { useIsAdmin, CoursePhase } from '@/hooks/useAdmin';
-import { useAuth } from '@/hooks/useAuth';
+import { CoursePhase } from '@/hooks/useAdmin';
 import { useContentGenerator, GenerateContext, ContentType, GeneratedBulkCurriculum } from '@/hooks/useContentGenerator';
 import { useSaveBulkCurriculum } from '@/hooks/useSaveBulkCurriculum';
 import { useToast } from '@/hooks/use-toast';
@@ -89,8 +88,6 @@ const buildDefaultPrompt = (
 
 export default function ContentGenerator() {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const { data: isAdmin, isLoading: adminLoading } = useIsAdmin(user?.id);
   const { generateContent, isGenerating } = useContentGenerator();
   const { saveCurriculum, isSaving, saveProgress, isSuccess, savedCourseId } = useSaveBulkCurriculum();
   const { toast } = useToast();
@@ -135,32 +132,6 @@ export default function ContentGenerator() {
     setCustomPrompt(buildDefaultPrompt(activeTab, topic, courseTitle, courseDescription, lessonTitle, difficulty, questionCount));
     setShowPromptEditor(true);
   };
-
-  if (adminLoading) {
-    return (
-      <div className="flex-1 flex items-center justify-center py-12">
-        <NeonSpinner size="lg" />
-      </div>
-    );
-  }
-
-  if (!isAdmin) {
-    return (
-      <div className="flex-1 flex items-center justify-center py-12">
-        <Card className="max-w-md glass-card">
-          <CardHeader>
-            <CardTitle>Access Denied</CardTitle>
-            <CardDescription>
-              This page is only accessible to administrators.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button variant="neon" onClick={() => navigate('/')}>Return Home</Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
 
   const handleGenerate = async () => {
     const context: GenerateContext = {
@@ -656,10 +627,28 @@ export default function ContentGenerator() {
               {generatedContent ? (
                 renderGeneratedContent()
               ) : (
-                <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground py-12">
-                  <Sparkles className="h-12 w-12 mb-4 opacity-50" />
-                  <p>Your generated content will appear here</p>
-                  <p className="text-sm">Fill in the form and click Generate</p>
+              <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground py-12 space-y-4">
+                  <div className="p-4 rounded-full bg-primary/10 border border-primary/20">
+                    <Sparkles className="h-12 w-12 text-primary/40" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-foreground/70">Your generated content will appear here</p>
+                    <p className="text-sm mt-1">Fill in the form and click Generate</p>
+                  </div>
+                  <div className="grid gap-2 text-left max-w-xs w-full">
+                    <div className="flex items-start gap-2 p-2 rounded-lg bg-muted/20 border border-border/30">
+                      <span className="text-primary font-bold text-xs mt-0.5">TIP</span>
+                      <p className="text-xs">Be specific with your topic for more tailored output</p>
+                    </div>
+                    <div className="flex items-start gap-2 p-2 rounded-lg bg-muted/20 border border-border/30">
+                      <span className="text-secondary font-bold text-xs mt-0.5">TIP</span>
+                      <p className="text-xs">Use "Edit Prompt" to fine-tune the AI instructions</p>
+                    </div>
+                    <div className="flex items-start gap-2 p-2 rounded-lg bg-muted/20 border border-border/30">
+                      <span className="text-accent font-bold text-xs mt-0.5">TIP</span>
+                      <p className="text-xs">Upload a document for Bulk Curriculum to auto-generate an entire course</p>
+                    </div>
+                  </div>
                 </div>
               )}
             </ScrollArea>

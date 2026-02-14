@@ -20,8 +20,7 @@ import {
   Video,
   Mic,
 } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
-import { useIsAdmin, useAdminLessons, useAdminCourses, useUpdateLesson, Lesson, LessonType, QuizData, WorksheetData, ActivityData } from '@/hooks/useAdmin';
+import { useAdminLessons, useAdminCourses, useUpdateLesson, Lesson, LessonType, QuizData, WorksheetData, ActivityData } from '@/hooks/useAdmin';
 import { useTextbookChapters, useTextbookPages } from '@/hooks/useTextbook';
 import { useToast } from '@/hooks/use-toast';
 import { NeonSpinner } from '@/components/ui/neon-spinner';
@@ -37,8 +36,6 @@ import {
 export default function AdminLessonDetail() {
   const { courseId, lessonId } = useParams<{ courseId: string; lessonId: string }>();
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const { data: isAdmin, isLoading: adminLoading } = useIsAdmin(user?.id);
   const { data: courses } = useAdminCourses();
   const { data: lessons, isLoading: lessonsLoading } = useAdminLessons(courseId);
   const { data: chapters } = useTextbookChapters(courseId);
@@ -95,19 +92,27 @@ export default function AdminLessonDetail() {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [hasChanges]);
 
-  const isLoading = adminLoading || lessonsLoading;
+  // Ctrl+S / Cmd+S keyboard shortcut for saving
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        if (hasChanges && !updateLesson.isPending) {
+          handleSave();
+        }
+      }
+    };
 
-  if (isLoading) {
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [hasChanges, updateLesson.isPending, content, videoUrl, quizData, worksheetData, activityData]);
+
+  if (lessonsLoading) {
     return (
       <div className="flex-1 flex items-center justify-center py-12">
         <NeonSpinner size="lg" />
       </div>
     );
-  }
-
-  if (!isAdmin) {
-    navigate('/admin');
-    return null;
   }
 
   if (!lesson || !course) {
@@ -287,38 +292,54 @@ export default function AdminLessonDetail() {
         <TabsList className="bg-background/50 border border-primary/30 backdrop-blur-md grid grid-cols-5 w-full max-w-3xl">
           <TabsTrigger 
             value="content"
-            className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary flex items-center gap-2"
+            className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary flex items-center gap-2 relative"
           >
             <FileText className="h-4 w-4" />
             <span className="hidden sm:inline">Lecture</span>
+            {/* Content status dot */}
+            {content && (
+              <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-success shadow-[0_0_6px_hsl(var(--success))]" title="Has content" />
+            )}
           </TabsTrigger>
           <TabsTrigger 
             value="quiz"
-            className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary flex items-center gap-2"
+            className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary flex items-center gap-2 relative"
           >
             <HelpCircle className="h-4 w-4" />
             <span className="hidden sm:inline">Quiz</span>
+            {quizData && (
+              <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-success shadow-[0_0_6px_hsl(var(--success))]" title="Has quiz" />
+            )}
           </TabsTrigger>
           <TabsTrigger 
             value="worksheet"
-            className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary flex items-center gap-2"
+            className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary flex items-center gap-2 relative"
           >
             <ClipboardList className="h-4 w-4" />
             <span className="hidden sm:inline">Worksheet</span>
+            {worksheetData && (
+              <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-success shadow-[0_0_6px_hsl(var(--success))]" title="Has worksheet" />
+            )}
           </TabsTrigger>
           <TabsTrigger 
             value="activity"
-            className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary flex items-center gap-2"
+            className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary flex items-center gap-2 relative"
           >
             <Zap className="h-4 w-4" />
             <span className="hidden sm:inline">Activity</span>
+            {activityData && (
+              <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-success shadow-[0_0_6px_hsl(var(--success))]" title="Has activity" />
+            )}
           </TabsTrigger>
           <TabsTrigger 
             value="textbook"
-            className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary flex items-center gap-2"
+            className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary flex items-center gap-2 relative"
           >
             <BookOpen className="h-4 w-4" />
             <span className="hidden sm:inline">Textbook</span>
+            {linkedChapter && (
+              <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-success shadow-[0_0_6px_hsl(var(--success))]" title="Has textbook" />
+            )}
           </TabsTrigger>
         </TabsList>
 

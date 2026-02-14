@@ -20,7 +20,8 @@ import { useAdminLessons, useDeleteLesson, useUpdateLesson, useReorderLessons, L
 import { useToast } from '@/hooks/use-toast';
 import { LessonEditor } from './LessonEditor';
 import { SortableLessonItem } from './SortableLessonItem';
-import { Plus, Loader2, FileText } from 'lucide-react';
+import { Plus, FileText } from 'lucide-react';
+import { NeonSpinner } from '@/components/ui/neon-spinner';
 
 interface LessonListProps {
   courseId: string;
@@ -109,7 +110,7 @@ export function LessonList({ courseId }: LessonListProps) {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <NeonSpinner size="lg" />
       </div>
     );
   }

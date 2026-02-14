@@ -16,10 +16,12 @@ import {
   BookOpen,
   Zap
 } from 'lucide-react';
+import { PageMeta } from '@/components/layout/PageMeta';
+import { ErrorView } from '@/components/ui/error-view';
 
 export default function VerifyCertificate() {
   const { verificationCode } = useParams<{ verificationCode: string }>();
-  const { data: certificate, isLoading, error } = useVerifyCertificate(verificationCode);
+  const { data: certificate, isLoading, error, refetch } = useVerifyCertificate(verificationCode);
 
   if (isLoading) {
     return (
@@ -30,10 +32,29 @@ export default function VerifyCertificate() {
     );
   }
 
+  if (error) {
+    return (
+      <div className="min-h-screen cyber-bg flex items-center justify-center p-4">
+        <div className="cyber-grid" />
+        <ErrorView
+          message={error.message}
+          onRetry={() => refetch()}
+          backTo="/"
+          backLabel="Go home"
+        />
+      </div>
+    );
+  }
+
   const theme = certificate ? getThemeByCourseTitle(certificate.course_title) : null;
 
   return (
     <div className="min-h-screen cyber-bg">
+      <PageMeta
+        fullTitle="Verify Certificate | SoloSuccess Academy"
+        description="Verify the authenticity of a SoloSuccess Academy certificate of completion."
+        path={verificationCode ? `/verify/${verificationCode}` : undefined}
+      />
       <div className="cyber-grid" />
       
       {/* Header */}

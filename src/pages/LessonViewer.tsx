@@ -1,3 +1,36 @@
+/**
+ * @file LessonViewer.tsx — Main Lesson Viewing Page
+ * 
+ * The core learning experience. Displays a single lesson with:
+ * - Sidebar navigation (desktop: always visible, mobile: sheet overlay)
+ * - Lesson content rendered by LessonContent component
+ * - Mark complete/incomplete toggle with XP awards
+ * - Previous/Next lesson navigation
+ * - AI Tutor chat panel (slide-in from right)
+ * - Reading progress bar (scroll-based)
+ * - Keyboard navigation (arrow keys, shortcuts)
+ * - "Continue Later" bookmark feature
+ * - Certificate generation on course completion
+ * 
+ * ROUTE: /courses/:courseId/lessons/:lessonId
+ * 
+ * ACCESS CONTROL:
+ * - Requires authentication (via AppLayout)
+ * - Requires course purchase (checked inline, shows lock screen)
+ * 
+ * COMPLETION FLOW:
+ * 1. User clicks "Mark as Complete"
+ * 2. Progress record upserted in user_progress table
+ * 3. XP awarded via gamification system (+25 XP)
+ * 4. Badge criteria checked after 1 second delay
+ * 5. If ALL lessons in course are done → confetti + certificate generated
+ * 
+ * PRODUCTION TODO:
+ * - Add lesson timer (track time spent per lesson)
+ * - Add note-taking inline (currently only via AI tutor)
+ * - Pre-fetch next lesson content for instant navigation
+ * - Add lesson-level error boundary
+ */
 import { useState, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -19,10 +52,12 @@ import { PageTransition, ContentTransition } from '@/components/lesson/PageTrans
 import { fireCourseCompletionConfetti } from '@/hooks/useConfetti';
 import { useGamification } from '@/components/gamification/GamificationProvider';
 import { useCourseCertificate, useGenerateCertificate } from '@/hooks/useCertificates';
+import { useSetContinueLater } from '@/hooks/useContinueLater';
 import { 
   ArrowLeft,
   ArrowRight, 
   Bot, 
+  Bookmark,
   CheckCircle2, 
   Menu,
   Lock
@@ -51,6 +86,7 @@ export default function LessonViewer() {
   const { data: existingCertificate } = useCourseCertificate(user?.id, courseId);
   const generateCertificate = useGenerateCertificate();
   const markComplete = useMarkLessonComplete();
+  const setContinueLater = useSetContinueLater();
 
   const isLoading = courseLoading || lessonsLoading || purchaseLoading || progressLoading;
 
@@ -223,6 +259,31 @@ export default function LessonViewer() {
           ]}
           className="flex-1 min-w-0"
         />
+
+        {/* Continue later */}
+        {user?.id && courseId && lessonId && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={async () => {
+              try {
+                await setContinueLater.mutateAsync({
+                  userId: user.id,
+                  courseId,
+                  lessonId,
+                });
+                toast({ title: 'Saved!', description: 'This lesson is set as your continue point. Find it on your Dashboard.' });
+              } catch {
+                toast({ title: 'Could not save', variant: 'destructive' });
+              }
+            }}
+            disabled={setContinueLater.isPending}
+            className="gap-2 border-primary/30 hover:bg-primary/10"
+          >
+            <Bookmark className="h-4 w-4" />
+            <span className="hidden sm:inline">Continue later</span>
+          </Button>
+        )}
 
         {/* AI Tutor Button */}
         <Button

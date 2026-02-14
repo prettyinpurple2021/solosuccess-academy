@@ -1,19 +1,53 @@
+/**
+ * @file useProgress.ts — Student Progress Tracking Hooks
+ * 
+ * Manages lesson completion, quiz scores, notes, and overall progress
+ * calculations across all purchased courses.
+ * 
+ * HOOKS IN THIS FILE:
+ * - useUserProgress(userId)                → All progress records for a user
+ * - useCourseProgress(userId, courseId)     → Progress for a specific course
+ * - useMarkLessonComplete()                → Mutation to mark lesson done/undone
+ * - useUpdateLessonNotes()                 → Mutation to save lesson notes
+ * - useOverallProgress(userId)             → Aggregated stats across all courses
+ * 
+ * DATABASE TABLE: `user_progress`
+ * Each row = one user's progress on one lesson. Uses a composite
+ * unique constraint on (user_id, lesson_id) so upsert works correctly.
+ * 
+ * PRODUCTION TODO:
+ * - Add optimistic updates to useMarkLessonComplete for instant UI feedback
+ * - Consider batch-fetching progress with courses in a single query
+ * - Add quiz_score tracking integration with the quiz component
+ * - The admin fields (admin_notes, admin_override_score, graded_at, graded_by)
+ *   exist in the DB but aren't used in this hook — add if needed
+ */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
+/**
+ * Shape of a user's progress on a single lesson.
+ * Maps to the `user_progress` database table.
+ */
 export interface UserProgress {
   id: string;
   user_id: string;
-  lesson_id: string;
-  completed: boolean;
-  completed_at: string | null;
-  quiz_score: number | null;
-  notes: string | null;
+  lesson_id: string;           // FK → lessons.id
+  completed: boolean;           // Whether the student finished this lesson
+  completed_at: string | null;  // ISO timestamp of when they completed it
+  quiz_score: number | null;    // 0-100 score if this is a quiz lesson
+  notes: string | null;         // Student's personal notes for this lesson
   created_at: string;
   updated_at: string;
 }
 
-// Fetch user progress for all lessons
+/**
+ * Fetch ALL progress records for a user (across all courses).
+ * Used on the Dashboard for overall progress calculations.
+ * 
+ * NOTE: If a student has 100+ purchased lessons, this returns all of them.
+ * For very active users, consider pagination or limiting to recent progress.
+ */
 export function useUserProgress(userId: string | undefined) {
   return useQuery({
     queryKey: ['user-progress', userId],
@@ -32,14 +66,25 @@ export function useUserProgress(userId: string | undefined) {
   });
 }
 
-// Fetch progress for a specific course
+/**
+ * Fetch progress for a SPECIFIC course.
+ * 
+ * This does a two-step query:
+ * 1. Get all lesson IDs for the course
+ * 2. Get progress records matching those lesson IDs
+ * 
+ * Returns both the raw progress data and computed counts.
+ * 
+ * PRODUCTION TODO: Consider using a database function to do this
+ * in a single query for better performance.
+ */
 export function useCourseProgress(userId: string | undefined, courseId: string | undefined) {
   return useQuery({
     queryKey: ['course-progress', userId, courseId],
     queryFn: async () => {
       if (!userId || !courseId) return { progress: [], lessonCount: 0, completedCount: 0 };
 
-      // First get all lessons for this course
+      // Step 1: Get all lesson IDs for this course
       const { data: lessons, error: lessonsError } = await supabase
         .from('lessons')
         .select('id')
@@ -53,7 +98,7 @@ export function useCourseProgress(userId: string | undefined, courseId: string |
         return { progress: [], lessonCount: 0, completedCount: 0 };
       }
 
-      // Then get progress for those lessons
+      // Step 2: Get progress for those lessons
       const { data: progress, error: progressError } = await supabase
         .from('user_progress')
         .select('*')
@@ -74,7 +119,15 @@ export function useCourseProgress(userId: string | undefined, courseId: string |
   });
 }
 
-// Mark a lesson as complete
+/**
+ * Mutation: Mark a lesson as complete or incomplete.
+ * 
+ * Uses UPSERT with `onConflict: 'user_id,lesson_id'` so it creates
+ * a new progress record if one doesn't exist, or updates the existing one.
+ * 
+ * After success, invalidates both user-progress and course-progress queries
+ * so the UI updates everywhere that shows progress.
+ */
 export function useMarkLessonComplete() {
   const queryClient = useQueryClient();
 
@@ -98,7 +151,7 @@ export function useMarkLessonComplete() {
             completed_at: completed ? new Date().toISOString() : null,
           },
           {
-            onConflict: 'user_id,lesson_id',
+            onConflict: 'user_id,lesson_id',  // Composite unique constraint
           }
         )
         .select()
@@ -108,13 +161,17 @@ export function useMarkLessonComplete() {
       return data;
     },
     onSuccess: (_, variables) => {
+      // Invalidate all progress-related caches so UI reflects the change
       queryClient.invalidateQueries({ queryKey: ['user-progress', variables.userId] });
       queryClient.invalidateQueries({ queryKey: ['course-progress', variables.userId] });
     },
   });
 }
 
-// Update lesson notes
+/**
+ * Mutation: Save personal notes for a lesson.
+ * Uses the same UPSERT pattern as lesson completion.
+ */
 export function useUpdateLessonNotes() {
   const queryClient = useQueryClient();
 
@@ -152,14 +209,28 @@ export function useUpdateLessonNotes() {
   });
 }
 
-// Fetch overall progress across all purchased courses
+/**
+ * Fetch aggregated progress across ALL purchased courses.
+ * 
+ * Used on the Dashboard to show "Overall: 45% complete (18/40 lessons)".
+ * 
+ * This performs 3 sequential queries:
+ * 1. Get purchased course IDs
+ * 2. Get all lesson IDs for those courses
+ * 3. Get completion status for those lessons
+ * 
+ * Then it computes per-course breakdowns and overall totals.
+ * 
+ * PRODUCTION TODO: Move this to a database function for better performance.
+ * Three round-trips to the DB is slow — a single SQL query could do this.
+ */
 export function useOverallProgress(userId: string | undefined) {
   return useQuery({
     queryKey: ['overall-progress', userId],
     queryFn: async () => {
       if (!userId) return { totalLessons: 0, completedLessons: 0, courseProgress: [] };
 
-      // Get user's purchased courses
+      // Step 1: Get user's purchased course IDs
       const { data: purchases, error: purchasesError } = await supabase
         .from('purchases')
         .select('course_id')
@@ -173,7 +244,7 @@ export function useOverallProgress(userId: string | undefined) {
         return { totalLessons: 0, completedLessons: 0, courseProgress: [] };
       }
 
-      // Get all lessons for purchased courses
+      // Step 2: Get all lessons for purchased courses
       const { data: lessons, error: lessonsError } = await supabase
         .from('lessons')
         .select('id, course_id')
@@ -187,7 +258,7 @@ export function useOverallProgress(userId: string | undefined) {
         return { totalLessons: 0, completedLessons: 0, courseProgress: [] };
       }
 
-      // Get user's progress for these lessons
+      // Step 3: Get completion records
       const { data: progress, error: progressError } = await supabase
         .from('user_progress')
         .select('lesson_id, completed')
@@ -196,11 +267,12 @@ export function useOverallProgress(userId: string | undefined) {
 
       if (progressError) throw progressError;
 
+      // Build a set of completed lesson IDs for fast lookup
       const completedSet = new Set(
         progress?.filter(p => p.completed).map(p => p.lesson_id) || []
       );
 
-      // Calculate per-course progress
+      // Calculate per-course progress breakdown
       const courseProgressMap = new Map<string, { total: number; completed: number }>();
       lessons?.forEach(lesson => {
         const existing = courseProgressMap.get(lesson.course_id) || { total: 0, completed: 0 };

@@ -1,3 +1,21 @@
+/**
+ * @file Courses.tsx — Course Catalog Page (Public)
+ * 
+ * Displays all published courses grouped by curriculum phase:
+ * - Phase 1: Initialization (Identity & Intel)
+ * - Phase 2: Orchestration (Building the Machine)
+ * - Phase 3: Launch Sequence (Sales & Future)
+ * 
+ * For authenticated users, shows purchase status and progress.
+ * For unauthenticated users, shows "View Details" button.
+ * 
+ * Uses QueryStateGuard for loading/error state handling.
+ * 
+ * PRODUCTION TODO:
+ * - Add search/filter functionality
+ * - Add course preview/trailer support
+ * - Consider pagination if course count grows significantly
+ */
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,11 +26,13 @@ import { useAuth } from '@/hooks/useAuth';
 import { phaseMetadata, formatPrice, getPhaseClasses, type CoursePhase } from '@/lib/courseData';
 import { ArrowRight, BookOpen, CheckCircle2, Lock, ShoppingCart, Terminal, Zap } from 'lucide-react';
 import { NeonSpinner } from '@/components/ui/neon-spinner';
+import { PageMeta } from '@/components/layout/PageMeta';
+import { QueryStateGuard } from '@/components/ui/query-state-guard';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 export default function Courses() {
-  const { data: courses, isLoading } = useCourses();
+  const { data: courses, isLoading, isError, error, refetch } = useCourses();
   const { user, isAuthenticated } = useAuth();
 
   // Fetch user purchases if authenticated
@@ -83,6 +103,7 @@ export default function Courses() {
 
   return (
     <section className="py-12">
+      <PageMeta title="Courses" description="Browse all SoloSuccess Academy courses. From mindset to pitch, build your business one course at a time." path="/courses" />
       <div className="container">
           {/* Page Header */}
           <div className="max-w-4xl mb-16">
@@ -102,11 +123,15 @@ export default function Courses() {
             </p>
           </div>
 
-          {isLoading ? (
-            <div className="flex justify-center py-16">
-              <NeonSpinner size="xl" />
-            </div>
-          ) : (
+          <QueryStateGuard
+            isLoading={isLoading}
+            isError={isError}
+            error={error}
+            refetch={refetch}
+            loadingMessage="Loading courses..."
+            backTo="/courses"
+            backLabel="Back to courses"
+          >
             <div className="space-y-20">
               {(['initialization', 'orchestration', 'launch'] as CoursePhase[]).map((phase) => {
                 const meta = phaseMetadata[phase];
@@ -212,13 +237,13 @@ export default function Courses() {
                           </Card>
                         );
                       })}
-                    </div>
-                  </section>
-                );
-              })}
+                </div>
+              </section>
+            );
+          })}
             </div>
-          )}
-        </div>
+          </QueryStateGuard>
+      </div>
     </section>
   );
 }

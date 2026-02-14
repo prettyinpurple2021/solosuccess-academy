@@ -1,3 +1,27 @@
+/**
+ * @file Auth.tsx — Authentication Page (Sign In / Sign Up)
+ * 
+ * Handles both sign-in and sign-up in a tabbed interface.
+ * 
+ * KEY BEHAVIORS:
+ * - Default tab can be set via URL param: /auth?mode=signup
+ * - After successful auth, redirects to the page the user came from
+ *   (stored in location.state.from by ProtectedRoute/AppLayout)
+ * - Falls back to /dashboard if no return URL
+ * - Shows password visibility toggle
+ * - Toast notifications for success/error feedback
+ * 
+ * SECURITY NOTE:
+ * - Email verification is enabled by default in production
+ * - Password minimum length is 6 characters (enforced by Supabase)
+ * 
+ * PRODUCTION TODO:
+ * - Add "Forgot Password" flow with resetPassword() from useAuth
+ * - Add OAuth buttons (Google, GitHub) for social login
+ * - Add password strength indicator
+ * - Add rate limiting feedback for too many failed attempts
+ * - Add CAPTCHA for sign-up to prevent bot registrations
+ */
 import { useState } from 'react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -8,6 +32,7 @@ import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Eye, EyeOff, Sparkles } from 'lucide-react';
+import { PageMeta } from '@/components/layout/PageMeta';
 
 export default function Auth() {
   const [searchParams] = useSearchParams();
@@ -17,7 +42,8 @@ export default function Auth() {
   const { toast } = useToast();
 
   const defaultTab = searchParams.get('mode') === 'signup' ? 'signup' : 'signin';
-  const from = (location.state as any)?.from?.pathname || '/dashboard';
+  const fromRaw = (location.state as { from?: { pathname?: string } })?.from?.pathname || '/dashboard';
+  const from = fromRaw && fromRaw !== '/auth' ? fromRaw : '/dashboard';
 
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -63,7 +89,7 @@ export default function Auth() {
         title: 'Account created!',
         description: 'Welcome to SoloSuccess Academy. You can now access your dashboard.',
       });
-      navigate('/dashboard', { replace: true });
+      navigate(from, { replace: true });
     } catch (error: any) {
       toast({
         title: 'Error creating account',
@@ -77,6 +103,12 @@ export default function Auth() {
 
   return (
     <div className="flex-1 flex items-center justify-center py-12 px-4 relative">
+      <PageMeta
+        title="Sign In"
+        description="Sign in or create your SoloSuccess Academy account to access courses and track your progress."
+        path="/auth"
+        noIndex
+      />
       {/* Cyber grid overlay */}
       <div className="cyber-grid" />
       

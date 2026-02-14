@@ -3,13 +3,18 @@ import { TextbookViewer } from '@/components/textbook/TextbookViewer';
 import { Button } from '@/components/ui/button';
 import { CourseBreadcrumb } from '@/components/navigation/CourseBreadcrumb';
 import { useCourses } from '@/hooks/useCourses';
-import { ArrowLeft } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { useSetContinueLater } from '@/hooks/useContinueLater';
+import { useToast } from '@/hooks/use-toast';
+import { ArrowLeft, Bookmark } from 'lucide-react';
 import { NeonSpinner } from '@/components/ui/neon-spinner';
 
 export default function Textbook() {
   const { courseId } = useParams<{ courseId: string }>();
+  const { user } = useAuth();
+  const { toast } = useToast();
   const { data: courses, isLoading } = useCourses();
-
+  const setContinueLater = useSetContinueLater();
   const course = courses?.find(c => c.id === courseId);
 
   if (isLoading) {
@@ -39,14 +44,39 @@ export default function Textbook() {
   return (
     <div className="flex-1 py-8">
       <div className="container">
-        {/* Breadcrumb */}
-        <CourseBreadcrumb
-          segments={[
-            { label: course.title, href: `/courses/${courseId}` },
-            { label: 'Textbook' },
-          ]}
-          className="mb-6"
-        />
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+          <CourseBreadcrumb
+            segments={[
+              { label: course.title, href: `/courses/${courseId}` },
+              { label: 'Textbook' },
+            ]}
+            className="flex-1 min-w-0"
+          />
+          {user?.id && courseId && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={async () => {
+                try {
+                  await setContinueLater.mutateAsync({
+                    userId: user.id,
+                    courseId,
+                    lessonId: null,
+                    textbookPage: null,
+                  });
+                  toast({ title: 'Saved!', description: 'Textbook is set as your continue point. Find it on your Dashboard.' });
+                } catch {
+                  toast({ title: 'Could not save', variant: 'destructive' });
+                }
+              }}
+              disabled={setContinueLater.isPending}
+              className="gap-2 border-primary/30 hover:bg-primary/10"
+            >
+              <Bookmark className="h-4 w-4" />
+              Continue later
+            </Button>
+          )}
+        </div>
 
         {/* Textbook Viewer */}
         <TextbookViewer courseId={courseId!} courseName={course.title} />

@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Navigate } from 'react-router-dom';
 import { 
   Table, 
   TableBody, 
@@ -36,8 +35,7 @@ import { Progress } from '@/components/ui/progress';
 import { ProgressRing } from '@/components/ui/progress-ring';
 import { NeonSpinner } from '@/components/ui/neon-spinner';
 import { GradeEditor } from '@/components/admin/GradeEditor';
-import { useAuth } from '@/hooks/useAuth';
-import { useIsAdmin, useAdminCourses } from '@/hooks/useAdmin';
+import { useAdminCourses } from '@/hooks/useAdmin';
 import { useGradebook, StudentProgress, CourseProgress, QuizScore } from '@/hooks/useGradebook';
 import { 
   GraduationCap, 
@@ -52,8 +50,6 @@ import {
 } from 'lucide-react';
 
 export default function Gradebook() {
-  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
-  const { data: isAdmin, isLoading: adminLoading } = useIsAdmin(user?.id);
   const { data: students, isLoading: studentsLoading } = useGradebook();
   const { data: courses } = useAdminCourses();
   
@@ -71,18 +67,12 @@ export default function Gradebook() {
     currentNotes: string | null;
   } | null>(null);
 
-  const isLoading = authLoading || adminLoading;
-
-  if (isLoading) {
+  if (studentsLoading) {
     return (
       <div className="flex-1 flex items-center justify-center py-12">
         <NeonSpinner size="lg" />
       </div>
     );
-  }
-
-  if (!isAuthenticated || !isAdmin) {
-    return <Navigate to="/" replace />;
   }
 
   // Filter students

@@ -23,9 +23,11 @@ import {
   DollarSign
 } from 'lucide-react';
 import { NeonSpinner } from '@/components/ui/neon-spinner';
+import { PageMeta } from '@/components/layout/PageMeta';
+import { ErrorView } from '@/components/ui/error-view';
 
 export default function Index() {
-  const { data: courses, isLoading } = useCourses();
+  const { data: courses, isLoading, isError, error, refetch } = useCourses();
 
   // Group courses by phase
   const coursesByPhase = courses?.reduce((acc, course) => {
@@ -62,9 +64,23 @@ export default function Index() {
     },
   ];
 
+  if (isError) {
+    return (
+      <div className="flex-1 relative z-10">
+        <PageMeta path="/" />
+        <ErrorView
+          message={error?.message}
+          onRetry={() => refetch()}
+          backTo="/"
+          backLabel="Go home"
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 relative z-10">
+      <PageMeta path="/" />
         {/* Hero Section */}
         <section className="relative overflow-hidden py-24 md:py-36">
           {/* Animated background effects */}
@@ -77,13 +93,12 @@ export default function Index() {
           <div className="container relative">
             <div className="max-w-5xl mx-auto text-center">
               {/* Terminal-style badge */}
-              <Badge 
-                variant="outline" 
-                className="mb-8 px-4 py-2 text-sm font-mono border-primary/40 bg-primary/10 shadow-[0_0_20px_hsl(270_80%_50%/0.3)] animate-pulse-glow"
+              <div 
+                className="mb-8 px-4 py-2 text-sm font-mono border border-primary/40 bg-primary/10 rounded-full inline-flex items-center shadow-[0_0_20px_hsl(270_80%_50%/0.3)] animate-pulse-glow"
               >
                 <Terminal className="mr-2 h-4 w-4 text-primary" />
                 <span className="text-primary">&gt;</span> AI-Powered Learning for Solo Founders
-              </Badge>
+              </div>
 
               <h1 className="text-5xl md:text-7xl lg:text-8xl font-display font-black tracking-tight mb-8 leading-tight">
                 <span className="text-foreground">BUILD YOUR</span>

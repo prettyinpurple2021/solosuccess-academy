@@ -22,7 +22,7 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.check-student-progress]
-verify_jwt = true
+verify_jwt = false
 
 [functions.generate-image]
 verify_jwt = true
@@ -31,4 +31,7 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.get-leaderboard]
+verify_jwt = true
+
+[functions.notify-discussion-reply]
 verify_jwt = true

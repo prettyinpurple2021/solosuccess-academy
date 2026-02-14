@@ -192,6 +192,45 @@ export type Database = {
           },
         ]
       }
+      continue_later: {
+        Row: {
+          course_id: string
+          lesson_id: string | null
+          textbook_page: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          course_id: string
+          lesson_id?: string | null
+          textbook_page?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          course_id?: string
+          lesson_id?: string | null
+          textbook_page?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "continue_later_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "continue_later_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       course_projects: {
         Row: {
           ai_feedback: string | null
