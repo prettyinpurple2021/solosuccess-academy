@@ -41,3 +41,6 @@ verify_jwt = false
 
 [functions.bulk-generate-textbooks]
 verify_jwt = false
+
+[functions.explain-text]
+verify_jwt = false
