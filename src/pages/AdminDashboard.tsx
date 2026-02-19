@@ -92,7 +92,7 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="p-6 md:p-8 lg:p-12">
+    <div className="p-4 md:p-6 lg:p-8 max-w-full overflow-x-hidden">
       <div className="flex items-center gap-4 mb-8">
         <div className="h-14 w-14 rounded-full bg-primary/20 flex items-center justify-center shadow-[0_0_30px_hsl(var(--primary)/0.4)]">
           <Shield className="h-8 w-8 text-primary" style={{ filter: 'drop-shadow(0 0 10px hsl(var(--primary)))' }} />
@@ -304,9 +304,9 @@ export default function AdminDashboard() {
                     key={course.id} 
                     className="glass-card border-primary/20 hover:border-primary/40 transition-all group"
                   >
-                    <div className="p-4">
-                      <div className="flex flex-col lg:flex-row lg:items-center gap-4">
-                        <div className="flex-1 min-w-0">
+                    <div className="p-4 min-w-0">
+                      <div className="flex flex-col gap-3">
+                        <div className="min-w-0">
                           <div className="flex flex-wrap items-center gap-2 mb-1">
                             <h3 className="font-semibold truncate group-hover:text-primary transition-colors">{course.title}</h3>
                             <Badge 
@@ -331,7 +331,7 @@ export default function AdminDashboard() {
                           </p>
                         </div>
 
-                        <div className="flex flex-wrap items-center gap-2 shrink-0">
+                        <div className="flex flex-wrap items-center gap-2 shrink-0 max-w-full">
                           <QuickGenerateDialog
                             courseId={course.id}
                             courseTitle={course.title}
@@ -372,9 +372,10 @@ export default function AdminDashboard() {
                             variant="neon"
                             size="sm"
                             onClick={() => handleManageCourse(course.id, 'textbook')}
+                            title="Manage Textbook"
                           >
-                            <BookText className="mr-2 h-4 w-4" />
-                            Textbook
+                            <BookText className="h-4 w-4" />
+                            <span className="hidden xl:inline ml-2">Textbook</span>
                           </Button>
                         </div>
                       </div>
