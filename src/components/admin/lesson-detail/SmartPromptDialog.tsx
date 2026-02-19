@@ -280,7 +280,7 @@ export function SmartPromptDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[700px] max-h-[90vh] flex flex-col">
+      <DialogContent className="sm:max-w-[700px] max-h-[85vh] flex flex-col overflow-hidden">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-primary" />
@@ -289,8 +289,8 @@ export function SmartPromptDialog({
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
 
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'quick' | 'advanced')} className="flex-1 flex flex-col overflow-hidden">
-          <TabsList className="grid grid-cols-2 w-full">
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'quick' | 'advanced')} className="min-h-0 flex-1 flex flex-col overflow-hidden">
+          <TabsList className="grid grid-cols-2 w-full shrink-0">
             <TabsTrigger value="quick" className="flex items-center gap-2">
               <Wand2 className="h-4 w-4" />
               Quick Generate
@@ -301,7 +301,7 @@ export function SmartPromptDialog({
             </TabsTrigger>
           </TabsList>
 
-          <ScrollArea className="flex-1 mt-4">
+          <ScrollArea className="flex-1 min-h-0 mt-4">
             <TabsContent value="quick" className="space-y-6 m-0 pr-4">
               {/* Tone Selection */}
               <div className="space-y-3">
