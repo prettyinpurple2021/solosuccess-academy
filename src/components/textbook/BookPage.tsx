@@ -2,27 +2,10 @@
  * @file BookPage.tsx — Single Textbook Page Component
  *
  * PURPOSE: Renders one page of the textbook with markdown-like content,
- * highlighted text overlays, embedded quizzes, and mini games.
- *
- * RENDERING PIPELINE:
- * 1. Raw content string → split by highlights into segments
- * 2. Each segment → parsed for markdown headings (#, ##, ###), lists (-)
- * 3. Highlighted segments get colored background + optional note tooltip
- * 4. Embedded quiz (if present) renders as interactive radio group
- * 5. Mini game (if present) renders WordScramble or FillBlank widget
- *
- * TEXT SELECTION:
- * - onMouseUp detects user text selection within contentRef
- * - Calculates start/end offsets relative to page content string
- * - Bubbles selection data up to TextbookViewer for highlight creation
- *
- * PRODUCTION TODO:
- * - Replace simple markdown parsing with a proper markdown renderer (remark/rehype)
- * - Add syntax highlighting for code blocks
- * - Support image embedding in page content
- * - Improve offset calculation for multi-paragraph selections
+ * highlighted text overlays, embedded quizzes, mini games, learning
+ * objectives, inline comments, and TTS word highlighting.
  */
-import React, { forwardRef, useState, useRef, useEffect, useMemo } from 'react';
+import React, { forwardRef, useState, useRef, useMemo } from 'react';
 import { TextbookPage, TextbookChapter, EmbeddedQuiz, TextbookHighlight } from '@/hooks/useTextbook';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -30,6 +13,8 @@ import { Label } from '@/components/ui/label';
 import { CheckCircle, XCircle, Bookmark } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MiniGame, type MiniGameData } from './MiniGame';
+import { LearningObjectives } from './LearningObjectives';
+import { InlineCommentButton, usePageCommentCounts } from './InlineComments';
 
 interface BookPageProps {
   page: TextbookPage & { chapter: TextbookChapter };
@@ -37,11 +22,15 @@ interface BookPageProps {
   totalPages: number;
   highlights?: TextbookHighlight[];
   isBookmarked?: boolean;
-  /** Optional mini game data for this page */
   miniGame?: MiniGameData | null;
+  /** Whether this is the first page of a chapter (shows objectives) */
+  isChapterStart?: boolean;
+  /** All content in this chapter for generating objectives */
+  chapterContent?: string;
+  /** Index of the word currently being spoken by TTS */
+  speakingWordIndex?: number | null;
   onBookmark?: () => void;
   onTextSelect?: (selection: { text: string; startOffset: number; endOffset: number; rect: DOMRect }) => void;
-  /** Called when a mini game on this page is completed */
   onMiniGameComplete?: () => void;
 }
 
@@ -54,10 +43,13 @@ const HIGHLIGHT_COLORS: Record<string, string> = {
 };
 
 export const BookPage = forwardRef<HTMLDivElement, BookPageProps>(
-  ({ page, pageIndex, totalPages, highlights = [], isBookmarked, miniGame, onBookmark, onTextSelect, onMiniGameComplete }, ref) => {
+  ({ page, pageIndex, totalPages, highlights = [], isBookmarked, miniGame, isChapterStart, chapterContent, speakingWordIndex, onBookmark, onTextSelect, onMiniGameComplete }, ref) => {
     const [quizAnswer, setQuizAnswer] = useState<number | null>(null);
     const [showResult, setShowResult] = useState(false);
     const contentRef = useRef<HTMLDivElement>(null);
+
+    // Get comment counts for this page
+    const { data: commentCounts = {} } = usePageCommentCounts(page.id);
 
     const handleQuizSubmit = () => {
       setShowResult(true);
@@ -75,11 +67,9 @@ export const BookPage = forwardRef<HTMLDivElement, BookPageProps>(
       const selectedText = selection.toString().trim();
       if (!selectedText || selectedText.length < 3) return;
 
-      // Get range and check if it's within our content
       const range = selection.getRangeAt(0);
       if (!contentRef.current?.contains(range.commonAncestorContainer)) return;
 
-      // Calculate offset within content
       const contentText = page.content;
       const startOffset = contentText.indexOf(selectedText);
       
@@ -88,22 +78,17 @@ export const BookPage = forwardRef<HTMLDivElement, BookPageProps>(
       const endOffset = startOffset + selectedText.length;
       const rect = range.getBoundingClientRect();
 
-      onTextSelect({
-        text: selectedText,
-        startOffset,
-        endOffset,
-        rect,
-      });
+      onTextSelect({ text: selectedText, startOffset, endOffset, rect });
     };
 
-    // Apply highlights to content - memoized for performance
+    // Track paragraph index for inline comments
+    let paragraphCounter = 0;
+
+    // Apply highlights to content with TTS word highlighting + inline comments
     const renderedContent = useMemo(() => {
       const content = page.content;
-      
-      // Sort highlights by start offset
       const sortedHighlights = [...highlights].sort((a, b) => a.start_offset - b.start_offset);
       
-      // Build segments with highlights
       const segments: { text: string; highlight?: TextbookHighlight }[] = [];
       let lastEnd = 0;
 
@@ -111,22 +96,18 @@ export const BookPage = forwardRef<HTMLDivElement, BookPageProps>(
         if (hl.start_offset > lastEnd) {
           segments.push({ text: content.substring(lastEnd, hl.start_offset) });
         }
-        segments.push({ 
-          text: content.substring(hl.start_offset, hl.end_offset), 
-          highlight: hl 
-        });
+        segments.push({ text: content.substring(hl.start_offset, hl.end_offset), highlight: hl });
         lastEnd = hl.end_offset;
       }
-
       if (lastEnd < content.length) {
         segments.push({ text: content.substring(lastEnd) });
       }
-
       if (segments.length === 0) {
         segments.push({ text: content });
       }
 
-      // Render segments
+      let pIdx = 0; // paragraph counter for comments
+
       return segments.map((segment, segIdx) => {
         const lines = segment.text.split('\n');
         
@@ -151,7 +132,19 @@ export const BookPage = forwardRef<HTMLDivElement, BookPageProps>(
             );
           };
 
-          // Handle different markdown-like elements
+          // Check if this is a paragraph line (not heading/list/empty)
+          const isParagraph = !line.startsWith('#') && !line.startsWith('- ') && line.trim() !== '';
+          const currentParagraphIdx = isParagraph ? pIdx++ : -1;
+
+          // Comment button for paragraphs
+          const commentBtn = isParagraph ? (
+            <InlineCommentButton
+              pageId={page.id}
+              paragraphIndex={currentParagraphIdx}
+              commentCount={commentCounts[currentParagraphIdx] || 0}
+            />
+          ) : null;
+
           if (line.startsWith('# ')) {
             return (
               <h1 key={key} className="text-2xl font-display font-bold mb-4 text-cyan-300">
@@ -184,13 +177,14 @@ export const BookPage = forwardRef<HTMLDivElement, BookPageProps>(
             return <br key={key} />;
           }
           return (
-            <p key={key} className="mb-2 text-foreground/90 leading-relaxed">
+            <p key={key} className="group mb-2 text-foreground/90 leading-relaxed relative">
               {wrapWithHighlight(line)}
+              {commentBtn}
             </p>
           );
         });
       });
-    }, [page.content, highlights]);
+    }, [page.content, page.id, highlights, commentCounts]);
 
     return (
       <div
@@ -214,15 +208,21 @@ export const BookPage = forwardRef<HTMLDivElement, BookPageProps>(
               variant="ghost"
               size="icon"
               onClick={onBookmark}
-              className={cn(
-                "h-8 w-8 hover:bg-primary/20",
-                isBookmarked && "text-primary"
-              )}
+              className={cn("h-8 w-8 hover:bg-primary/20", isBookmarked && "text-primary")}
             >
               <Bookmark className={cn("h-4 w-4", isBookmarked && "fill-current")} />
             </Button>
           )}
         </div>
+
+        {/* Learning Objectives — shown at chapter start */}
+        {isChapterStart && (
+          <LearningObjectives
+            chapterId={page.chapter.id}
+            chapterTitle={page.chapter.title}
+            chapterContent={chapterContent}
+          />
+        )}
 
         {/* Page content */}
         <div 
@@ -285,7 +285,7 @@ export const BookPage = forwardRef<HTMLDivElement, BookPageProps>(
             </div>
           )}
 
-          {/* Mini Game — interactive word scramble or fill-in-the-blank */}
+          {/* Mini Game */}
           {miniGame && (
             <div className="mt-6">
               <MiniGame game={miniGame} onComplete={onMiniGameComplete} />

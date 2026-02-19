@@ -52,6 +52,8 @@ import { ChapterDots } from './ChapterDots';
 import { VocabularyGlossary, type GlossaryTerm } from './VocabularyGlossary';
 import { ReadingMilestones } from './ReadingMilestones';
 import { type MiniGameData } from './MiniGame';
+import { ExplainThisPanel } from './ExplainThisPanel';
+import { TextToSpeech } from './TextToSpeech';
 import { useAuth } from '@/hooks/useAuth';
 import { useAwardXP, XP_VALUES } from '@/hooks/useGamification';
 import { 
@@ -104,6 +106,9 @@ export function TextbookViewer({ courseId, courseName }: TextbookViewerProps) {
   const [selection, setSelection] = useState<TextSelection | null>(null);
   const [noteDialogOpen, setNoteDialogOpen] = useState(false);
   const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
+  const [explainText, setExplainText] = useState<string | null>(null);
+  const [explainChapter, setExplainChapter] = useState<string | undefined>(undefined);
+  const [speakingWordIndex, setSpeakingWordIndex] = useState<number | null>(null);
   
   // Touch gesture state
   const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
@@ -402,6 +407,35 @@ export function TextbookViewer({ courseId, courseName }: TextbookViewerProps) {
     setNoteDialogOpen(true);
   };
 
+  /** Opens the AI Explain This panel with the selected text */
+  const handleExplain = () => {
+    if (!selection) return;
+    setExplainText(selection.text);
+    setExplainChapter(pages?.[currentPage]?.chapter?.title);
+    setSelection(null);
+    window.getSelection()?.removeAllRanges();
+  };
+
+  /**
+   * Determines if a page is the first page of its chapter.
+   * Used to render the Learning Objectives tracker.
+   */
+  const isChapterStart = useCallback((pageIndex: number): boolean => {
+    if (!pages || pageIndex === 0) return pageIndex === 0;
+    return pages[pageIndex].chapter.id !== pages[pageIndex - 1].chapter.id;
+  }, [pages]);
+
+  /**
+   * Gets all content for a chapter (for auto-generating objectives).
+   */
+  const getChapterContent = useCallback((chapterId: string): string => {
+    if (!pages) return '';
+    return pages
+      .filter(p => p.chapter.id === chapterId)
+      .map(p => p.content)
+      .join('\n\n');
+  }, [pages]);
+
   const handleSaveNote = async (color: string, note: string) => {
     if (!selection) return;
 
@@ -592,6 +626,14 @@ export function TextbookViewer({ courseId, courseName }: TextbookViewerProps) {
         <h2 className="text-lg font-display font-semibold text-center flex-1 neon-text">{courseName}</h2>
 
         <div className="flex items-center gap-2">
+          {/* Text-to-Speech controls */}
+          {pages?.[currentPage] && (
+            <TextToSpeech
+              text={pages[currentPage].content}
+              onSpeakingWord={setSpeakingWordIndex}
+            />
+          )}
+
           {/* Keyboard help button */}
           <Tooltip>
             <TooltipTrigger asChild>
@@ -659,11 +701,15 @@ export function TextbookViewer({ courseId, courseName }: TextbookViewerProps) {
                   highlights={highlights.filter(h => h.page_id === page.id)}
                   isBookmarked={bookmark?.page_id === page.id}
                   miniGame={miniGameForPage(page.content)}
+                  isChapterStart={isChapterStart(index)}
+                  chapterContent={isChapterStart(index) ? getChapterContent(page.chapter.id) : undefined}
+                  speakingWordIndex={index === currentPage ? speakingWordIndex : null}
                   onBookmark={handleBookmark}
                   onTextSelect={index === currentPage ? handleTextSelect : undefined}
                 />
               </PageWrapper>
             ))}
+
           </HTMLFlipBook>
         </div>
       </ContentTransition>
@@ -721,9 +767,22 @@ export function TextbookViewer({ courseId, courseName }: TextbookViewerProps) {
             }}
             onHighlight={handleHighlight}
             onAddNote={handleAddNote}
+            onExplain={handleExplain}
             onClose={() => setSelection(null)}
           />
         </div>
+      )}
+
+      {/* AI Explain This Panel */}
+      {explainText && (
+        <ExplainThisPanel
+          selectedText={explainText}
+          chapterTitle={explainChapter}
+          onClose={() => {
+            setExplainText(null);
+            setExplainChapter(undefined);
+          }}
+        />
       )}
 
       {/* Note Dialog */}
