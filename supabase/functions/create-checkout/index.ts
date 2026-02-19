@@ -10,7 +10,7 @@ import { z } from "https://esm.sh/zod@3.25.76";
 // CORS headers so the frontend can call this function
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 // Zod schema: validates the request body has a valid Stripe price ID and UUID course ID
@@ -69,11 +69,20 @@ serve(async (req) => {
     }
 
     const token = authHeader.replace("Bearer ", "");
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
+    const { data: claimsData, error: claimsError } = await supabaseClient.auth.getClaims(token);
 
-    if (authError || !user?.email) {
+    if (claimsError || !claimsData?.claims) {
       return new Response(
-        JSON.stringify({ error: "User not authenticated or email not available" }),
+        JSON.stringify({ error: "User not authenticated" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // We need the user's email for Stripe, so fetch the full user
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
+    if (userError || !user?.email) {
+      return new Response(
+        JSON.stringify({ error: "Could not retrieve user email" }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
