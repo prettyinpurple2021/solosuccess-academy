@@ -64,14 +64,14 @@ export function AppLayout() {
         {/* Sidebar navigation — see AppSidebar.tsx for menu items */}
         <AppSidebar />
         
-        <div className="flex-1 flex flex-col relative">
+        <div className="flex-1 flex flex-col relative min-w-0 overflow-x-hidden">
           {/* Mobile-only top bar with hamburger menu trigger */}
           <header className="sticky top-0 z-40 h-14 border-b border-primary/20 bg-background/80 backdrop-blur-xl flex items-center px-4 md:hidden">
             <SidebarTrigger />
           </header>
           
           {/* Main content area — <Outlet /> renders the matched child route */}
-          <main id="main-content" tabIndex={-1} className="flex-1 relative z-10">
+          <main id="main-content" tabIndex={-1} className="flex-1 relative z-10 overflow-y-auto">
             <Outlet />
           </main>
         </div>
