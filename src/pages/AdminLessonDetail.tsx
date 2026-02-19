@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import { CourseBreadcrumb } from '@/components/navigation/CourseBreadcrumb';
 import { Separator } from '@/components/ui/separator';
 import { 
   ArrowLeft, 
@@ -205,17 +206,27 @@ export default function AdminLessonDetail() {
   };
 
   return (
-    <div className="p-6 md:p-8 lg:p-12 space-y-6">
-      {/* Header */}
+    <div className="p-4 md:p-6 lg:p-8 space-y-6">
+      {/* Breadcrumb Navigation */}
       <div className="flex flex-col gap-4">
-        <Button
-          variant="ghost"
-          onClick={() => navigate('/admin')}
-          className="w-fit hover:bg-primary/10 hover:text-primary"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Admin Dashboard
-        </Button>
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate('/admin')}
+            className="hover:bg-primary/10 hover:text-primary shrink-0"
+            title="Back to Admin Dashboard"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <CourseBreadcrumb
+            segments={[
+              { label: 'Admin', href: '/admin' },
+              { label: course?.title || 'Course', href: '/admin' },
+              { label: lesson?.title || 'Lesson' },
+            ]}
+          />
+        </div>
 
         <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
           <div className="flex items-start gap-4">

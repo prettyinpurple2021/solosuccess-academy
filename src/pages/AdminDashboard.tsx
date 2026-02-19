@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { CourseBreadcrumb } from '@/components/navigation/CourseBreadcrumb';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -25,7 +26,8 @@ import {
   Plus,
   BookText,
   Sparkles,
-  GraduationCap
+  GraduationCap,
+  ArrowLeft
 } from 'lucide-react';
 import { NeonSpinner } from '@/components/ui/neon-spinner';
 
@@ -390,21 +392,31 @@ export default function AdminDashboard() {
         <TabsContent value="lessons">
           {selectedCourseId && (
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-xl font-semibold neon-text">{selectedCourse?.title}</h2>
-                  <p className="text-sm text-muted-foreground">{selectedCourse?.description}</p>
-                </div>
+              {/* Breadcrumb + Back button */}
+              <div className="flex items-center gap-3">
                 <Button 
-                  variant="outline" 
+                  variant="ghost" 
+                  size="icon"
                   onClick={() => {
                     setSelectedCourseId(null);
                     setActiveTab('courses');
                   }}
-                  className="border-primary/50 hover:border-primary hover:bg-primary/10 hover:text-primary"
+                  className="hover:bg-primary/10 hover:text-primary shrink-0"
+                  title="Back to Courses"
                 >
-                  Back to Courses
+                  <ArrowLeft className="h-5 w-5" />
                 </Button>
+                <CourseBreadcrumb
+                  segments={[
+                    { label: 'Admin', href: '/admin' },
+                    { label: selectedCourse?.title || 'Course' },
+                    { label: 'Lessons' },
+                  ]}
+                />
+              </div>
+              <div>
+                <h2 className="text-xl font-semibold neon-text">{selectedCourse?.title}</h2>
+                <p className="text-sm text-muted-foreground">{selectedCourse?.description}</p>
               </div>
               <LessonList courseId={selectedCourseId} />
             </div>
@@ -414,23 +426,33 @@ export default function AdminDashboard() {
         <TabsContent value="textbook">
           {selectedCourseId && (
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-xl font-semibold neon-text">{selectedCourse?.title} - Textbook</h2>
-                  <p className="text-sm text-muted-foreground">Manage interactive textbook content</p>
-                </div>
+              {/* Breadcrumb + Back button */}
+              <div className="flex items-center gap-3">
                 <Button 
-                  variant="outline" 
+                  variant="ghost" 
+                  size="icon"
                   onClick={() => {
                     setSelectedCourseId(null);
                     setActiveTab('courses');
                   }}
-                  className="border-primary/50 hover:border-primary hover:bg-primary/10 hover:text-primary"
+                  className="hover:bg-primary/10 hover:text-primary shrink-0"
+                  title="Back to Courses"
                 >
-                  Back to Courses
+                  <ArrowLeft className="h-5 w-5" />
                 </Button>
+                <CourseBreadcrumb
+                  segments={[
+                    { label: 'Admin', href: '/admin' },
+                    { label: selectedCourse?.title || 'Course' },
+                    { label: 'Textbook' },
+                  ]}
+                />
               </div>
-              <TextbookEditor courseId={selectedCourseId} />
+              <div>
+                <h2 className="text-xl font-semibold neon-text">{selectedCourse?.title} - Textbook</h2>
+                <p className="text-sm text-muted-foreground">Manage interactive textbook content</p>
+              </div>
+              <TextbookEditor courseId={selectedCourseId} courseTitle={selectedCourse?.title} />
             </div>
           )}
         </TabsContent>
