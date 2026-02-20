@@ -21,8 +21,8 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// Process 2 lessons per call (each generates 3 AI requests = 6 total per call)
-const BATCH_SIZE = 2;
+// Process 1 lesson per call (generates 3 AI requests = 3 total per call) to avoid timeouts
+const BATCH_SIZE = 1;
 
 /** Call the Lovable AI gateway and return the raw text response */
 async function callAI(apiKey: string, system: string, user: string): Promise<string> {
