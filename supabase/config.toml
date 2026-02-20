@@ -44,3 +44,6 @@ verify_jwt = false
 
 [functions.explain-text]
 verify_jwt = false
+
+[functions.bulk-generate-supplemental]
+verify_jwt = false

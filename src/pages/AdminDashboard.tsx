@@ -11,6 +11,7 @@ import { TextbookEditor } from '@/components/admin/TextbookEditor';
 import { SeedCurriculumButton } from '@/components/admin/SeedCurriculumButton';
 import { BulkGenerateButton } from '@/components/admin/BulkGenerateButton';
 import { BulkGenerateTextbooksButton } from '@/components/admin/BulkGenerateTextbooksButton';
+import { BulkGenerateSupplementalButton } from '@/components/admin/BulkGenerateSupplementalButton';
 import { QuickGenerateDialog } from '@/components/admin/QuickGenerateDialog';
 import { useAdminCourses, useUpdateCourse } from '@/hooks/useAdmin';
 import { useToast } from '@/hooks/use-toast';
@@ -267,6 +268,7 @@ export default function AdminDashboard() {
           <SeedCurriculumButton />
           <BulkGenerateButton />
           <BulkGenerateTextbooksButton />
+          <BulkGenerateSupplementalButton />
 
           {/* Create Course Button / Form */}
           {!isCreatingCourse ? (
