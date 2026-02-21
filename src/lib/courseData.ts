@@ -110,47 +110,6 @@ export interface SingleWorksheet {
 export interface WorksheetData {
   worksheets: SingleWorksheet[];
 }
- * Lesson type enum — matches the full DB enum `lesson_type`.
- * Each type determines which interactive component renders in LessonViewer.
- */
-export type LessonType = 'text' | 'video' | 'quiz' | 'assignment' | 'worksheet' | 'activity';
-
-/** Shape of a single quiz question stored in quiz_data JSONB */
-export interface QuizQuestion {
-  question: string;
-  options: string[];
-  correct_answer: number;        // Index of correct option (0-based)
-  explanation?: string;           // Shown after answering
-}
-
-/** Shape of quiz_data JSONB column */
-export interface QuizData {
-  questions: QuizQuestion[];
-  passing_score?: number;         // Percentage needed to pass (default 70)
-}
-
-/** Shape of a single worksheet exercise stored in worksheet_data JSONB */
-export interface WorksheetExercise {
-  type: string;                   // e.g., 'reflection', 'framework', 'checklist'
-  title: string;
-  instructions: string;
-  content?: string;               // Mini-lesson or teaching content
-  exercise_prompt?: string;       // What the student should do
-}
-
-/** Shape of worksheet_data JSONB column (array format) */
-export type WorksheetData = WorksheetExercise[];
-
-/** Shape of a single activity step stored in activity_data JSONB */
-export interface ActivityStep {
-  step_number: number;
-  title: string;
-  instructions: string;
-  type?: string;                  // e.g., 'action', 'reflect', 'create'
-}
-
-/** Shape of activity_data JSONB column (array format) */
-export type ActivityData = ActivityStep[];
 
 /**
  * Lesson interface — matches the `lessons` database table.
@@ -169,9 +128,6 @@ export interface Lesson {
   activity_data: ActivityData | null;      // Structured activity steps for 'activity' type
   worksheet_data: WorksheetData | null;    // Structured worksheet prompts for 'worksheet' type
   is_published: boolean;                   // Only published lessons are visible to students
-  quiz_data: QuizData | null;              // Quiz questions (for quiz-type or supplemental)
-  worksheet_data: WorksheetData | null;    // Worksheet exercises
-  activity_data: ActivityData | null;      // Step-by-step activity
   created_at: string;
   updated_at: string;
 }
