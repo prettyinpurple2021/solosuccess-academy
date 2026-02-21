@@ -18,6 +18,7 @@ import { Badge } from '@/components/ui/badge';
 import { FileText, Video, Sparkles, PenLine, BookOpen, Zap } from 'lucide-react';
 import { AssignmentSubmission } from './AssignmentSubmission';
 import { ActivityStepPlayer } from './ActivityStepPlayer';
+import { WorksheetPlayer } from './WorksheetPlayer';
 
 interface LessonContentProps {
   /** The lesson to render */
@@ -171,8 +172,13 @@ export function LessonContent({ lesson, isCompleted = false, existingNotes = nul
         </div>
       )}
 
-      {/* Worksheet Viewer — placeholder for future implementation */}
-      {lesson.type === 'worksheet' && !lesson.content && (
+      {/* Worksheet Player — interactive guided exercises */}
+      {lesson.type === 'worksheet' && lesson.worksheet_data && (
+        <WorksheetPlayer worksheetData={lesson.worksheet_data} />
+      )}
+
+      {/* Worksheet placeholder — only when no worksheet data exists */}
+      {lesson.type === 'worksheet' && !lesson.worksheet_data && !lesson.content && (
         <div className="bg-black/30 border border-accent/20 border-dashed rounded-lg p-8 text-center">
           <div className="h-16 w-16 rounded-full bg-accent/20 flex items-center justify-center mx-auto mb-3 shadow-[0_0_20px_hsl(var(--accent)/0.3)]">
             <BookOpen className="h-8 w-8 text-accent" />
