@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LessonList } from '@/components/admin/LessonList';
 import { CourseEditor } from '@/components/admin/CourseEditor';
 import { TextbookEditor } from '@/components/admin/TextbookEditor';
-import { SeedCurriculumButton } from '@/components/admin/SeedCurriculumButton';
+import { EnrichLessonsButton } from '@/components/admin/EnrichLessonsButton';
 import { BulkGenerateButton } from '@/components/admin/BulkGenerateButton';
 import { BulkGenerateTextbooksButton } from '@/components/admin/BulkGenerateTextbooksButton';
 import { BulkGenerateSupplementalButton } from '@/components/admin/BulkGenerateSupplementalButton';
@@ -264,8 +264,8 @@ export default function AdminDashboard() {
             </Card>
           </div>
 
-          {/* Seed Curriculum Button */}
-          <SeedCurriculumButton />
+          {/* AI Lesson Enricher */}
+          <EnrichLessonsButton />
           <BulkGenerateButton />
           <BulkGenerateTextbooksButton />
           <BulkGenerateSupplementalButton />

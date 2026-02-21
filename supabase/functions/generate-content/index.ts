@@ -15,7 +15,7 @@ const RATE_LIMIT_CONFIG = {
 };
 
 interface GenerateRequest {
-  type: "course_outline" | "lesson_content" | "quiz" | "worksheet" | "activity" | "exam" | "textbook_chapter" | "textbook_page" | "bulk_curriculum";
+  type: "course_outline" | "lesson_content" | "quiz" | "worksheet" | "activity" | "exam" | "textbook_chapter" | "textbook_page" | "bulk_curriculum" | "lesson_enrichment";
   context: {
     courseTitle?: string;
     courseDescription?: string;
@@ -190,6 +190,44 @@ Generate in JSON format:
   }
 }
 Make the content actionable and relevant to entrepreneurs.`,
+
+  lesson_enrichment: `You are an expert educational content enhancer for SoloSuccess Academy.
+Your job is to take an existing lesson and generate ADDITIONAL supplemental content that deepens the student's learning experience.
+
+Given the existing lesson content, generate enrichment material in JSON format:
+{
+  "case_study": {
+    "title": "Real-World Case Study Title",
+    "scenario": "A 2-3 paragraph real-world scenario or story of a solo entrepreneur applying these concepts",
+    "key_lesson": "The main takeaway from this case study"
+  },
+  "pro_tips": [
+    "Actionable pro tip 1 that goes beyond the lesson basics",
+    "Actionable pro tip 2 with insider knowledge",
+    "Actionable pro tip 3 for advanced implementation"
+  ],
+  "common_mistakes": [
+    {
+      "mistake": "Description of a common mistake",
+      "fix": "How to avoid or fix it"
+    }
+  ],
+  "deeper_dive": "A 2-3 paragraph section that explores an advanced concept mentioned in the lesson but not fully covered. Include specific frameworks, data, or strategies.",
+  "resource_recommendations": [
+    {
+      "title": "Resource name",
+      "type": "book|tool|article|video",
+      "why": "Why this resource is valuable for this topic"
+    }
+  ],
+  "quick_challenge": {
+    "title": "Mini Challenge Title",
+    "description": "A 15-minute hands-on challenge the student can do right now to apply what they learned",
+    "success_criteria": "How the student knows they completed it successfully"
+  }
+}
+
+Make the content specific to solo entrepreneurs and small business owners. Be practical, not theoretical.`,
 
   bulk_curriculum: `You are an expert curriculum designer and content creator for SoloSuccess Academy, an online learning platform for solo founders and small business owners.
 
@@ -377,6 +415,16 @@ Difficulty: ${context.difficulty || "intermediate"}
 Include an embedded quiz to test understanding.`;
           break;
 
+        case "lesson_enrichment":
+          userPrompt = `Enrich the following lesson with supplemental content:
+Course: ${context.courseTitle || "Solo Business"}
+Lesson Title: ${context.lessonTitle || "Lesson"}
+Existing Content (first 3000 chars):
+${(context.documentContent || "").substring(0, 3000)}
+
+Generate case studies, pro tips, common mistakes, a deeper dive section, resource recommendations, and a quick challenge that complement (don't repeat) the existing content.`;
+          break;
+
         case "bulk_curriculum":
           if (!context.documentContent) {
             return new Response(
@@ -456,7 +504,7 @@ Extract all key concepts from the document and organize them into a logical lear
 
     // Try to parse JSON from the response for structured content types
     let parsedContent = generatedContent;
-    const jsonContentTypes = ["course_outline", "quiz", "worksheet", "activity", "exam", "textbook_chapter", "textbook_page", "bulk_curriculum"];
+    const jsonContentTypes = ["course_outline", "quiz", "worksheet", "activity", "exam", "textbook_chapter", "textbook_page", "bulk_curriculum", "lesson_enrichment"];
     if (jsonContentTypes.includes(type)) {
       try {
         // Extract JSON from markdown code blocks if present
