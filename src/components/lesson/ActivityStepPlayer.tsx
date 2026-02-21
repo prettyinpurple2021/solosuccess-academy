@@ -47,6 +47,8 @@ interface NormalisedActivity {
   instructions: string;
   type: string;
   steps: NormalisedStep[];
+  objectives?: string[];
+  reflection?: string;
 }
 
 interface ActivityStepPlayerProps {
@@ -77,7 +79,7 @@ const getTypeIcon = (type: string) => {
   }
 };
 
-/** Normalise both data formats into a consistent shape */
+/** Normalise all data formats into a consistent shape */
 function normaliseActivities(raw: any): NormalisedActivity[] {
   if (!raw) return [];
 
@@ -86,7 +88,7 @@ function normaliseActivities(raw: any): NormalisedActivity[] {
     return raw.activities.map((a: any, aIdx: number) => ({
       id: a.id || `activity-${aIdx}`,
       title: a.title || `Activity ${aIdx + 1}`,
-      instructions: a.instructions || '',
+      instructions: a.instructions || a.description || '',
       type: a.type || 'exercise',
       steps: (a.steps || []).map((s: any, sIdx: number) => ({
         id: s.id || `step-${aIdx}-${sIdx}`,
@@ -110,6 +112,24 @@ function normaliseActivities(raw: any): NormalisedActivity[] {
       type: 'exercise',
       steps,
     }];
+  }
+
+  // AI-generated flat object format: { title, description, steps: [...], objectives, reflection }
+  if (raw.title && raw.steps && Array.isArray(raw.steps)) {
+    const steps: NormalisedStep[] = raw.steps.map((s: any, i: number) => ({
+      id: `step-${i}`,
+      title: s.title || `Step ${s.stepNumber || i + 1}`,
+      description: s.instructions || s.description || '',
+    }));
+    return [{
+      id: 'activity-0',
+      title: raw.title,
+      instructions: raw.description || '',
+      type: 'exercise',
+      steps,
+      reflection: raw.reflection || '',
+      objectives: raw.objectives || [],
+    } as NormalisedActivity];
   }
 
   return [];
@@ -202,6 +222,21 @@ export function ActivityStepPlayer({ activityData }: ActivityStepPlayerProps) {
             <p className="text-sm text-muted-foreground leading-relaxed">
               {currentActivity.instructions}
             </p>
+          )}
+
+          {/* Learning Objectives */}
+          {currentActivity.objectives && currentActivity.objectives.length > 0 && (
+            <div className="mt-3 p-3 rounded-lg bg-primary/5 border border-primary/20">
+              <p className="text-xs font-semibold text-primary mb-2">🎯 Learning Objectives</p>
+              <ul className="space-y-1">
+                {currentActivity.objectives.map((obj, i) => (
+                  <li key={i} className="text-xs text-muted-foreground flex items-start gap-2">
+                    <span className="text-primary mt-0.5">•</span>
+                    <span>{obj}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           )}
 
           {/* Progress Bar */}
@@ -331,6 +366,14 @@ export function ActivityStepPlayer({ activityData }: ActivityStepPlayerProps) {
             <p className="text-sm text-muted-foreground mt-1">
               You've finished all {totalSteps} steps. Great work!
             </p>
+
+            {/* Reflection prompt — shown after completion */}
+            {currentActivity.reflection && (
+              <div className="mt-4 p-4 rounded-lg bg-primary/5 border border-primary/20 text-left">
+                <p className="text-xs font-semibold text-primary mb-2">💭 Reflection</p>
+                <p className="text-sm text-foreground/80 leading-relaxed">{currentActivity.reflection}</p>
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
