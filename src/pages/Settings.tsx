@@ -9,7 +9,6 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile, useUpdateNotificationPreferences } from '@/hooks/useProfile';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 import { 
   Loader2, 
   Moon, 
@@ -23,7 +22,7 @@ import {
 import { NeonSpinner } from '@/components/ui/neon-spinner';
 
 export default function Settings() {
-  const { user, isLoading: authLoading } = useAuth();
+  const { user, isLoading: authLoading, resetPassword } = useAuth();
   const { data: profile, isLoading: profileLoading } = useProfile(user?.id);
   const { theme, setTheme } = useTheme();
   const { toast } = useToast();
@@ -35,11 +34,7 @@ export default function Settings() {
     
     setIsResettingPassword(true);
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(user.email, {
-        redirectTo: `${window.location.origin}/reset-password`,
-      });
-      
-      if (error) throw error;
+      await resetPassword(user.email);
       
       toast({
         title: 'Password reset email sent',

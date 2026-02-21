@@ -23,11 +23,14 @@ The "Reset Password" button on the Settings page was sending users to `/auth?mod
 The sign-in form had no way for users to recover a forgotten password, even though the `/reset-password` page existed. Users who forgot their password were completely locked out.  
 **Status:** Fixed in this PR — "Forgot password?" button added. User enters their email, clicks the button, and receives a reset email.
 
-### 3. ✅ .env File Committed to Repository
+### 3. 🛠️ .env File Committed to Repository
 **File:** `.gitignore`  
 The `.env` file containing your Supabase anon key was committed to the repository. While the anon key is designed to be public-facing, it is best practice not to commit it.  
-**Status:** Fixed in this PR — `.env` is now excluded from git. A `.env.example` template was added.  
-**Action needed:** After merging, confirm the `.env` is not in your git history using `git log --all -- .env`. If it was previously committed, rotate your Supabase anon key.
+**Status:** Partially addressed in this PR — `.env` is now excluded via `.gitignore` and a `.env.example` template was added. However, `.gitignore` alone does not remove a file that is already tracked by git.  
+**Action needed:**
+1. Remove the tracked file: `git rm --cached .env` then commit the removal
+2. Confirm `.env` is not in your git history: `git log --all -- .env`
+3. If it was previously committed, rotate your Supabase anon key in the Supabase dashboard
 
 ### 4. ⚙️ Supabase Edge Function JWT Verification
 **File:** `supabase/config.toml`  
