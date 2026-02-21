@@ -81,11 +81,11 @@ serve(async (req) => {
 
     // --- Find text-type lessons missing supplemental content ---
     // A lesson needs supplemental work if it's missing quiz_data OR worksheet_data OR activity_data
+    // Target ALL lesson types (text, quiz, assignment, activity) missing supplemental content
     const { data: lessons, error: lessonsErr } = await serviceClient
       .from("lessons")
       .select("id, title, type, content, course_id, quiz_data, worksheet_data, activity_data")
       .eq("is_published", true)
-      .eq("type", "text") // Only target text lessons — quizzes/activities/worksheets are separate types
       .or("quiz_data.is.null,worksheet_data.is.null,activity_data.is.null")
       .limit(BATCH_SIZE);
 
@@ -101,8 +101,7 @@ serve(async (req) => {
       const { data: allLessons } = await serviceClient
         .from("lessons")
         .select("id, quiz_data, worksheet_data, activity_data")
-        .eq("is_published", true)
-        .eq("type", "text");
+        .eq("is_published", true);
 
       const remaining = (allLessons || []).filter(
         (l: any) => !l.quiz_data || !l.worksheet_data || !l.activity_data
@@ -237,8 +236,7 @@ Make it practical and immediately applicable for a solo entrepreneur.`
     const { data: allRemaining } = await serviceClient
       .from("lessons")
       .select("id, quiz_data, worksheet_data, activity_data")
-      .eq("is_published", true)
-      .eq("type", "text");
+      .eq("is_published", true);
 
     const remaining = (allRemaining || []).filter(
       (l: any) => !l.quiz_data || !l.worksheet_data || !l.activity_data
