@@ -17,6 +17,7 @@ import { type Lesson } from '@/lib/courseData';
 import { Badge } from '@/components/ui/badge';
 import { FileText, Video, Sparkles, PenLine, BookOpen, Zap } from 'lucide-react';
 import { AssignmentSubmission } from './AssignmentSubmission';
+import { ActivityStepPlayer } from './ActivityStepPlayer';
 
 interface LessonContentProps {
   /** The lesson to render */
@@ -180,8 +181,13 @@ export function LessonContent({ lesson, isCompleted = false, existingNotes = nul
         </div>
       )}
 
-      {/* Activity Player — placeholder for future implementation */}
-      {lesson.type === 'activity' && !lesson.content && (
+      {/* Activity Step Player — interactive step-by-step progression */}
+      {lesson.type === 'activity' && lesson.activity_data && (
+        <ActivityStepPlayer activityData={lesson.activity_data} />
+      )}
+
+      {/* Activity placeholder — only when no activity data exists */}
+      {lesson.type === 'activity' && !lesson.activity_data && !lesson.content && (
         <div className="bg-black/30 border border-primary/20 border-dashed rounded-lg p-8 text-center">
           <div className="h-16 w-16 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-3 shadow-[0_0_20px_rgba(168,85,247,0.3)]">
             <Zap className="h-8 w-8 text-primary" />
