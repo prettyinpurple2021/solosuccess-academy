@@ -974,6 +974,7 @@ export type Database = {
           quiz_score: number | null
           updated_at: string
           user_id: string
+          worksheet_answers: Json | null
         }
         Insert: {
           admin_notes?: string | null
@@ -989,6 +990,7 @@ export type Database = {
           quiz_score?: number | null
           updated_at?: string
           user_id: string
+          worksheet_answers?: Json | null
         }
         Update: {
           admin_notes?: string | null
@@ -1004,6 +1006,7 @@ export type Database = {
           quiz_score?: number | null
           updated_at?: string
           user_id?: string
+          worksheet_answers?: Json | null
         }
         Relationships: [
           {

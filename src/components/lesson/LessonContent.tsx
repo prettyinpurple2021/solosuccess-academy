@@ -20,6 +20,8 @@ import { QuizViewer } from './QuizViewer';
 import { ActivityViewer } from './ActivityViewer';
 import { WorksheetViewer } from './WorksheetViewer';
 import { AssignmentSubmission } from './AssignmentSubmission';
+import { ActivityStepPlayer } from './ActivityStepPlayer';
+import { WorksheetPlayer } from './WorksheetPlayer';
 
 interface LessonContentProps {
   /** The lesson to render */
@@ -36,6 +38,8 @@ interface LessonContentProps {
   isCompleted?: boolean;
   /** Existing notes/submission from user_progress (used for assignments) */
   existingNotes?: string | null;
+  /** Current user ID — passed to interactive players for persistence */
+  userId?: string;
 }
 
 // Sanitize and format content to prevent XSS attacks

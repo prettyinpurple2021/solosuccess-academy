@@ -368,6 +368,7 @@ export default function LessonViewer() {
                     onSaveNotes={handleSaveNotes}
                     isCompleted={isCompleted}
                     existingNotes={progressData?.progress?.find(p => p.lesson_id === lessonId)?.notes ?? null}
+                    userId={user?.id}
                   />
 
                   {/* Completion & Navigation */}
