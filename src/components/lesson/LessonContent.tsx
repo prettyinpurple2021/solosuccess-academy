@@ -27,6 +27,8 @@ interface LessonContentProps {
   isCompleted?: boolean;
   /** Existing notes/submission from user_progress (used for assignments) */
   existingNotes?: string | null;
+  /** Current user ID — passed to interactive players for persistence */
+  userId?: string;
 }
 
 // Sanitize and format content to prevent XSS attacks
@@ -46,7 +48,7 @@ const sanitizeAndFormat = (content: string): string => {
   });
 };
 
-export function LessonContent({ lesson, isCompleted = false, existingNotes = null }: LessonContentProps) {
+export function LessonContent({ lesson, isCompleted = false, existingNotes = null, userId }: LessonContentProps) {
   /** Returns the icon for the lesson type badge */
   const getTypeIcon = () => {
     switch (lesson.type) {
@@ -174,7 +176,7 @@ export function LessonContent({ lesson, isCompleted = false, existingNotes = nul
 
       {/* Worksheet Player — interactive guided exercises */}
       {lesson.type === 'worksheet' && lesson.worksheet_data && (
-        <WorksheetPlayer worksheetData={lesson.worksheet_data} />
+        <WorksheetPlayer worksheetData={lesson.worksheet_data} userId={userId} lessonId={lesson.id} />
       )}
 
       {/* Worksheet placeholder — only when no worksheet data exists */}

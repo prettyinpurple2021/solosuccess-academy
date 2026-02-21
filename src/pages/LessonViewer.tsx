@@ -329,6 +329,7 @@ export default function LessonViewer() {
                     lesson={currentLesson}
                     isCompleted={isCompleted}
                     existingNotes={progressData?.progress?.find(p => p.lesson_id === lessonId)?.notes ?? null}
+                    userId={user?.id}
                   />
 
                   {/* Completion & Navigation */}

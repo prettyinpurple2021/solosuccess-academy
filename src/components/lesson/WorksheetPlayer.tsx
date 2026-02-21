@@ -12,9 +12,10 @@
  * Each SingleWorksheet has { title, instructions, sections[] }
  * Each section has { title, prompts[] }
  */
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { migrateWorksheetData } from '@/hooks/useAdmin';
+import { useLoadWorksheetAnswers, useAutoSaveWorksheetAnswers } from '@/hooks/useWorksheetAnswers';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -51,6 +52,10 @@ interface NormalisedWorksheet {
 interface WorksheetPlayerProps {
   /** Raw worksheet_data JSONB from the lesson record */
   worksheetData: any;
+  /** Current user ID — enables persistence when provided */
+  userId?: string;
+  /** Current lesson ID — enables persistence when provided */
+  lessonId?: string;
 }
 
 // ──────────────────────────────────────────────
@@ -97,8 +102,12 @@ function normaliseWorksheets(raw: any): NormalisedWorksheet[] {
 // COMPONENT
 // ──────────────────────────────────────────────
 
-export function WorksheetPlayer({ worksheetData }: WorksheetPlayerProps) {
+export function WorksheetPlayer({ worksheetData, userId, lessonId }: WorksheetPlayerProps) {
   const worksheets = normaliseWorksheets(worksheetData);
+
+  // ── Persistence: load saved answers from DB ──
+  const { data: savedData } = useLoadWorksheetAnswers(userId, lessonId);
+  const { save: autoSave } = useAutoSaveWorksheetAnswers(userId, lessonId);
 
   // Track which worksheet is active (for multi-worksheet support)
   const [activeWsIndex, setActiveWsIndex] = useState(0);
@@ -112,16 +121,38 @@ export function WorksheetPlayer({ worksheetData }: WorksheetPlayerProps) {
   // Self-assessment: keyed by `${wsIndex}-${sectionIndex}`
   const [selfChecked, setSelfChecked] = useState<Record<string, boolean>>({});
 
+  // Track whether we've hydrated from DB to avoid overwriting saved data
+  const [hydrated, setHydrated] = useState(false);
+
+  // Hydrate state from DB once loaded
+  useEffect(() => {
+    if (savedData && !hydrated) {
+      setAnswers(savedData.answers);
+      setSelfChecked(savedData.selfChecked);
+      setHydrated(true);
+    }
+  }, [savedData, hydrated]);
+
   // Handlers defined before any early returns to satisfy Rules of Hooks
   const answerKey = useCallback((sIdx: number, pIdx: number) => `${activeWsIndex}-${sIdx}-${pIdx}`, [activeWsIndex]);
 
   const handleAnswerChange = useCallback((sIdx: number, pIdx: number, value: string) => {
-    setAnswers(prev => ({ ...prev, [`${activeWsIndex}-${sIdx}-${pIdx}`]: value }));
-  }, [activeWsIndex]);
+    setAnswers(prev => {
+      const next = { ...prev, [`${activeWsIndex}-${sIdx}-${pIdx}`]: value };
+      // Trigger debounced auto-save
+      autoSave(next, selfChecked);
+      return next;
+    });
+  }, [activeWsIndex, autoSave, selfChecked]);
 
   const handleSelfCheck = useCallback((sIdx: number, checked: boolean) => {
-    setSelfChecked(prev => ({ ...prev, [`${activeWsIndex}-${sIdx}`]: checked }));
-  }, [activeWsIndex]);
+    setSelfChecked(prev => {
+      const next = { ...prev, [`${activeWsIndex}-${sIdx}`]: checked };
+      // Trigger debounced auto-save
+      autoSave(answers, next);
+      return next;
+    });
+  }, [activeWsIndex, autoSave, answers]);
 
   const currentWs = worksheets[activeWsIndex];
 
