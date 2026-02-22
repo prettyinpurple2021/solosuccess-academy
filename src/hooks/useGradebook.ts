@@ -33,6 +33,44 @@ export interface WorksheetScore {
   completionPercent: number;
 }
 
+/**
+ * Calculate a weighted combined grade from quiz, activity, and worksheet scores.
+ * Weights: Quiz 50%, Activity 30%, Worksheet 20%
+ * Only components with data contribute; weights redistribute proportionally.
+ */
+export function calculateCombinedGrade(
+  quizScore: number, quizCount: number,
+  activityScore: number, activityCount: number,
+  worksheetScore: number, worksheetCount: number,
+): { percentage: number; letter: string } {
+  const components: { score: number; weight: number }[] = [];
+  if (quizCount > 0) components.push({ score: quizScore, weight: 50 });
+  if (activityCount > 0) components.push({ score: activityScore, weight: 30 });
+  if (worksheetCount > 0) components.push({ score: worksheetScore, weight: 20 });
+
+  if (components.length === 0) return { percentage: 0, letter: '—' };
+
+  const totalWeight = components.reduce((acc, c) => acc + c.weight, 0);
+  const weighted = components.reduce((acc, c) => acc + (c.score * c.weight / totalWeight), 0);
+  const pct = Math.round(weighted);
+
+  let letter: string;
+  if (pct >= 93) letter = 'A';
+  else if (pct >= 90) letter = 'A-';
+  else if (pct >= 87) letter = 'B+';
+  else if (pct >= 83) letter = 'B';
+  else if (pct >= 80) letter = 'B-';
+  else if (pct >= 77) letter = 'C+';
+  else if (pct >= 73) letter = 'C';
+  else if (pct >= 70) letter = 'C-';
+  else if (pct >= 67) letter = 'D+';
+  else if (pct >= 63) letter = 'D';
+  else if (pct >= 60) letter = 'D-';
+  else letter = 'F';
+
+  return { percentage: pct, letter };
+}
+
 export interface StudentProgress {
   userId: string;
   displayName: string;
@@ -46,6 +84,7 @@ export interface StudentProgress {
   activityCount: number;
   totalWorksheetScore: number;
   worksheetCount: number;
+  combinedGrade: { percentage: number; letter: string };
 }
 
 export interface CourseProgress {
@@ -253,6 +292,11 @@ export function useGradebook() {
           activityCount: allActivityScores.length,
           totalWorksheetScore: avgWorksheetScore,
           worksheetCount: allWorksheetScores.length,
+          combinedGrade: calculateCombinedGrade(
+            avgQuizScore, allQuizScores.length,
+            avgActivityScore, allActivityScores.length,
+            avgWorksheetScore, allWorksheetScores.length,
+          ),
         };
       });
 
