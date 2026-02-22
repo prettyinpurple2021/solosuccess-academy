@@ -60,23 +60,22 @@ serve(async (req: Request): Promise<Response> => {
       );
     }
 
-    const token = authHeader.replace("Bearer ", "");
-    // Use anon client to verify caller identity
+    // Verify caller identity using getUser
     const supabaseAuth = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_ANON_KEY")!,
       { global: { headers: { Authorization: authHeader } } }
     );
-    const { data: claimsData, error: claimsError } = await supabaseAuth.auth.getClaims(token);
+    const { data: userData, error: userError } = await supabaseAuth.auth.getUser();
 
-    if (claimsError || !claimsData?.claims) {
+    if (userError || !userData?.user) {
       return new Response(
         JSON.stringify({ error: "Invalid token" }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const callerId = claimsData.claims.sub as string;
+    const callerId = userData.user.id;
 
     // Verify the caller has admin role
     const { data: roleData } = await supabase

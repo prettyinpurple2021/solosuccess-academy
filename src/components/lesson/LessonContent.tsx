@@ -16,7 +16,7 @@ import DOMPurify from 'dompurify';
 import { type Lesson } from '@/lib/courseData';
 import { Badge } from '@/components/ui/badge';
 import { FileText, Video, Sparkles, PenLine, Activity, FileQuestion } from 'lucide-react';
-import { QuizViewer } from './QuizViewer';
+import { QuizPlayer } from './QuizPlayer';
 import { ActivityViewer } from './ActivityViewer';
 import { WorksheetViewer } from './WorksheetViewer';
 import { AssignmentSubmission } from './AssignmentSubmission';
@@ -173,7 +173,7 @@ export function LessonContent({
       {/* ── Interactive Quiz ─────────────────────────────────────────────── */}
       {lesson.type === 'quiz' && lesson.quiz_data && (
         <div className="mt-6 pt-6 border-t border-primary/20">
-          <QuizViewer
+          <QuizPlayer
             quizData={lesson.quiz_data}
             initialScore={quizScore}
             onComplete={onQuizSubmit ?? (() => {})}
