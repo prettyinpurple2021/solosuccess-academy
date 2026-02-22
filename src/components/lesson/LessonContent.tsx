@@ -30,8 +30,12 @@ interface LessonContentProps {
   savedNotes?: string | null;
   /** The student's previous quiz score (null if never attempted) */
   quizScore?: number | null;
+  /** The student's previous activity score (null if never attempted) */
+  activityScore?: number | null;
   /** Called when a quiz is submitted with the resulting score (0-100) */
   onQuizSubmit?: (score: number) => void;
+  /** Called when activity progress changes (0-100) */
+  onActivityProgress?: (score: number) => void;
   /** Called when worksheet responses are saved */
   onSaveNotes?: (notes: string) => void;
   /** Whether the current user has completed this lesson */
@@ -63,7 +67,9 @@ export function LessonContent({
   lesson,
   savedNotes,
   quizScore,
+  activityScore,
   onQuizSubmit,
+  onActivityProgress,
   onSaveNotes,
   isCompleted = false,
   existingNotes = null,
@@ -194,7 +200,11 @@ export function LessonContent({
       {/* ── Activity Player ──────────────────────────────────────────────── */}
       {lesson.type === 'activity' && lesson.activity_data && (
         <div className="mt-6 pt-6 border-t border-primary/20">
-          <ActivityViewer activityData={lesson.activity_data} />
+          <ActivityViewer
+            activityData={lesson.activity_data}
+            onProgressChange={onActivityProgress}
+            initialScore={activityScore}
+          />
         </div>
       )}
 

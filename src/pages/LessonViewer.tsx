@@ -36,7 +36,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useCourse, useCourseLessons, useHasPurchasedCourse } from '@/hooks/useCourses';
-import { useCourseProgress, useMarkLessonComplete, useSubmitQuizScore, useUpdateLessonNotes } from '@/hooks/useProgress';
+import { useCourseProgress, useMarkLessonComplete, useSubmitQuizScore, useUpdateLessonNotes, useSubmitActivityScore } from '@/hooks/useProgress';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { useToast } from '@/hooks/use-toast';
@@ -87,6 +87,7 @@ export default function LessonViewer() {
   const generateCertificate = useGenerateCertificate();
   const markComplete = useMarkLessonComplete();
   const submitQuizScore = useSubmitQuizScore();
+  const submitActivityScore = useSubmitActivityScore();
   const updateNotes = useUpdateLessonNotes();
   const setContinueLater = useSetContinueLater();
 
@@ -127,6 +128,22 @@ export default function LessonViewer() {
       }
     } catch {
       toast({ title: 'Error saving quiz score', variant: 'destructive' });
+    }
+  };
+
+  /** Called when activity step progress changes — saves score to DB */
+  const handleActivityProgress = async (score: number) => {
+    if (!user?.id || !lessonId) return;
+    try {
+      await submitActivityScore.mutateAsync({ userId: user.id, lessonId, score });
+      if (score === 100) {
+        toast({ title: '🎉 Activity Complete!', description: 'All steps completed. Great work!' });
+        await awardXP('LESSON_COMPLETE');
+        setTimeout(() => checkAndAwardBadges(), 1000);
+      }
+    } catch {
+      // Silent fail — don't interrupt the student's flow
+      console.error('Failed to save activity score');
     }
   };
 
@@ -364,7 +381,9 @@ export default function LessonViewer() {
                     lesson={currentLesson}
                     savedNotes={currentProgress?.notes ?? null}
                     quizScore={currentProgress?.quiz_score ?? null}
+                    activityScore={currentProgress?.activity_score ?? null}
                     onQuizSubmit={handleQuizSubmit}
+                    onActivityProgress={handleActivityProgress}
                     onSaveNotes={handleSaveNotes}
                     isCompleted={isCompleted}
                     existingNotes={progressData?.progress?.find(p => p.lesson_id === lessonId)?.notes ?? null}

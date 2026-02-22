@@ -36,6 +36,7 @@ export interface UserProgress {
   completed: boolean;           // Whether the student finished this lesson
   completed_at: string | null;  // ISO timestamp of when they completed it
   quiz_score: number | null;    // 0-100 score if this is a quiz lesson
+  activity_score: number | null; // 0-100 percentage of activity steps completed
   notes: string | null;         // Student's personal notes for this lesson
   created_at: string;
   updated_at: string;
@@ -253,6 +254,49 @@ export function useUpdateLessonNotes() {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['user-progress', variables.userId] });
+    },
+  });
+}
+
+/**
+ * Mutation: Save activity completion score (0-100 percentage).
+ * Called when a student completes steps in an activity lesson.
+ */
+export function useSubmitActivityScore() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      userId,
+      lessonId,
+      score,
+    }: {
+      userId: string;
+      lessonId: string;
+      score: number; // 0-100 percentage of steps completed
+    }) => {
+      const isComplete = score === 100;
+      const { data, error } = await supabase
+        .from('user_progress')
+        .upsert(
+          {
+            user_id: userId,
+            lesson_id: lessonId,
+            activity_score: score,
+            completed: isComplete,
+            completed_at: isComplete ? new Date().toISOString() : null,
+          },
+          { onConflict: 'user_id,lesson_id' }
+        )
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['user-progress', variables.userId] });
+      queryClient.invalidateQueries({ queryKey: ['course-progress', variables.userId] });
     },
   });
 }

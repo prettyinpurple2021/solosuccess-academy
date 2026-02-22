@@ -961,6 +961,7 @@ export type Database = {
       }
       user_progress: {
         Row: {
+          activity_score: number | null
           admin_notes: string | null
           admin_override_score: number | null
           completed: boolean
@@ -977,6 +978,7 @@ export type Database = {
           worksheet_answers: Json | null
         }
         Insert: {
+          activity_score?: number | null
           admin_notes?: string | null
           admin_override_score?: number | null
           completed?: boolean
@@ -993,6 +995,7 @@ export type Database = {
           worksheet_answers?: Json | null
         }
         Update: {
+          activity_score?: number | null
           admin_notes?: string | null
           admin_override_score?: number | null
           completed?: boolean
