@@ -21,6 +21,18 @@ export interface ActivityScore {
   effectiveScore: number;
 }
 
+/** Represents a student's worksheet completion for a worksheet-type lesson */
+export interface WorksheetScore {
+  progressId: string;
+  lessonId: string;
+  lessonTitle: string;
+  /** Number of answered exercises out of total */
+  answeredCount: number;
+  totalCount: number;
+  /** Completion percentage (0-100) */
+  completionPercent: number;
+}
+
 export interface StudentProgress {
   userId: string;
   displayName: string;
@@ -32,6 +44,8 @@ export interface StudentProgress {
   quizCount: number;
   totalActivityScore: number;
   activityCount: number;
+  totalWorksheetScore: number;
+  worksheetCount: number;
 }
 
 export interface CourseProgress {
@@ -42,6 +56,7 @@ export interface CourseProgress {
   progressPercent: number;
   quizScores: QuizScore[];
   activityScores: ActivityScore[];
+  worksheetScores: WorksheetScore[];
   projectStatus: 'draft' | 'submitted' | 'reviewed' | null;
   projectSubmittedAt: string | null;
 }
@@ -88,7 +103,7 @@ export function useGradebook() {
       // Fetch all user progress (including admin override fields)
       const { data: progressData, error: progressError } = await supabase
         .from('user_progress')
-        .select('id, user_id, lesson_id, completed, quiz_score, activity_score, admin_override_score, admin_notes')
+        .select('id, user_id, lesson_id, completed, quiz_score, activity_score, worksheet_answers, admin_override_score, admin_notes')
         .in('user_id', userIds);
 
       if (progressError) throw progressError;
@@ -157,6 +172,40 @@ export function useGradebook() {
               };
             });
 
+          // Get worksheet completion scores for this course
+          const worksheetScores: WorksheetScore[] = userProgress
+            .filter(p => {
+              const lesson = courseLessons.find(l => l.id === p.lesson_id);
+              return lesson?.type === 'worksheet' && p.worksheet_answers !== null;
+            })
+            .map(p => {
+              const lesson = courseLessons.find(l => l.id === p.lesson_id);
+              // Parse worksheet_answers to calculate completion
+              const answers = p.worksheet_answers as Record<string, any> | null;
+              let answeredCount = 0;
+              let totalCount = 0;
+              if (answers && typeof answers === 'object') {
+                // worksheet_answers is keyed by worksheet/exercise index
+                const values = Object.values(answers);
+                totalCount = values.length;
+                answeredCount = values.filter(v => 
+                  v !== null && v !== undefined && v !== '' && 
+                  !(typeof v === 'string' && v.trim() === '')
+                ).length;
+              }
+              const completionPercent = totalCount > 0 
+                ? Math.round((answeredCount / totalCount) * 100) 
+                : 0;
+              return {
+                progressId: p.id,
+                lessonId: p.lesson_id,
+                lessonTitle: lesson?.title || 'Unknown',
+                answeredCount,
+                totalCount,
+                completionPercent,
+              };
+            });
+
           const project = userProjects.find(p => p.course_id === purchase.course_id);
 
           return {
@@ -169,6 +218,7 @@ export function useGradebook() {
               : 0,
             quizScores,
             activityScores,
+            worksheetScores,
             projectStatus: project?.status || null,
             projectSubmittedAt: project?.submitted_at || null,
           };
@@ -185,6 +235,10 @@ export function useGradebook() {
         const avgActivityScore = allActivityScores.length > 0
           ? Math.round(allActivityScores.reduce((acc, a) => acc + a.effectiveScore, 0) / allActivityScores.length)
           : 0;
+        const allWorksheetScores = courseProgressList.flatMap(c => c.worksheetScores);
+        const avgWorksheetScore = allWorksheetScores.length > 0
+          ? Math.round(allWorksheetScores.reduce((acc, w) => acc + w.completionPercent, 0) / allWorksheetScores.length)
+          : 0;
 
         return {
           userId,
@@ -197,6 +251,8 @@ export function useGradebook() {
           quizCount: allQuizScores.length,
           totalActivityScore: avgActivityScore,
           activityCount: allActivityScores.length,
+          totalWorksheetScore: avgWorksheetScore,
+          worksheetCount: allWorksheetScores.length,
         };
       });
 

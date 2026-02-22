@@ -36,7 +36,7 @@ import { ProgressRing } from '@/components/ui/progress-ring';
 import { NeonSpinner } from '@/components/ui/neon-spinner';
 import { GradeEditor } from '@/components/admin/GradeEditor';
 import { useAdminCourses } from '@/hooks/useAdmin';
-import { useGradebook, StudentProgress, CourseProgress, QuizScore, ActivityScore } from '@/hooks/useGradebook';
+import { useGradebook, StudentProgress, CourseProgress, QuizScore, ActivityScore, WorksheetScore } from '@/hooks/useGradebook';
 import { 
   GraduationCap, 
   Search, 
@@ -49,7 +49,8 @@ import {
   MessageSquare,
   Activity,
   Download,
-  FileText
+  FileText,
+  ClipboardList
 } from 'lucide-react';
 import jsPDF from 'jspdf';
 
@@ -98,6 +99,10 @@ export default function Gradebook() {
       doc.text(`Average Activity Score: ${student.totalActivityScore}%`, 20, y);
       y += 7;
     }
+    if (student.worksheetCount > 0) {
+      doc.text(`Average Worksheet Completion: ${student.totalWorksheetScore}%`, 20, y);
+      y += 7;
+    }
 
     y += 5;
     doc.setDrawColor(150);
@@ -133,6 +138,15 @@ export default function Gradebook() {
         y += 5;
         course.activityScores.forEach(a => {
           doc.text(`  • ${a.lessonTitle}: ${a.effectiveScore}%`, 30, y);
+          y += 5;
+        });
+      }
+
+      if (course.worksheetScores.length > 0) {
+        doc.text('Worksheet Completion:', 25, y);
+        y += 5;
+        course.worksheetScores.forEach(w => {
+          doc.text(`  • ${w.lessonTitle}: ${w.completionPercent}% (${w.answeredCount}/${w.totalCount} exercises)`, 30, y);
           y += 5;
         });
       }
@@ -332,9 +346,10 @@ export default function Gradebook() {
                      <TableHead className="text-muted-foreground">Student</TableHead>
                      <TableHead className="text-muted-foreground">Courses Enrolled</TableHead>
                      <TableHead className="text-muted-foreground">Overall Progress</TableHead>
-                     <TableHead className="text-muted-foreground">Avg Quiz Score</TableHead>
-                     <TableHead className="text-muted-foreground">Avg Activity Score</TableHead>
-                     <TableHead className="text-muted-foreground">Projects</TableHead>
+                      <TableHead className="text-muted-foreground">Avg Quiz Score</TableHead>
+                      <TableHead className="text-muted-foreground">Avg Activity Score</TableHead>
+                      <TableHead className="text-muted-foreground">Avg Worksheet</TableHead>
+                      <TableHead className="text-muted-foreground">Projects</TableHead>
                      <TableHead className="text-muted-foreground text-right">Actions</TableHead>
                    </TableRow>
                 </TableHeader>
@@ -389,6 +404,18 @@ export default function Gradebook() {
                             student.totalActivityScore >= 60 ? 'text-warning' : 'text-destructive'
                           }`}>
                             {student.totalActivityScore}%
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {student.worksheetCount > 0 ? (
+                          <span className={`font-medium ${
+                            student.totalWorksheetScore >= 80 ? 'text-success' :
+                            student.totalWorksheetScore >= 60 ? 'text-warning' : 'text-destructive'
+                          }`}>
+                            {student.totalWorksheetScore}%
                           </span>
                         ) : (
                           <span className="text-muted-foreground">—</span>
@@ -470,7 +497,7 @@ export default function Gradebook() {
           {selectedStudent && (
             <div className="space-y-6">
               {/* Overall Stats */}
-              <div className="grid grid-cols-4 gap-4">
+              <div className="grid grid-cols-5 gap-4">
                 <div className="text-center p-4 rounded-lg bg-primary/10 border border-primary/20">
                   <div className="flex justify-center mb-2">
                     <ProgressRing progress={selectedStudent.overallProgress} size="sm" />
@@ -488,6 +515,12 @@ export default function Gradebook() {
                     {selectedStudent.activityCount > 0 ? `${selectedStudent.totalActivityScore}%` : '—'}
                   </p>
                   <p className="text-sm text-muted-foreground">Avg Activity Score</p>
+                </div>
+                <div className="text-center p-4 rounded-lg bg-accent/10 border border-accent/20">
+                  <p className="text-2xl font-bold text-accent">
+                    {selectedStudent.worksheetCount > 0 ? `${selectedStudent.totalWorksheetScore}%` : '—'}
+                  </p>
+                  <p className="text-sm text-muted-foreground">Avg Worksheet</p>
                 </div>
                 <div className="text-center p-4 rounded-lg bg-success/10 border border-success/20">
                   <p className="text-2xl font-bold text-success">
@@ -618,6 +651,39 @@ export default function Gradebook() {
                             </div>
                           ) : (
                             <span className="text-sm text-muted-foreground">No activities started</span>
+                          )}
+                        </div>
+
+                        {/* Worksheet Scores */}
+                        <div className="col-span-2">
+                          <p className="text-sm text-muted-foreground mb-1">Worksheet Completion</p>
+                          {course.worksheetScores.length > 0 ? (
+                            <div className="flex flex-wrap gap-1">
+                              <TooltipProvider>
+                                {course.worksheetScores.map((ws, idx) => (
+                                  <Tooltip key={idx}>
+                                    <TooltipTrigger asChild>
+                                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full border ${
+                                        ws.completionPercent >= 80 ? 'bg-success/20 text-success border-success/30' :
+                                        ws.completionPercent >= 50 ? 'bg-warning/20 text-warning border-warning/30' :
+                                        'bg-muted/20 text-muted-foreground border-muted-foreground/30'
+                                      }`}>
+                                        <ClipboardList className="h-3 w-3" />
+                                        {ws.completionPercent}%
+                                      </span>
+                                    </TooltipTrigger>
+                                    <TooltipContent className="bg-background border-primary/30">
+                                      <div className="text-sm">
+                                        <p className="font-medium">{ws.lessonTitle}</p>
+                                        <p className="text-muted-foreground">{ws.answeredCount}/{ws.totalCount} exercises completed</p>
+                                      </div>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                ))}
+                              </TooltipProvider>
+                            </div>
+                          ) : (
+                            <span className="text-sm text-muted-foreground">No worksheets started</span>
                           )}
                         </div>
                     </div>
