@@ -36,7 +36,7 @@ import { ProgressRing } from '@/components/ui/progress-ring';
 import { NeonSpinner } from '@/components/ui/neon-spinner';
 import { GradeEditor } from '@/components/admin/GradeEditor';
 import { useAdminCourses } from '@/hooks/useAdmin';
-import { useGradebook, StudentProgress, CourseProgress, QuizScore, ActivityScore, WorksheetScore } from '@/hooks/useGradebook';
+import { useGradebook, StudentProgress, CourseProgress, QuizScore, ActivityScore, WorksheetScore, calculateCombinedGrade } from '@/hooks/useGradebook';
 import { 
   GraduationCap, 
   Search, 
@@ -101,6 +101,12 @@ export default function Gradebook() {
     }
     if (student.worksheetCount > 0) {
       doc.text(`Average Worksheet Completion: ${student.totalWorksheetScore}%`, 20, y);
+      y += 7;
+    }
+    if (student.combinedGrade.letter !== '—') {
+      doc.setFont('helvetica', 'bold');
+      doc.text(`Combined Grade: ${student.combinedGrade.letter} (${student.combinedGrade.percentage}%)`, 20, y);
+      doc.setFont('helvetica', 'normal');
       y += 7;
     }
 
@@ -349,6 +355,7 @@ export default function Gradebook() {
                       <TableHead className="text-muted-foreground">Avg Quiz Score</TableHead>
                       <TableHead className="text-muted-foreground">Avg Activity Score</TableHead>
                       <TableHead className="text-muted-foreground">Avg Worksheet</TableHead>
+                      <TableHead className="text-muted-foreground">Combined Grade</TableHead>
                       <TableHead className="text-muted-foreground">Projects</TableHead>
                      <TableHead className="text-muted-foreground text-right">Actions</TableHead>
                    </TableRow>
@@ -417,6 +424,29 @@ export default function Gradebook() {
                           }`}>
                             {student.totalWorksheetScore}%
                           </span>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {student.combinedGrade.letter !== '—' ? (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className={`inline-flex items-center gap-1.5 font-bold text-lg ${
+                                  student.combinedGrade.percentage >= 80 ? 'text-success' :
+                                  student.combinedGrade.percentage >= 70 ? 'text-warning' :
+                                  student.combinedGrade.percentage >= 60 ? 'text-orange-400' : 'text-destructive'
+                                }`}>
+                                  {student.combinedGrade.letter}
+                                </span>
+                              </TooltipTrigger>
+                              <TooltipContent className="bg-background border-primary/30">
+                                <p className="text-sm">{student.combinedGrade.percentage}% weighted average</p>
+                                <p className="text-xs text-muted-foreground">Quiz 50% · Activity 30% · Worksheet 20%</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         ) : (
                           <span className="text-muted-foreground">—</span>
                         )}
@@ -497,36 +527,46 @@ export default function Gradebook() {
           {selectedStudent && (
             <div className="space-y-6">
               {/* Overall Stats */}
-              <div className="grid grid-cols-5 gap-4">
-                <div className="text-center p-4 rounded-lg bg-primary/10 border border-primary/20">
+              <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
+                <div className="text-center p-3 rounded-lg bg-primary/10 border border-primary/20">
                   <div className="flex justify-center mb-2">
                     <ProgressRing progress={selectedStudent.overallProgress} size="sm" />
                   </div>
-                  <p className="text-sm text-muted-foreground">Overall Progress</p>
+                  <p className="text-xs text-muted-foreground">Progress</p>
                 </div>
-                <div className="text-center p-4 rounded-lg bg-warning/10 border border-warning/20">
-                  <p className="text-2xl font-bold text-warning">
+                <div className="text-center p-3 rounded-lg bg-warning/10 border border-warning/20">
+                  <p className="text-xl font-bold text-warning">
                     {selectedStudent.quizCount > 0 ? `${selectedStudent.totalQuizScore}%` : '—'}
                   </p>
-                  <p className="text-sm text-muted-foreground">Avg Quiz Score</p>
+                  <p className="text-xs text-muted-foreground">Quiz</p>
                 </div>
-                <div className="text-center p-4 rounded-lg bg-info/10 border border-info/20">
-                  <p className="text-2xl font-bold text-info">
+                <div className="text-center p-3 rounded-lg bg-info/10 border border-info/20">
+                  <p className="text-xl font-bold text-info">
                     {selectedStudent.activityCount > 0 ? `${selectedStudent.totalActivityScore}%` : '—'}
                   </p>
-                  <p className="text-sm text-muted-foreground">Avg Activity Score</p>
+                  <p className="text-xs text-muted-foreground">Activity</p>
                 </div>
-                <div className="text-center p-4 rounded-lg bg-accent/10 border border-accent/20">
-                  <p className="text-2xl font-bold text-accent">
+                <div className="text-center p-3 rounded-lg bg-accent/10 border border-accent/20">
+                  <p className="text-xl font-bold text-accent">
                     {selectedStudent.worksheetCount > 0 ? `${selectedStudent.totalWorksheetScore}%` : '—'}
                   </p>
-                  <p className="text-sm text-muted-foreground">Avg Worksheet</p>
+                  <p className="text-xs text-muted-foreground">Worksheet</p>
                 </div>
-                <div className="text-center p-4 rounded-lg bg-success/10 border border-success/20">
-                  <p className="text-2xl font-bold text-success">
+                <div className="text-center p-3 rounded-lg bg-secondary/10 border border-secondary/20">
+                  <p className={`text-xl font-bold ${
+                    selectedStudent.combinedGrade.percentage >= 80 ? 'text-success' :
+                    selectedStudent.combinedGrade.percentage >= 70 ? 'text-warning' :
+                    selectedStudent.combinedGrade.percentage >= 60 ? 'text-orange-400' : 'text-destructive'
+                  }`}>
+                    {selectedStudent.combinedGrade.letter}
+                  </p>
+                  <p className="text-xs text-muted-foreground">Grade</p>
+                </div>
+                <div className="text-center p-3 rounded-lg bg-success/10 border border-success/20">
+                  <p className="text-xl font-bold text-success">
                     {selectedStudent.courses.filter(c => c.progressPercent === 100).length}
                   </p>
-                  <p className="text-sm text-muted-foreground">Courses Completed</p>
+                  <p className="text-xs text-muted-foreground">Completed</p>
                 </div>
               </div>
 
