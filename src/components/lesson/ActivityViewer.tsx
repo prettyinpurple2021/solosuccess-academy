@@ -15,6 +15,10 @@ import type { ActivityData } from '@/lib/courseData';
 
 interface ActivityViewerProps {
   activityData: ActivityData;
+  /** Called with completion percentage (0-100) when steps change */
+  onProgressChange?: (score: number) => void;
+  /** Previously saved activity score to restore step state */
+  initialScore?: number | null;
 }
 
 const TYPE_CONFIG = {
@@ -24,11 +28,22 @@ const TYPE_CONFIG = {
   brainstorm: { icon: Zap, label: 'Brainstorm', colorClass: 'text-success' },
 } as const;
 
-export function ActivityViewer({ activityData }: ActivityViewerProps) {
+export function ActivityViewer({ activityData, onProgressChange, initialScore }: ActivityViewerProps) {
   const activities = activityData.activities ?? [];
+  const allSteps = activities.flatMap((a) => a.steps);
+  const totalSteps = allSteps.length;
 
-  // Track which step IDs have been checked off
-  const [completedSteps, setCompletedSteps] = useState<Set<string>>(new Set());
+  // Restore completed steps from initialScore if available
+  const [completedSteps, setCompletedSteps] = useState<Set<string>>(() => {
+    if (initialScore != null && initialScore > 0 && totalSteps > 0) {
+      // Restore the first N steps as completed based on saved percentage
+      const restoredCount = Math.round((initialScore / 100) * totalSteps);
+      const restored = new Set<string>();
+      allSteps.slice(0, restoredCount).forEach(s => restored.add(s.id));
+      return restored;
+    }
+    return new Set();
+  });
 
   const toggleStep = (id: string) => {
     setCompletedSteps((prev) => {
@@ -38,12 +53,13 @@ export function ActivityViewer({ activityData }: ActivityViewerProps) {
       } else {
         next.add(id);
       }
+      // Calculate and report the new score
+      const newPct = totalSteps > 0 ? Math.round((next.size / totalSteps) * 100) : 0;
+      onProgressChange?.(newPct);
       return next;
     });
   };
 
-  const allSteps = activities.flatMap((a) => a.steps);
-  const totalSteps = allSteps.length;
   const doneSteps = completedSteps.size;
   const progressPct = totalSteps > 0 ? Math.round((doneSteps / totalSteps) * 100) : 0;
 
