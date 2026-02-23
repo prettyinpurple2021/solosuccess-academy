@@ -94,25 +94,80 @@ export interface QuizData {
   passingScore: number;              // Minimum percentage to pass (0-100)
 }
 
-/** Worksheet configuration stored in lessons.worksheet_data JSONB column */
-export interface WorksheetData {
-  instructions: string;              // Overall worksheet instructions
+/** A single worksheet within a lesson */
+export interface SingleWorksheet {
+  id: string;
+  title: string;
+  instructions: string;
   sections: {
-    id: string;                      // Client-generated UUID
-    title: string;                   // Section heading
-    prompts: string[];               // Writing prompts within the section
+    id: string;
+    title: string;
+    prompts: string[];
   }[];
 }
 
-/** Activity configuration stored in lessons.activity_data JSONB column */
-export interface ActivityData {
-  instructions: string;              // Overall activity instructions
+/** Multi-worksheet container stored in lessons.worksheet_data JSONB */
+export interface WorksheetData {
+  worksheets: SingleWorksheet[];
+}
+
+/** A single activity within a lesson */
+export interface SingleActivity {
+  id: string;
+  title: string;
+  instructions: string;
   type: 'reflection' | 'exercise' | 'case-study' | 'brainstorm';
   steps: {
-    id: string;                      // Client-generated UUID
-    title: string;                   // Step heading
-    description: string;             // Step details/instructions
+    id: string;
+    title: string;
+    description: string;
   }[];
+}
+
+/** Multi-activity container stored in lessons.activity_data JSONB */
+export interface ActivityData {
+  activities: SingleActivity[];
+}
+
+/** Migrate legacy single-worksheet to multi-worksheet format */
+export function migrateWorksheetData(data: any): WorksheetData | null {
+  if (!data) return null;
+  if (Array.isArray(data.worksheets)) return data as WorksheetData;
+  if (data.instructions !== undefined || Array.isArray(data.sections)) {
+    return {
+      worksheets: [{
+        id: crypto.randomUUID(),
+        title: 'Worksheet 1',
+        instructions: data.instructions || '',
+        sections: (data.sections || []).map((s: any) => ({
+          ...s,
+          id: s.id || crypto.randomUUID(),
+        })),
+      }],
+    };
+  }
+  return null;
+}
+
+/** Migrate legacy single-activity to multi-activity format */
+export function migrateActivityData(data: any): ActivityData | null {
+  if (!data) return null;
+  if (Array.isArray(data.activities)) return data as ActivityData;
+  if (data.instructions !== undefined || Array.isArray(data.steps)) {
+    return {
+      activities: [{
+        id: crypto.randomUUID(),
+        title: 'Activity 1',
+        instructions: data.instructions || '',
+        type: data.type || 'exercise',
+        steps: (data.steps || []).map((s: any) => ({
+          ...s,
+          id: s.id || crypto.randomUUID(),
+        })),
+      }],
+    };
+  }
+  return null;
 }
 
 // ──────────────────────────────────────────────

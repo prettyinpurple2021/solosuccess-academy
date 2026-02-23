@@ -199,25 +199,33 @@ export function QuickGenerateDialog({ courseId, courseTitle, courseDescription }
 
     if (lessonType === 'worksheet' && generatedContent.sections) {
       const worksheetData: WorksheetData = {
-        instructions: generatedContent.instructions || '',
-        sections: generatedContent.sections.map((s: any) => ({
+        worksheets: [{
           id: crypto.randomUUID(),
-          title: s.title,
-          prompts: s.exercises?.map((e: any) => e.prompt) || [],
-        })),
+          title: generatedContent.title || 'Worksheet 1',
+          instructions: generatedContent.instructions || '',
+          sections: generatedContent.sections.map((s: any) => ({
+            id: crypto.randomUUID(),
+            title: s.title,
+            prompts: s.exercises?.map((e: any) => e.prompt) || [],
+          })),
+        }],
       };
       return { worksheet_data: worksheetData };
     }
 
     if (lessonType === 'activity' && generatedContent.steps) {
       const activityData: ActivityData = {
-        instructions: generatedContent.description || '',
-        type: 'exercise',
-        steps: generatedContent.steps.map((s: any) => ({
+        activities: [{
           id: crypto.randomUUID(),
-          title: s.title,
-          description: s.instructions,
-        })),
+          title: generatedContent.title || 'Activity 1',
+          instructions: generatedContent.description || '',
+          type: 'exercise',
+          steps: generatedContent.steps.map((s: any) => ({
+            id: crypto.randomUUID(),
+            title: s.title,
+            description: s.instructions,
+          })),
+        }],
       };
       return { activity_data: activityData };
     }

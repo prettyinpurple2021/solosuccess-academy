@@ -41,8 +41,8 @@ export function LessonEditor({ courseId, lesson, nextOrderNumber, onClose }: Les
   const [videoUrl, setVideoUrl] = useState(lesson?.video_url || '');
   const [duration, setDuration] = useState(lesson?.duration_minutes?.toString() || '');
   const [quizData, setQuizData] = useState<QuizData | null>(lesson?.quiz_data || null);
-  const [worksheetData, setWorksheetData] = useState<WorksheetData | null>(lesson?.worksheet_data || null);
-  const [activityData, setActivityData] = useState<ActivityData | null>(lesson?.activity_data || null);
+  const [worksheetData, setWorksheetData] = useState<WorksheetData | null>(lesson?.worksheet_data ? (lesson.worksheet_data as any) : null);
+  const [activityData, setActivityData] = useState<ActivityData | null>(lesson?.activity_data ? (lesson.activity_data as any) : null);
 
   const createLesson = useCreateLesson();
   const updateLesson = useUpdateLesson();

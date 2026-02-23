@@ -1,19 +1,13 @@
 /**
- * @file WorksheetEditor.tsx — Admin Worksheet Builder
- *
- * PURPOSE: Visual editor for creating worksheet exercises (fill-in,
- * short-answer, reflection prompts). Data stored as JSON in lessons.worksheet_data.
- *
- * PRODUCTION TODO:
- * - Add drag-and-drop reordering of worksheet items
- * - Support file attachment fields for worksheet submissions
+ * @file WorksheetEditor.tsx — Legacy Worksheet Builder (used in inline lesson editing)
+ * Now wraps single worksheet editing within the multi-worksheet data format.
  */
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { WorksheetData } from '@/hooks/useAdmin';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { WorksheetData, migrateWorksheetData } from '@/hooks/useAdmin';
 import { Plus, Trash2, GripVertical } from 'lucide-react';
 import { AIGenerateButton } from './AIGenerateButton';
 import { GeneratedWorksheet } from '@/hooks/useContentGenerator';
@@ -24,8 +18,20 @@ interface WorksheetEditorProps {
 }
 
 export function WorksheetEditor({ data, onChange }: WorksheetEditorProps) {
-  const instructions = data?.instructions || '';
-  const sections = data?.sections || [];
+  // Migrate legacy data on first render
+  const migrated = migrateWorksheetData(data);
+  const worksheets = migrated?.worksheets || [];
+  // Edit the first worksheet (this editor is the simple/inline version)
+  const ws = worksheets[0] || { id: crypto.randomUUID(), title: 'Worksheet 1', instructions: '', sections: [] };
+  const instructions = ws.instructions;
+  const sections = ws.sections;
+
+  const updateWs = (updates: Partial<typeof ws>) => {
+    const updated = { ...ws, ...updates };
+    const allWs = [...worksheets];
+    allWs[0] = updated;
+    onChange({ worksheets: allWs });
+  };
 
   const handleAIGenerate = (result: GeneratedWorksheet) => {
     if (result) {
@@ -34,70 +40,61 @@ export function WorksheetEditor({ data, onChange }: WorksheetEditorProps) {
         title: section.title || '',
         prompts: section.exercises?.map((ex) => ex.prompt) || [''],
       })) || [];
-      onChange({
+      const newWs = {
+        id: crypto.randomUUID(),
+        title: result.title || `Worksheet ${worksheets.length + 1}`,
         instructions: result.instructions || '',
         sections: convertedSections,
-      });
+      };
+      onChange({ worksheets: [...worksheets, newWs] });
     }
   };
 
   const addSection = () => {
-    const newSection = {
-      id: crypto.randomUUID(),
-      title: '',
-      prompts: [''],
-    };
-    onChange({
-      instructions,
-      sections: [...sections, newSection],
-    });
+    updateWs({ sections: [...sections, { id: crypto.randomUUID(), title: '', prompts: [''] }] });
   };
 
   const updateSection = (index: number, updates: Partial<typeof sections[0]>) => {
     const updated = [...sections];
     updated[index] = { ...updated[index], ...updates };
-    onChange({ instructions, sections: updated });
+    updateWs({ sections: updated });
   };
 
   const removeSection = (index: number) => {
-    onChange({
-      instructions,
-      sections: sections.filter((_, i) => i !== index),
-    });
+    updateWs({ sections: sections.filter((_, i) => i !== index) });
   };
 
   const addPrompt = (sectionIndex: number) => {
     const updated = [...sections];
-    updated[sectionIndex].prompts.push('');
-    onChange({ instructions, sections: updated });
+    updated[sectionIndex] = { ...updated[sectionIndex], prompts: [...updated[sectionIndex].prompts, ''] };
+    updateWs({ sections: updated });
   };
 
   const updatePrompt = (sectionIndex: number, promptIndex: number, value: string) => {
     const updated = [...sections];
-    updated[sectionIndex].prompts[promptIndex] = value;
-    onChange({ instructions, sections: updated });
+    const prompts = [...updated[sectionIndex].prompts];
+    prompts[promptIndex] = value;
+    updated[sectionIndex] = { ...updated[sectionIndex], prompts };
+    updateWs({ sections: updated });
   };
 
   const removePrompt = (sectionIndex: number, promptIndex: number) => {
     const updated = [...sections];
-    updated[sectionIndex].prompts = updated[sectionIndex].prompts.filter((_, i) => i !== promptIndex);
-    onChange({ instructions, sections: updated });
+    updated[sectionIndex] = { ...updated[sectionIndex], prompts: updated[sectionIndex].prompts.filter((_, i) => i !== promptIndex) };
+    updateWs({ sections: updated });
   };
 
   return (
     <div className="space-y-6">
       <div className="flex justify-end">
-        <AIGenerateButton
-          type="worksheet"
-          onGenerated={handleAIGenerate}
-        />
+        <AIGenerateButton type="worksheet" onGenerated={handleAIGenerate} />
       </div>
 
       <div className="space-y-2">
         <Label>Worksheet Instructions</Label>
         <Textarea
           value={instructions}
-          onChange={(e) => onChange({ instructions: e.target.value, sections })}
+          onChange={(e) => updateWs({ instructions: e.target.value })}
           placeholder="Provide overall instructions for this worksheet..."
           rows={3}
         />
@@ -116,12 +113,7 @@ export function WorksheetEditor({ data, onChange }: WorksheetEditorProps) {
                   placeholder="Section title..."
                   className="flex-1"
                 />
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => removeSection(sIndex)}
-                  className="text-destructive"
-                >
+                <Button variant="ghost" size="icon" onClick={() => removeSection(sIndex)} className="text-destructive">
                   <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
@@ -139,22 +131,13 @@ export function WorksheetEditor({ data, onChange }: WorksheetEditorProps) {
                     className="flex-1"
                   />
                   {section.prompts.length > 1 && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => removePrompt(sIndex, pIndex)}
-                      className="text-destructive"
-                    >
+                    <Button variant="ghost" size="icon" onClick={() => removePrompt(sIndex, pIndex)} className="text-destructive">
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   )}
                 </div>
               ))}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => addPrompt(sIndex)}
-              >
+              <Button variant="ghost" size="sm" onClick={() => addPrompt(sIndex)}>
                 <Plus className="mr-2 h-4 w-4" />
                 Add Prompt
               </Button>

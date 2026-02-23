@@ -7,31 +7,43 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.generate-video]
-verify_jwt = true
+verify_jwt = false
 
 [functions.ai-tutor]
-verify_jwt = true
+verify_jwt = false
 
 [functions.project-feedback]
-verify_jwt = true
+verify_jwt = false
 
 [functions.generate-content]
-verify_jwt = true
+verify_jwt = false
 
 [functions.send-notification-email]
-verify_jwt = true
+verify_jwt = false
 
 [functions.check-student-progress]
 verify_jwt = false
 
 [functions.generate-image]
-verify_jwt = true
+verify_jwt = false
 
 [functions.generate-voice]
-verify_jwt = true
+verify_jwt = false
 
 [functions.get-leaderboard]
-verify_jwt = true
+verify_jwt = false
 
 [functions.notify-discussion-reply]
-verify_jwt = true
+verify_jwt = false
+
+[functions.bulk-generate-lessons]
+verify_jwt = false
+
+[functions.bulk-generate-textbooks]
+verify_jwt = false
+
+[functions.explain-text]
+verify_jwt = false
+
+[functions.bulk-generate-supplemental]
+verify_jwt = false

@@ -45,11 +45,46 @@ serve(async (req: Request): Promise<Response> => {
   }
 
   try {
-    // Create service-role client for data access
+    // Create service-role client for data access (used after auth for admin APIs)
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
+
+    // Authorization: require valid JWT (verify_jwt = true in config) and admin role.
+    // This function reads all enrolled students and sends emails — must not be callable by anonymous or non-admin users.
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claims, error: claimsError } = await supabase.auth.getUser(token);
+
+    if (claimsError || !claims.user) {
+      return new Response(
+        JSON.stringify({ error: "Invalid token" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Verify the caller has admin role
+    const { data: roleData } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", claims.user.id)
+      .eq("role", "admin")
+      .single();
+
+    if (!roleData) {
+      return new Response(
+        JSON.stringify({ error: "Admin access required" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     // Configuration
     const INACTIVE_DAYS_THRESHOLD = 7; // Days of inactivity before sending reminder

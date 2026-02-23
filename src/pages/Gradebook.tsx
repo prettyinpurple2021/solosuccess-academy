@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { 
   Table, 
   TableBody, 
@@ -36,7 +36,7 @@ import { ProgressRing } from '@/components/ui/progress-ring';
 import { NeonSpinner } from '@/components/ui/neon-spinner';
 import { GradeEditor } from '@/components/admin/GradeEditor';
 import { useAdminCourses } from '@/hooks/useAdmin';
-import { useGradebook, StudentProgress, CourseProgress, QuizScore } from '@/hooks/useGradebook';
+import { useGradebook, StudentProgress, CourseProgress, QuizScore, ActivityScore, WorksheetScore, calculateCombinedGrade } from '@/hooks/useGradebook';
 import { 
   GraduationCap, 
   Search, 
@@ -46,8 +46,13 @@ import {
   FileCheck,
   ChevronRight,
   Edit2,
-  MessageSquare
+  MessageSquare,
+  Activity,
+  Download,
+  FileText,
+  ClipboardList
 } from 'lucide-react';
+import jsPDF from 'jspdf';
 
 export default function Gradebook() {
   const { data: students, isLoading: studentsLoading } = useGradebook();
@@ -66,6 +71,106 @@ export default function Gradebook() {
     currentOverride: number | null;
     currentNotes: string | null;
   } | null>(null);
+
+  /** Generate a PDF progress report for a student */
+  const generateProgressReport = useCallback((student: StudentProgress) => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    let y = 20;
+
+    doc.setFontSize(20);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Student Progress Report', pageWidth / 2, y, { align: 'center' });
+    y += 10;
+
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Student: ${student.displayName}`, 20, y);
+    y += 7;
+    doc.text(`Generated: ${new Date().toLocaleDateString()}`, 20, y);
+    y += 7;
+    doc.text(`Overall Progress: ${student.overallProgress}%`, 20, y);
+    y += 7;
+    if (student.quizCount > 0) {
+      doc.text(`Average Quiz Score: ${student.totalQuizScore}%`, 20, y);
+      y += 7;
+    }
+    if (student.activityCount > 0) {
+      doc.text(`Average Activity Score: ${student.totalActivityScore}%`, 20, y);
+      y += 7;
+    }
+    if (student.worksheetCount > 0) {
+      doc.text(`Average Worksheet Completion: ${student.totalWorksheetScore}%`, 20, y);
+      y += 7;
+    }
+    if (student.combinedGrade.letter !== '—') {
+      doc.setFont('helvetica', 'bold');
+      doc.text(`Combined Grade: ${student.combinedGrade.letter} (${student.combinedGrade.percentage}%)`, 20, y);
+      doc.setFont('helvetica', 'normal');
+      y += 7;
+    }
+
+    y += 5;
+    doc.setDrawColor(150);
+    doc.line(20, y, pageWidth - 20, y);
+    y += 10;
+
+    student.courses.forEach(course => {
+      if (y > 250) { doc.addPage(); y = 20; }
+
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text(course.courseTitle, 20, y);
+      y += 8;
+
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Lessons: ${course.lessonsCompleted}/${course.totalLessons} (${course.progressPercent}%)`, 25, y);
+      y += 6;
+
+      if (course.quizScores.length > 0) {
+        doc.text('Quiz Scores:', 25, y);
+        y += 5;
+        course.quizScores.forEach(q => {
+          const override = q.adminOverrideScore !== null ? ` (Override: ${q.adminOverrideScore}%)` : '';
+          const notes = q.adminNotes ? ` — ${q.adminNotes}` : '';
+          doc.text(`  • ${q.lessonTitle}: ${q.effectiveScore}%${override}${notes}`, 30, y);
+          y += 5;
+        });
+      }
+
+      if (course.activityScores.length > 0) {
+        doc.text('Activity Scores:', 25, y);
+        y += 5;
+        course.activityScores.forEach(a => {
+          doc.text(`  • ${a.lessonTitle}: ${a.effectiveScore}%`, 30, y);
+          y += 5;
+        });
+      }
+
+      if (course.worksheetScores.length > 0) {
+        doc.text('Worksheet Completion:', 25, y);
+        y += 5;
+        course.worksheetScores.forEach(w => {
+          doc.text(`  • ${w.lessonTitle}: ${w.completionPercent}% (${w.answeredCount}/${w.totalCount} exercises)`, 30, y);
+          y += 5;
+        });
+      }
+
+      if (course.projectStatus) {
+        doc.text(`Project: ${course.projectStatus}${course.projectSubmittedAt ? ` (submitted ${new Date(course.projectSubmittedAt).toLocaleDateString()})` : ''}`, 25, y);
+        y += 6;
+      }
+
+      y += 5;
+    });
+
+    doc.setFontSize(8);
+    doc.setTextColor(150);
+    doc.text('SoloSuccess Academy — Confidential Student Report', pageWidth / 2, doc.internal.pageSize.getHeight() - 10, { align: 'center' });
+
+    doc.save(`progress-report-${student.displayName.replace(/\s+/g, '-').toLowerCase()}.pdf`);
+  }, []);
 
   if (studentsLoading) {
     return (
@@ -93,18 +198,19 @@ export default function Gradebook() {
         (students.filter(s => s.quizCount > 0).length || 1))
     : 0;
 
-  const handleEditGrade = (quiz: QuizScore, studentId: string, studentName: string, courseTitle: string) => {
+  const handleEditGrade = (score: QuizScore | ActivityScore, studentId: string, studentName: string, courseTitle: string) => {
     setEditingGrade({
-      progressId: quiz.progressId,
+      progressId: score.progressId,
       studentId,
       studentName,
-      lessonTitle: quiz.lessonTitle,
+      lessonTitle: score.lessonTitle,
       courseTitle,
-      currentScore: quiz.score,
-      currentOverride: quiz.adminOverrideScore,
-      currentNotes: quiz.adminNotes,
+      currentScore: score.score,
+      currentOverride: score.adminOverrideScore,
+      currentNotes: score.adminNotes,
     });
   };
+
 
   const getProjectStatusBadge = (status: string | null) => {
     switch (status) {
@@ -242,14 +348,17 @@ export default function Gradebook() {
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow className="border-primary/20 hover:bg-transparent">
-                    <TableHead className="text-muted-foreground">Student</TableHead>
-                    <TableHead className="text-muted-foreground">Courses Enrolled</TableHead>
-                    <TableHead className="text-muted-foreground">Overall Progress</TableHead>
-                    <TableHead className="text-muted-foreground">Avg Quiz Score</TableHead>
-                    <TableHead className="text-muted-foreground">Projects</TableHead>
-                    <TableHead className="text-muted-foreground text-right">Actions</TableHead>
-                  </TableRow>
+                 <TableRow className="border-primary/20 hover:bg-transparent">
+                     <TableHead className="text-muted-foreground">Student</TableHead>
+                     <TableHead className="text-muted-foreground">Courses Enrolled</TableHead>
+                     <TableHead className="text-muted-foreground">Overall Progress</TableHead>
+                      <TableHead className="text-muted-foreground">Avg Quiz Score</TableHead>
+                      <TableHead className="text-muted-foreground">Avg Activity Score</TableHead>
+                      <TableHead className="text-muted-foreground">Avg Worksheet</TableHead>
+                      <TableHead className="text-muted-foreground">Combined Grade</TableHead>
+                      <TableHead className="text-muted-foreground">Projects</TableHead>
+                     <TableHead className="text-muted-foreground text-right">Actions</TableHead>
+                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredStudents.map((student) => (
@@ -296,6 +405,53 @@ export default function Gradebook() {
                         )}
                       </TableCell>
                       <TableCell>
+                        {student.activityCount > 0 ? (
+                          <span className={`font-medium ${
+                            student.totalActivityScore >= 80 ? 'text-success' :
+                            student.totalActivityScore >= 60 ? 'text-warning' : 'text-destructive'
+                          }`}>
+                            {student.totalActivityScore}%
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {student.worksheetCount > 0 ? (
+                          <span className={`font-medium ${
+                            student.totalWorksheetScore >= 80 ? 'text-success' :
+                            student.totalWorksheetScore >= 60 ? 'text-warning' : 'text-destructive'
+                          }`}>
+                            {student.totalWorksheetScore}%
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {student.combinedGrade.letter !== '—' ? (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className={`inline-flex items-center gap-1.5 font-bold text-lg ${
+                                  student.combinedGrade.percentage >= 80 ? 'text-success' :
+                                  student.combinedGrade.percentage >= 70 ? 'text-warning' :
+                                  student.combinedGrade.percentage >= 60 ? 'text-orange-400' : 'text-destructive'
+                                }`}>
+                                  {student.combinedGrade.letter}
+                                </span>
+                              </TooltipTrigger>
+                              <TooltipContent className="bg-background border-primary/30">
+                                <p className="text-sm">{student.combinedGrade.percentage}% weighted average</p>
+                                <p className="text-xs text-muted-foreground">Quiz 50% · Activity 30% · Worksheet 20%</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
                         <div className="flex gap-1">
                           {student.courses.some(c => c.projectStatus === 'reviewed') && (
                             <Badge className="bg-success/20 text-success border-success/30 text-xs">
@@ -313,18 +469,32 @@ export default function Gradebook() {
                         </div>
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          className="hover:bg-primary/10 hover:text-primary"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedStudent(student);
-                          }}
-                        >
-                          View Details
-                          <ChevronRight className="ml-1 h-4 w-4" />
-                        </Button>
+                        <div className="flex items-center justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="hover:bg-info/10 hover:text-info"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              generateProgressReport(student);
+                            }}
+                            title="Download Progress Report"
+                          >
+                            <Download className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            className="hover:bg-primary/10 hover:text-primary"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedStudent(student);
+                            }}
+                          >
+                            View Details
+                            <ChevronRight className="ml-1 h-4 w-4" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -357,26 +527,58 @@ export default function Gradebook() {
           {selectedStudent && (
             <div className="space-y-6">
               {/* Overall Stats */}
-              <div className="grid grid-cols-3 gap-4">
-                <div className="text-center p-4 rounded-lg bg-primary/10 border border-primary/20">
+              <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
+                <div className="text-center p-3 rounded-lg bg-primary/10 border border-primary/20">
                   <div className="flex justify-center mb-2">
                     <ProgressRing progress={selectedStudent.overallProgress} size="sm" />
                   </div>
-                  <p className="text-sm text-muted-foreground">Overall Progress</p>
+                  <p className="text-xs text-muted-foreground">Progress</p>
                 </div>
-                <div className="text-center p-4 rounded-lg bg-warning/10 border border-warning/20">
-                  <p className="text-2xl font-bold text-warning">
+                <div className="text-center p-3 rounded-lg bg-warning/10 border border-warning/20">
+                  <p className="text-xl font-bold text-warning">
                     {selectedStudent.quizCount > 0 ? `${selectedStudent.totalQuizScore}%` : '—'}
                   </p>
-                  <p className="text-sm text-muted-foreground">Avg Quiz Score</p>
+                  <p className="text-xs text-muted-foreground">Quiz</p>
                 </div>
-                <div className="text-center p-4 rounded-lg bg-success/10 border border-success/20">
-                  <p className="text-2xl font-bold text-success">
+                <div className="text-center p-3 rounded-lg bg-info/10 border border-info/20">
+                  <p className="text-xl font-bold text-info">
+                    {selectedStudent.activityCount > 0 ? `${selectedStudent.totalActivityScore}%` : '—'}
+                  </p>
+                  <p className="text-xs text-muted-foreground">Activity</p>
+                </div>
+                <div className="text-center p-3 rounded-lg bg-accent/10 border border-accent/20">
+                  <p className="text-xl font-bold text-accent">
+                    {selectedStudent.worksheetCount > 0 ? `${selectedStudent.totalWorksheetScore}%` : '—'}
+                  </p>
+                  <p className="text-xs text-muted-foreground">Worksheet</p>
+                </div>
+                <div className="text-center p-3 rounded-lg bg-secondary/10 border border-secondary/20">
+                  <p className={`text-xl font-bold ${
+                    selectedStudent.combinedGrade.percentage >= 80 ? 'text-success' :
+                    selectedStudent.combinedGrade.percentage >= 70 ? 'text-warning' :
+                    selectedStudent.combinedGrade.percentage >= 60 ? 'text-orange-400' : 'text-destructive'
+                  }`}>
+                    {selectedStudent.combinedGrade.letter}
+                  </p>
+                  <p className="text-xs text-muted-foreground">Grade</p>
+                </div>
+                <div className="text-center p-3 rounded-lg bg-success/10 border border-success/20">
+                  <p className="text-xl font-bold text-success">
                     {selectedStudent.courses.filter(c => c.progressPercent === 100).length}
                   </p>
-                  <p className="text-sm text-muted-foreground">Courses Completed</p>
+                  <p className="text-xs text-muted-foreground">Completed</p>
                 </div>
               </div>
+
+              {/* Download Report Button */}
+              <Button
+                variant="outline"
+                className="w-full gap-2 border-info/30 hover:bg-info/10 hover:text-info"
+                onClick={() => generateProgressReport(selectedStudent)}
+              >
+                <Download className="h-4 w-4" />
+                Download Progress Report (PDF)
+              </Button>
 
               {/* Course Breakdown */}
               <div>
@@ -453,7 +655,77 @@ export default function Gradebook() {
                             <span className="text-sm text-muted-foreground">No quizzes taken</span>
                           )}
                         </div>
-                      </div>
+                        </div>
+
+                        {/* Activity Scores */}
+                        <div className="col-span-2">
+                          <p className="text-sm text-muted-foreground mb-1">Activity Scores</p>
+                          {course.activityScores.length > 0 ? (
+                            <div className="flex flex-wrap gap-1">
+                              <TooltipProvider>
+                                {course.activityScores.map((activity, idx) => (
+                                  <Tooltip key={idx}>
+                                    <TooltipTrigger asChild>
+                                      <button
+                                        onClick={() => handleEditGrade(activity, selectedStudent.userId, selectedStudent.displayName, course.courseTitle)}
+                                        className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full border cursor-pointer hover:opacity-80 transition-opacity ${
+                                          activity.effectiveScore >= 80 ? 'bg-success/20 text-success border-success/30' :
+                                          activity.effectiveScore >= 60 ? 'bg-warning/20 text-warning border-warning/30' :
+                                          'bg-destructive/20 text-destructive border-destructive/30'
+                                        }`}
+                                      >
+                                        <Activity className="h-3 w-3" />
+                                        {activity.effectiveScore}%
+                                      </button>
+                                    </TooltipTrigger>
+                                    <TooltipContent className="bg-background border-primary/30">
+                                      <div className="text-sm">
+                                        <p className="font-medium">{activity.lessonTitle}</p>
+                                        <p className="text-muted-foreground">{activity.score}% steps completed</p>
+                                        <p className="text-primary mt-1">Click to edit</p>
+                                      </div>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                ))}
+                              </TooltipProvider>
+                            </div>
+                          ) : (
+                            <span className="text-sm text-muted-foreground">No activities started</span>
+                          )}
+                        </div>
+
+                        {/* Worksheet Scores */}
+                        <div className="col-span-2">
+                          <p className="text-sm text-muted-foreground mb-1">Worksheet Completion</p>
+                          {course.worksheetScores.length > 0 ? (
+                            <div className="flex flex-wrap gap-1">
+                              <TooltipProvider>
+                                {course.worksheetScores.map((ws, idx) => (
+                                  <Tooltip key={idx}>
+                                    <TooltipTrigger asChild>
+                                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full border ${
+                                        ws.completionPercent >= 80 ? 'bg-success/20 text-success border-success/30' :
+                                        ws.completionPercent >= 50 ? 'bg-warning/20 text-warning border-warning/30' :
+                                        'bg-muted/20 text-muted-foreground border-muted-foreground/30'
+                                      }`}>
+                                        <ClipboardList className="h-3 w-3" />
+                                        {ws.completionPercent}%
+                                      </span>
+                                    </TooltipTrigger>
+                                    <TooltipContent className="bg-background border-primary/30">
+                                      <div className="text-sm">
+                                        <p className="font-medium">{ws.lessonTitle}</p>
+                                        <p className="text-muted-foreground">{ws.answeredCount}/{ws.totalCount} exercises completed</p>
+                                      </div>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                ))}
+                              </TooltipProvider>
+                            </div>
+                          ) : (
+                            <span className="text-sm text-muted-foreground">No worksheets started</span>
+                          )}
+                        </div>
                     </div>
                   ))}
                 </div>

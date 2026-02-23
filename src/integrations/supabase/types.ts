@@ -587,6 +587,91 @@ export type Database = {
           },
         ]
       }
+      student_notes: {
+        Row: {
+          content: string
+          course_id: string | null
+          created_at: string
+          height: number | null
+          id: string
+          is_minimized: boolean
+          position_x: number | null
+          position_y: number | null
+          title: string
+          updated_at: string
+          user_id: string
+          width: number | null
+        }
+        Insert: {
+          content?: string
+          course_id?: string | null
+          created_at?: string
+          height?: number | null
+          id?: string
+          is_minimized?: boolean
+          position_x?: number | null
+          position_y?: number | null
+          title?: string
+          updated_at?: string
+          user_id: string
+          width?: number | null
+        }
+        Update: {
+          content?: string
+          course_id?: string | null
+          created_at?: string
+          height?: number | null
+          id?: string
+          is_minimized?: boolean
+          position_x?: number | null
+          position_y?: number | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+          width?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_notes_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      textbook_chapter_objectives: {
+        Row: {
+          chapter_id: string
+          created_at: string
+          id: string
+          objective_text: string
+          order_number: number
+        }
+        Insert: {
+          chapter_id: string
+          created_at?: string
+          id?: string
+          objective_text: string
+          order_number?: number
+        }
+        Update: {
+          chapter_id?: string
+          created_at?: string
+          id?: string
+          objective_text?: string
+          order_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "textbook_chapter_objectives_chapter_id_fkey"
+            columns: ["chapter_id"]
+            isOneToOne: false
+            referencedRelation: "textbook_chapters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       textbook_chapters: {
         Row: {
           course_id: string
@@ -631,6 +716,54 @@ export type Database = {
             columns: ["lesson_id"]
             isOneToOne: false
             referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      textbook_comments: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          page_id: string
+          paragraph_index: number
+          parent_comment_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          page_id: string
+          paragraph_index?: number
+          parent_comment_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          page_id?: string
+          paragraph_index?: number
+          parent_comment_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "textbook_comments_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: false
+            referencedRelation: "textbook_pages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "textbook_comments_parent_comment_id_fkey"
+            columns: ["parent_comment_id"]
+            isOneToOne: false
+            referencedRelation: "textbook_comments"
             referencedColumns: ["id"]
           },
         ]
@@ -791,8 +924,44 @@ export type Database = {
         }
         Relationships: []
       }
+      user_objective_progress: {
+        Row: {
+          completed: boolean
+          completed_at: string | null
+          created_at: string
+          id: string
+          objective_id: string
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          objective_id: string
+          user_id: string
+        }
+        Update: {
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          objective_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_objective_progress_objective_id_fkey"
+            columns: ["objective_id"]
+            isOneToOne: false
+            referencedRelation: "textbook_chapter_objectives"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_progress: {
         Row: {
+          activity_score: number | null
           admin_notes: string | null
           admin_override_score: number | null
           completed: boolean
@@ -806,8 +975,10 @@ export type Database = {
           quiz_score: number | null
           updated_at: string
           user_id: string
+          worksheet_answers: Json | null
         }
         Insert: {
+          activity_score?: number | null
           admin_notes?: string | null
           admin_override_score?: number | null
           completed?: boolean
@@ -821,8 +992,10 @@ export type Database = {
           quiz_score?: number | null
           updated_at?: string
           user_id: string
+          worksheet_answers?: Json | null
         }
         Update: {
+          activity_score?: number | null
           admin_notes?: string | null
           admin_override_score?: number | null
           completed?: boolean
@@ -836,6 +1009,7 @@ export type Database = {
           quiz_score?: number | null
           updated_at?: string
           user_id?: string
+          worksheet_answers?: Json | null
         }
         Relationships: [
           {

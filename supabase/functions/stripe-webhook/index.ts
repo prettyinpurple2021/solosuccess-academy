@@ -1,11 +1,23 @@
+// === stripe-webhook Edge Function ===
+// Processes incoming Stripe webhook events (e.g., checkout.session.completed).
+// Verifies the webhook signature, validates the event payload with Zod,
+// and records purchases in the database.
+
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import { z } from "https://esm.sh/zod@3.25.76";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, stripe-signature",
 };
+
+// Zod schema: validates the metadata extracted from a completed checkout session
+const checkoutMetadataSchema = z.object({
+  userId: z.string().uuid("userId must be a valid UUID"),
+  courseId: z.string().uuid("courseId must be a valid UUID"),
+});
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -26,6 +38,7 @@ serve(async (req) => {
     const body = await req.text();
     const signature = req.headers.get("stripe-signature");
 
+    // 1. Verify stripe-signature header is present
     if (!signature) {
       console.error("No Stripe signature found");
       return new Response(
@@ -34,7 +47,7 @@ serve(async (req) => {
       );
     }
 
-    // CRITICAL: Verify webhook signature to prevent forged requests
+    // 2. Verify webhook secret is configured
     const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
     if (!webhookSecret) {
       console.error("STRIPE_WEBHOOK_SECRET not configured");
@@ -44,6 +57,7 @@ serve(async (req) => {
       );
     }
 
+    // 3. CRITICAL: Verify webhook signature to prevent forged requests
     let event: Stripe.Event;
     try {
       event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
@@ -58,33 +72,40 @@ serve(async (req) => {
 
     console.log("Verified webhook event:", event.type);
 
+    // 4. Handle checkout.session.completed events
     if (event.type === "checkout.session.completed") {
       const session = event.data.object as Stripe.Checkout.Session;
-      
-      const userId = session.metadata?.userId;
-      const courseId = session.metadata?.courseId;
 
-      if (userId && courseId) {
-        // Get the amount from the session
-        const amountTotal = session.amount_total || 0;
+      // 5. Validate metadata with Zod before trusting it
+      const metadataResult = checkoutMetadataSchema.safeParse(session.metadata);
+      if (!metadataResult.success) {
+        console.error("Invalid session metadata:", metadataResult.error.errors);
+        // Don't retry — bad metadata won't fix itself
+        return new Response(JSON.stringify({ received: true, warning: "Invalid metadata, skipped" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        });
+      }
 
-        // Insert purchase record
-        const { error: purchaseError } = await supabaseClient
-          .from("purchases")
-          .insert({
-            user_id: userId,
-            course_id: courseId,
-            stripe_checkout_session_id: session.id,
-            stripe_payment_intent_id: session.payment_intent as string,
-            amount_cents: amountTotal,
-          });
+      const { userId, courseId } = metadataResult.data;
+      const amountTotal = session.amount_total || 0;
 
-        if (purchaseError) {
-          console.error("Error creating purchase record:", purchaseError);
-          // Don't throw - we don't want to retry the webhook for DB errors
-        } else {
-          console.log("Purchase recorded successfully for user:", userId, "course:", courseId);
-        }
+      // 6. Insert purchase record using validated data
+      const { error: purchaseError } = await supabaseClient
+        .from("purchases")
+        .insert({
+          user_id: userId,
+          course_id: courseId,
+          stripe_checkout_session_id: session.id,
+          stripe_payment_intent_id: session.payment_intent as string,
+          amount_cents: amountTotal,
+        });
+
+      if (purchaseError) {
+        console.error("Error creating purchase record:", purchaseError);
+        // Don't throw — we don't want Stripe to retry for DB errors
+      } else {
+        console.log("Purchase recorded successfully for user:", userId, "course:", courseId);
       }
     }
 

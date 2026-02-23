@@ -1,10 +1,15 @@
+// === project-feedback Edge Function ===
+// Generates AI feedback for student project submissions.
+// Validates input with Zod, checks auth + rate limits + project ownership.
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { z } from "https://esm.sh/zod@3.25.76";
 import { checkRateLimit, rateLimitResponse } from "../_shared/rateLimit.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 // Rate limit: 10 requests per hour per user (project feedback is expensive)
@@ -14,7 +19,15 @@ const RATE_LIMIT_CONFIG = {
   windowMinutes: 60,
 };
 
+// --- Zod schema: validates the request body has a valid UUID project ID ---
+const projectFeedbackRequestSchema = z.object({
+  projectId: z
+    .string({ required_error: "Project ID is required" })
+    .uuid("projectId must be a valid UUID"),
+});
+
 serve(async (req) => {
+  // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -52,25 +65,29 @@ serve(async (req) => {
       return rateLimitResponse(rateLimitResult, corsHeaders);
     }
 
-    // 2. Parse and validate input
-    const { projectId } = await req.json();
-    
-    if (!projectId || typeof projectId !== 'string') {
-      return new Response(JSON.stringify({ error: "Project ID is required" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    // 3. Parse and validate input with Zod
+    let body: unknown;
+    try {
+      body = await req.json();
+    } catch {
+      return new Response(
+        JSON.stringify({ error: "Invalid JSON body" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
-    // Validate UUID format
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    if (!uuidRegex.test(projectId)) {
-      return new Response(JSON.stringify({ error: "Invalid project ID format" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    const parseResult = projectFeedbackRequestSchema.safeParse(body);
+    if (!parseResult.success) {
+      const firstError = parseResult.error.errors[0]?.message ?? "Invalid input";
+      return new Response(
+        JSON.stringify({ error: firstError }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
+    const { projectId } = parseResult.data;
+
+    // 4. Set up service-role client for DB operations
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -79,10 +96,9 @@ serve(async (req) => {
       throw new Error("Missing required environment variables");
     }
 
-    // Create Supabase client with service role
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    // 3. Fetch project with course info
+    // 5. Fetch project with course info
     const { data: project, error: projectError } = await supabase
       .from("course_projects")
       .select(`
@@ -103,7 +119,7 @@ serve(async (req) => {
       });
     }
 
-    // 4. CRITICAL: Verify ownership - user must own this project
+    // 6. CRITICAL: Verify ownership — user must own this project
     if (project.user_id !== userId) {
       return new Response(
         JSON.stringify({ error: "You don't have permission to access this project" }),
@@ -113,6 +129,7 @@ serve(async (req) => {
 
     const course = project.courses;
 
+    // 7. Build AI prompts
     const systemPrompt = `You are an expert business coach and project evaluator for the Solo Founder Academy. 
 You're reviewing a student's project submission for the course: "${course.title}".
 
@@ -147,8 +164,8 @@ Rate the submission on a scale of 1-10, where:
 
 Be encouraging but honest. The goal is to help them succeed as solo founders.`;
 
-    // Sanitize submission content
-    const sanitizedContent = (project.submission_content || '').substring(0, 15000);
+    // Sanitize submission content to a safe max length
+    const sanitizedContent = (project.submission_content || "").substring(0, 15000);
 
     const userPrompt = `Please review this project submission:
 
@@ -158,7 +175,7 @@ ${sanitizedContent}
 
 ${project.file_urls?.length ? `\nNote: The student has also uploaded ${project.file_urls.length} file(s) as part of their submission.` : ""}`;
 
-    // Call AI API
+    // 8. Call AI API
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -199,7 +216,7 @@ ${project.file_urls?.length ? `\nNote: The student has also uploaded ${project.f
       throw new Error("No feedback generated");
     }
 
-    // Update project with feedback
+    // 9. Update project with feedback
     const { error: updateError } = await supabase
       .from("course_projects")
       .update({

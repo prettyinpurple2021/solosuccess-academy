@@ -25,6 +25,7 @@ import { useCourses } from '@/hooks/useCourses';
 import { useAuth } from '@/hooks/useAuth';
 import { phaseMetadata, formatPrice, getPhaseClasses, type CoursePhase } from '@/lib/courseData';
 import { ArrowRight, BookOpen, CheckCircle2, Lock, ShoppingCart, Terminal, Zap } from 'lucide-react';
+import { getCourseThumbnail } from '@/lib/courseThumbnails';
 import { NeonSpinner } from '@/components/ui/neon-spinner';
 import { PageMeta } from '@/components/layout/PageMeta';
 import { QueryStateGuard } from '@/components/ui/query-state-guard';
@@ -160,8 +161,21 @@ export default function Courses() {
                         return (
                           <Card 
                             key={course.id} 
-                            className="group relative flex flex-col glass-card glass-card-hover"
+                            className="group relative flex flex-col glass-card glass-card-hover overflow-hidden"
                           >
+                            {/* Course Thumbnail */}
+                            {getCourseThumbnail(course.order_number) && (
+                              <div className="relative h-40 overflow-hidden">
+                                <img 
+                                  src={getCourseThumbnail(course.order_number)} 
+                                  alt={`${course.title} thumbnail`}
+                                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                  loading="lazy"
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-card to-transparent" />
+                              </div>
+                            )}
+
                             {/* Purchase Status Badge */}
                             <div className="absolute top-4 right-4 z-10">
                               {isPurchased ? (

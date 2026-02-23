@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import { CourseBreadcrumb } from '@/components/navigation/CourseBreadcrumb';
 import { Separator } from '@/components/ui/separator';
 import { 
   ArrowLeft, 
@@ -20,7 +21,7 @@ import {
   Video,
   Mic,
 } from 'lucide-react';
-import { useAdminLessons, useAdminCourses, useUpdateLesson, Lesson, LessonType, QuizData, WorksheetData, ActivityData } from '@/hooks/useAdmin';
+import { useAdminLessons, useAdminCourses, useUpdateLesson, Lesson, LessonType, QuizData, WorksheetData, ActivityData, migrateWorksheetData, migrateActivityData } from '@/hooks/useAdmin';
 import { useTextbookChapters, useTextbookPages } from '@/hooks/useTextbook';
 import { useToast } from '@/hooks/use-toast';
 import { NeonSpinner } from '@/components/ui/neon-spinner';
@@ -64,8 +65,8 @@ export default function AdminLessonDetail() {
       setContent(lesson.content || '');
       setVideoUrl(lesson.video_url || '');
       setQuizData(lesson.quiz_data);
-      setWorksheetData(lesson.worksheet_data);
-      setActivityData(lesson.activity_data);
+      setWorksheetData(migrateWorksheetData(lesson.worksheet_data));
+      setActivityData(migrateActivityData(lesson.activity_data));
     }
   });
 
@@ -74,8 +75,8 @@ export default function AdminLessonDetail() {
     if (lesson.content) setContent(lesson.content);
     if (lesson.video_url) setVideoUrl(lesson.video_url);
     if (lesson.quiz_data) setQuizData(lesson.quiz_data);
-    if (lesson.worksheet_data) setWorksheetData(lesson.worksheet_data);
-    if (lesson.activity_data) setActivityData(lesson.activity_data);
+    if (lesson.worksheet_data) setWorksheetData(migrateWorksheetData(lesson.worksheet_data));
+    if (lesson.activity_data) setActivityData(migrateActivityData(lesson.activity_data));
   }
 
   // Browser beforeunload warning for unsaved changes
@@ -205,17 +206,27 @@ export default function AdminLessonDetail() {
   };
 
   return (
-    <div className="p-6 md:p-8 lg:p-12 space-y-6">
-      {/* Header */}
+    <div className="p-4 md:p-6 lg:p-8 space-y-6">
+      {/* Breadcrumb Navigation */}
       <div className="flex flex-col gap-4">
-        <Button
-          variant="ghost"
-          onClick={() => navigate('/admin')}
-          className="w-fit hover:bg-primary/10 hover:text-primary"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Admin Dashboard
-        </Button>
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate('/admin')}
+            className="hover:bg-primary/10 hover:text-primary shrink-0"
+            title="Back to Admin Dashboard"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <CourseBreadcrumb
+            segments={[
+              { label: 'Admin', href: '/admin' },
+              { label: course?.title || 'Course', href: '/admin' },
+              { label: lesson?.title || 'Lesson' },
+            ]}
+          />
+        </div>
 
         <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
           <div className="flex items-start gap-4">
@@ -317,9 +328,9 @@ export default function AdminLessonDetail() {
           >
             <ClipboardList className="h-4 w-4" />
             <span className="hidden sm:inline">Worksheet</span>
-            {worksheetData && (
+            {worksheetData?.worksheets?.length ? (
               <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-success shadow-[0_0_6px_hsl(var(--success))]" title="Has worksheet" />
-            )}
+            ) : null}
           </TabsTrigger>
           <TabsTrigger 
             value="activity"
@@ -327,9 +338,9 @@ export default function AdminLessonDetail() {
           >
             <Zap className="h-4 w-4" />
             <span className="hidden sm:inline">Activity</span>
-            {activityData && (
+            {activityData?.activities?.length ? (
               <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-success shadow-[0_0_6px_hsl(var(--success))]" title="Has activity" />
-            )}
+            ) : null}
           </TabsTrigger>
           <TabsTrigger 
             value="textbook"

@@ -11,6 +11,66 @@ export interface QuizScore {
   effectiveScore: number; // The score to display (override if exists, otherwise original)
 }
 
+export interface ActivityScore {
+  progressId: string;
+  lessonId: string;
+  lessonTitle: string;
+  score: number; // 0-100 percentage of steps completed
+  adminOverrideScore: number | null;
+  adminNotes: string | null;
+  effectiveScore: number;
+}
+
+/** Represents a student's worksheet completion for a worksheet-type lesson */
+export interface WorksheetScore {
+  progressId: string;
+  lessonId: string;
+  lessonTitle: string;
+  /** Number of answered exercises out of total */
+  answeredCount: number;
+  totalCount: number;
+  /** Completion percentage (0-100) */
+  completionPercent: number;
+}
+
+/**
+ * Calculate a weighted combined grade from quiz, activity, and worksheet scores.
+ * Weights: Quiz 50%, Activity 30%, Worksheet 20%
+ * Only components with data contribute; weights redistribute proportionally.
+ */
+export function calculateCombinedGrade(
+  quizScore: number, quizCount: number,
+  activityScore: number, activityCount: number,
+  worksheetScore: number, worksheetCount: number,
+): { percentage: number; letter: string } {
+  const components: { score: number; weight: number }[] = [];
+  if (quizCount > 0) components.push({ score: quizScore, weight: 50 });
+  if (activityCount > 0) components.push({ score: activityScore, weight: 30 });
+  if (worksheetCount > 0) components.push({ score: worksheetScore, weight: 20 });
+
+  if (components.length === 0) return { percentage: 0, letter: '—' };
+
+  const totalWeight = components.reduce((acc, c) => acc + c.weight, 0);
+  const weighted = components.reduce((acc, c) => acc + (c.score * c.weight / totalWeight), 0);
+  const pct = Math.round(weighted);
+
+  let letter: string;
+  if (pct >= 93) letter = 'A';
+  else if (pct >= 90) letter = 'A-';
+  else if (pct >= 87) letter = 'B+';
+  else if (pct >= 83) letter = 'B';
+  else if (pct >= 80) letter = 'B-';
+  else if (pct >= 77) letter = 'C+';
+  else if (pct >= 73) letter = 'C';
+  else if (pct >= 70) letter = 'C-';
+  else if (pct >= 67) letter = 'D+';
+  else if (pct >= 63) letter = 'D';
+  else if (pct >= 60) letter = 'D-';
+  else letter = 'F';
+
+  return { percentage: pct, letter };
+}
+
 export interface StudentProgress {
   userId: string;
   displayName: string;
@@ -20,6 +80,11 @@ export interface StudentProgress {
   overallProgress: number;
   totalQuizScore: number;
   quizCount: number;
+  totalActivityScore: number;
+  activityCount: number;
+  totalWorksheetScore: number;
+  worksheetCount: number;
+  combinedGrade: { percentage: number; letter: string };
 }
 
 export interface CourseProgress {
@@ -29,6 +94,8 @@ export interface CourseProgress {
   totalLessons: number;
   progressPercent: number;
   quizScores: QuizScore[];
+  activityScores: ActivityScore[];
+  worksheetScores: WorksheetScore[];
   projectStatus: 'draft' | 'submitted' | 'reviewed' | null;
   projectSubmittedAt: string | null;
 }
@@ -75,7 +142,7 @@ export function useGradebook() {
       // Fetch all user progress (including admin override fields)
       const { data: progressData, error: progressError } = await supabase
         .from('user_progress')
-        .select('id, user_id, lesson_id, completed, quiz_score, admin_override_score, admin_notes')
+        .select('id, user_id, lesson_id, completed, quiz_score, activity_score, worksheet_answers, admin_override_score, admin_notes')
         .in('user_id', userIds);
 
       if (progressError) throw progressError;
@@ -123,6 +190,61 @@ export function useGradebook() {
               };
             });
 
+          // Get activity scores for this course
+          const activityScores: ActivityScore[] = userProgress
+            .filter(p => {
+              const lesson = courseLessons.find(l => l.id === p.lesson_id);
+              return lesson?.type === 'activity' && (p.activity_score !== null || p.admin_override_score !== null);
+            })
+            .map(p => {
+              const lesson = courseLessons.find(l => l.id === p.lesson_id);
+              const originalScore = p.activity_score ?? 0;
+              const overrideScore = p.admin_override_score;
+              return {
+                progressId: p.id,
+                lessonId: p.lesson_id,
+                lessonTitle: lesson?.title || 'Unknown',
+                score: originalScore,
+                adminOverrideScore: overrideScore,
+                adminNotes: p.admin_notes,
+                effectiveScore: overrideScore ?? originalScore,
+              };
+            });
+
+          // Get worksheet completion scores for this course
+          const worksheetScores: WorksheetScore[] = userProgress
+            .filter(p => {
+              const lesson = courseLessons.find(l => l.id === p.lesson_id);
+              return lesson?.type === 'worksheet' && p.worksheet_answers !== null;
+            })
+            .map(p => {
+              const lesson = courseLessons.find(l => l.id === p.lesson_id);
+              // Parse worksheet_answers to calculate completion
+              const answers = p.worksheet_answers as Record<string, any> | null;
+              let answeredCount = 0;
+              let totalCount = 0;
+              if (answers && typeof answers === 'object') {
+                // worksheet_answers is keyed by worksheet/exercise index
+                const values = Object.values(answers);
+                totalCount = values.length;
+                answeredCount = values.filter(v => 
+                  v !== null && v !== undefined && v !== '' && 
+                  !(typeof v === 'string' && v.trim() === '')
+                ).length;
+              }
+              const completionPercent = totalCount > 0 
+                ? Math.round((answeredCount / totalCount) * 100) 
+                : 0;
+              return {
+                progressId: p.id,
+                lessonId: p.lesson_id,
+                lessonTitle: lesson?.title || 'Unknown',
+                answeredCount,
+                totalCount,
+                completionPercent,
+              };
+            });
+
           const project = userProjects.find(p => p.course_id === purchase.course_id);
 
           return {
@@ -134,6 +256,8 @@ export function useGradebook() {
               ? Math.round((completedLessons.length / courseLessons.length) * 100) 
               : 0,
             quizScores,
+            activityScores,
+            worksheetScores,
             projectStatus: project?.status || null,
             projectSubmittedAt: project?.submitted_at || null,
           };
@@ -146,6 +270,14 @@ export function useGradebook() {
         const avgQuizScore = allQuizScores.length > 0 
           ? Math.round(allQuizScores.reduce((acc, q) => acc + q.effectiveScore, 0) / allQuizScores.length) 
           : 0;
+        const allActivityScores = courseProgressList.flatMap(c => c.activityScores);
+        const avgActivityScore = allActivityScores.length > 0
+          ? Math.round(allActivityScores.reduce((acc, a) => acc + a.effectiveScore, 0) / allActivityScores.length)
+          : 0;
+        const allWorksheetScores = courseProgressList.flatMap(c => c.worksheetScores);
+        const avgWorksheetScore = allWorksheetScores.length > 0
+          ? Math.round(allWorksheetScores.reduce((acc, w) => acc + w.completionPercent, 0) / allWorksheetScores.length)
+          : 0;
 
         return {
           userId,
@@ -156,6 +288,15 @@ export function useGradebook() {
           overallProgress: totalLessons > 0 ? Math.round((totalCompleted / totalLessons) * 100) : 0,
           totalQuizScore: avgQuizScore,
           quizCount: allQuizScores.length,
+          totalActivityScore: avgActivityScore,
+          activityCount: allActivityScores.length,
+          totalWorksheetScore: avgWorksheetScore,
+          worksheetCount: allWorksheetScores.length,
+          combinedGrade: calculateCombinedGrade(
+            avgQuizScore, allQuizScores.length,
+            avgActivityScore, allActivityScores.length,
+            avgWorksheetScore, allWorksheetScores.length,
+          ),
         };
       });
 

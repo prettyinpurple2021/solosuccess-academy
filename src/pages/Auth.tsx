@@ -38,7 +38,7 @@ export default function Auth() {
   const [searchParams] = useSearchParams();
   const location = useLocation();
   const navigate = useNavigate();
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, resetPassword } = useAuth();
   const { toast } = useToast();
 
   const defaultTab = searchParams.get('mode') === 'signup' ? 'signup' : 'signin';
@@ -166,7 +166,31 @@ export default function Auth() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="signin-password" className="text-foreground/80 font-medium">Password</Label>
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="signin-password" className="text-foreground/80 font-medium">Password</Label>
+                      <button
+                        type="button"
+                        disabled={isLoading}
+                        onClick={async () => {
+                          if (!signInEmail) {
+                            toast({ title: 'Enter your email first', description: 'Please enter your email address above to receive a password reset link.', variant: 'destructive' });
+                            return;
+                          }
+                          setIsLoading(true);
+                          try {
+                            await resetPassword(signInEmail);
+                            toast({ title: 'Reset email sent', description: 'Check your email for a password reset link.' });
+                          } catch (err: any) {
+                            toast({ title: 'Error', description: err.message || 'Failed to send reset email.', variant: 'destructive' });
+                          } finally {
+                            setIsLoading(false);
+                          }
+                        }}
+                        className="text-xs text-primary hover:underline disabled:opacity-50"
+                      >
+                        Forgot password?
+                      </button>
+                    </div>
                     <div className="relative">
                       <Input
                         id="signin-password"

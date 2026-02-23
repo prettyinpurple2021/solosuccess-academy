@@ -1,20 +1,12 @@
 /**
  * @file HighlightToolbar.tsx — Floating Text Selection Toolbar
  *
- * PURPOSE: Appears as a floating toolbar near selected text in the textbook.
- * Offers 5 highlight colors and an "Add Note" button. Positioned absolutely
- * based on the selection's bounding rect.
- *
- * USAGE: TextbookViewer detects text selection → shows this toolbar at
- * the selection position → user picks color or adds note → toolbar closes.
- *
- * PRODUCTION TODO:
- * - Add "Create Flashcard" shortcut directly from toolbar
- * - Improve positioning to avoid going off-screen on mobile
+ * PURPOSE: Appears near selected text in the textbook with highlight colors,
+ * "Add Note", and AI "Explain This" buttons.
  */
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Highlighter, StickyNote, X } from 'lucide-react';
+import { Highlighter, StickyNote, X, Lightbulb } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const HIGHLIGHT_COLORS = [
@@ -29,10 +21,11 @@ interface HighlightToolbarProps {
   position: { x: number; y: number };
   onHighlight: (color: string) => void;
   onAddNote: () => void;
+  onExplain?: () => void;
   onClose: () => void;
 }
 
-export function HighlightToolbar({ position, onHighlight, onAddNote, onClose }: HighlightToolbarProps) {
+export function HighlightToolbar({ position, onHighlight, onAddNote, onExplain, onClose }: HighlightToolbarProps) {
   return (
     <div
       className="fixed z-50 bg-black/90 backdrop-blur-xl border border-primary/30 rounded-lg shadow-[0_0_30px_rgba(168,85,247,0.3)] p-2 flex items-center gap-1 animate-in fade-in-0 zoom-in-95"
@@ -58,21 +51,17 @@ export function HighlightToolbar({ position, onHighlight, onAddNote, onClose }: 
           />
         ))}
       </div>
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={onAddNote}
-        className="h-7 px-2 text-xs hover:bg-primary/20 text-cyan-300"
-      >
+      <Button variant="ghost" size="sm" onClick={onAddNote} className="h-7 px-2 text-xs hover:bg-primary/20 text-cyan-300">
         <StickyNote className="h-3 w-3 mr-1" />
-        Add Note
+        Note
       </Button>
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={onClose}
-        className="h-6 w-6 hover:bg-destructive/20"
-      >
+      {onExplain && (
+        <Button variant="ghost" size="sm" onClick={onExplain} className="h-7 px-2 text-xs hover:bg-primary/20 text-amber-300">
+          <Lightbulb className="h-3 w-3 mr-1" />
+          Explain
+        </Button>
+      )}
+      <Button variant="ghost" size="icon" onClick={onClose} className="h-6 w-6 hover:bg-destructive/20">
         <X className="h-3 w-3" />
       </Button>
     </div>

@@ -52,13 +52,14 @@ serve(async (req: Request): Promise<Response> => {
       Deno.env.get("SUPABASE_ANON_KEY")!,
       { global: { headers: { Authorization: authHeader } } }
     );
-    const { data: { user: commenter }, error: userError } = await supabaseUser.auth.getUser();
-    if (userError || !commenter) {
+    const { data: userData, error: userError } = await supabaseUser.auth.getUser();
+    if (userError || !userData?.user) {
       return new Response(
         JSON.stringify({ error: "Invalid token" }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+    const claimsData = { claims: { sub: userData.user.id } };
 
     const body = await req.json() as { discussionId: string; commentId: string };
     const { discussionId, commentId } = body;
@@ -86,8 +87,9 @@ serve(async (req: Request): Promise<Response> => {
       );
     }
 
+    const commenterId = claimsData.claims.sub as string;
     const authorId = discussion.user_id as string;
-    if (authorId === commenter.id) {
+    if (authorId === commenterId) {
       return new Response(
         JSON.stringify({ message: "No self-notification" }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -109,7 +111,7 @@ serve(async (req: Request): Promise<Response> => {
     const { data: commenterProfile } = await supabase
       .from("profiles_public" as any)
       .select("display_name")
-      .eq("id", commenter.id)
+      .eq("id", commenterId)
       .single() as { data: { display_name: string | null } | null };
     const commenterName = commenterProfile?.display_name || "Someone";
     const preview = (comment.content as string).slice(0, 120);

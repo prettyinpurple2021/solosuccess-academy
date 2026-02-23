@@ -47,10 +47,69 @@ export interface Course {
 
 /**
  * Lesson type enum — the different content formats a lesson can have.
- * 
- * PRODUCTION TODO: Add 'worksheet' | 'activity' to match the full DB enum.
+ * Matches the full `lesson_type` enum in the database.
  */
-export type LessonType = 'text' | 'video' | 'quiz' | 'assignment';
+export type LessonType = 'text' | 'video' | 'quiz' | 'assignment' | 'worksheet' | 'activity';
+
+// ============================================================================
+// STRUCTURED DATA TYPES FOR INTERACTIVE LESSON TYPES
+// ============================================================================
+
+/** A single multiple-choice quiz question */
+export interface QuizQuestion {
+  id: string;
+  question: string;
+  options: string[];        // Answer choices (typically 4)
+  correctAnswer: number;    // 0-based index of the correct option
+  explanation?: string;     // Shown to students after they answer
+}
+
+/** Quiz data stored in lessons.quiz_data JSONB column */
+export interface QuizData {
+  questions: QuizQuestion[];
+  passingScore: number;     // Minimum % to pass (0–100)
+}
+
+/** A single step within an activity */
+export interface ActivityStep {
+  id: string;
+  title: string;
+  description: string;
+}
+
+/** A single activity within a lesson */
+export interface SingleActivity {
+  id: string;
+  title: string;
+  instructions: string;
+  type: 'reflection' | 'exercise' | 'case-study' | 'brainstorm';
+  steps: ActivityStep[];
+}
+
+/** Activity data stored in lessons.activity_data JSONB column */
+export interface ActivityData {
+  activities: SingleActivity[];
+}
+
+/** A single prompt section within a worksheet */
+export interface WorksheetSection {
+  id: string;
+  title: string;
+  prompts: string[];
+}
+
+/** A single worksheet within a lesson */
+export interface SingleWorksheet {
+  id: string;
+  title: string;
+  instructions: string;
+  sections: WorksheetSection[];
+}
+
+/** Worksheet data stored in lessons.worksheet_data JSONB column */
+export interface WorksheetData {
+  worksheets: SingleWorksheet[];
+}
 
 /**
  * Lesson interface — matches the `lessons` database table.
@@ -65,6 +124,10 @@ export interface Lesson {
   content: string | null;                  // Markdown/HTML content for text lessons
   video_url: string | null;                // URL for video lessons (Supabase Storage)
   duration_minutes: number | null;         // Estimated time to complete
+  quiz_data: QuizData | null;              // Structured quiz data for 'quiz' type lessons
+  activity_data: ActivityData | null;      // Structured activity steps for 'activity' type
+  worksheet_data: WorksheetData | null;    // Structured worksheet prompts for 'worksheet' type
+  is_published: boolean;                   // Only published lessons are visible to students
   created_at: string;
   updated_at: string;
 }

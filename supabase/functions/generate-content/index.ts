@@ -4,7 +4,7 @@ import { checkRateLimit, rateLimitResponse } from "../_shared/rateLimit.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 // Rate limit: 20 requests per hour per admin
@@ -15,7 +15,7 @@ const RATE_LIMIT_CONFIG = {
 };
 
 interface GenerateRequest {
-  type: "course_outline" | "lesson_content" | "quiz" | "worksheet" | "activity" | "exam" | "textbook_chapter" | "textbook_page" | "bulk_curriculum";
+  type: "course_outline" | "lesson_content" | "quiz" | "worksheet" | "activity" | "exam" | "textbook_chapter" | "textbook_page" | "bulk_curriculum" | "lesson_enrichment";
   context: {
     courseTitle?: string;
     courseDescription?: string;
@@ -79,26 +79,46 @@ Generate questions in JSON format:
 }
 Include a mix of difficulty levels and ensure questions are practical and relevant to entrepreneurs.`,
 
-  worksheet: `You are an expert instructional designer for SoloSuccess Academy.
-Create a practical worksheet with exercises that help learners apply concepts.
+  worksheet: `You are an expert instructional designer for SoloSuccess Academy, creating rich, educational worksheets that TEACH before they TEST.
+
+IMPORTANT DESIGN PRINCIPLES:
+- Each section should START with a mini-lesson or teaching block BEFORE exercises
+- Include real-world examples, case studies, or frameworks students can reference
+- Use varied exercise types: reflection prompts, fill-in frameworks, checklists, rating scales, brainstorming spaces, scenario analysis, and action planning
+- Make it feel like a guided coaching session, NOT a pop quiz
+- Include "Example Answers" or "Here's what a successful founder did..." to inspire students
+- End with an actionable takeaway the student can implement TODAY
+
 Generate in JSON format:
 {
   "title": "Worksheet Title",
-  "instructions": "Overall instructions for the worksheet",
+  "instructions": "Warm, encouraging overview of what this worksheet will help them accomplish and why it matters for their business",
   "sections": [
     {
       "title": "Section Title",
-      "description": "Section description",
+      "description": "A 2-4 sentence teaching block that explains a concept, shares a framework, or gives context BEFORE the exercises. This is the 'mini-lesson' portion.",
       "exercises": [
         {
-          "type": "text|checklist|rating|reflection",
-          "prompt": "Exercise prompt or question",
-          "hints": "Optional hints or examples"
+          "type": "reflection|framework|checklist|rating|brainstorm|scenario|action_plan|example_analysis",
+          "prompt": "The exercise prompt — should be specific, actionable, and tied to the teaching block above. For frameworks, include the template structure. For checklists, list the items. For scenarios, describe the situation.",
+          "hints": "Provide a worked example, sample answer, or guiding questions to help students who feel stuck. Never leave this empty."
         }
       ]
     }
   ]
-}`,
+}
+
+Exercise type guidelines:
+- "reflection": Deep thinking prompts connecting concepts to the student's own business
+- "framework": Fill-in templates (e.g., "My ideal customer is ___ who struggles with ___ and wants ___")
+- "checklist": Lists of items to audit, review, or implement with checkboxes
+- "rating": Self-assessment scales (rate yourself 1-10 on these skills/areas)
+- "brainstorm": Open-ended idea generation with quantity targets (e.g., "List 10 possible...")
+- "scenario": "What would you do if..." business situations to analyze
+- "action_plan": Step-by-step planning templates with deadlines and accountability
+- "example_analysis": Study a real or hypothetical case and answer guided questions
+
+Include 3-5 sections with 2-4 exercises each. Mix exercise types for engagement.`,
 
   activity: `You are an expert activity designer for SoloSuccess Academy.
 Create an interactive activity that engages learners through hands-on practice.
@@ -170,6 +190,44 @@ Generate in JSON format:
   }
 }
 Make the content actionable and relevant to entrepreneurs.`,
+
+  lesson_enrichment: `You are an expert educational content enhancer for SoloSuccess Academy.
+Your job is to take an existing lesson and generate ADDITIONAL supplemental content that deepens the student's learning experience.
+
+Given the existing lesson content, generate enrichment material in JSON format:
+{
+  "case_study": {
+    "title": "Real-World Case Study Title",
+    "scenario": "A 2-3 paragraph real-world scenario or story of a solo entrepreneur applying these concepts",
+    "key_lesson": "The main takeaway from this case study"
+  },
+  "pro_tips": [
+    "Actionable pro tip 1 that goes beyond the lesson basics",
+    "Actionable pro tip 2 with insider knowledge",
+    "Actionable pro tip 3 for advanced implementation"
+  ],
+  "common_mistakes": [
+    {
+      "mistake": "Description of a common mistake",
+      "fix": "How to avoid or fix it"
+    }
+  ],
+  "deeper_dive": "A 2-3 paragraph section that explores an advanced concept mentioned in the lesson but not fully covered. Include specific frameworks, data, or strategies.",
+  "resource_recommendations": [
+    {
+      "title": "Resource name",
+      "type": "book|tool|article|video",
+      "why": "Why this resource is valuable for this topic"
+    }
+  ],
+  "quick_challenge": {
+    "title": "Mini Challenge Title",
+    "description": "A 15-minute hands-on challenge the student can do right now to apply what they learned",
+    "success_criteria": "How the student knows they completed it successfully"
+  }
+}
+
+Make the content specific to solo entrepreneurs and small business owners. Be practical, not theoretical.`,
 
   bulk_curriculum: `You are an expert curriculum designer and content creator for SoloSuccess Academy, an online learning platform for solo founders and small business owners.
 
@@ -245,16 +303,17 @@ serve(async (req) => {
       { global: { headers: { Authorization: authHeader } } }
     );
 
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
     
-    if (userError || !user) {
+    if (claimsError || !claimsData?.claims) {
       return new Response(
         JSON.stringify({ error: "Unauthorized" }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const userId = user.id;
+    const userId = claimsData.claims.sub as string;
 
     // Check if user is admin
     const { data: roleData } = await supabase
@@ -356,6 +415,16 @@ Difficulty: ${context.difficulty || "intermediate"}
 Include an embedded quiz to test understanding.`;
           break;
 
+        case "lesson_enrichment":
+          userPrompt = `Enrich the following lesson with supplemental content:
+Course: ${context.courseTitle || "Solo Business"}
+Lesson Title: ${context.lessonTitle || "Lesson"}
+Existing Content (first 3000 chars):
+${(context.documentContent || "").substring(0, 3000)}
+
+Generate case studies, pro tips, common mistakes, a deeper dive section, resource recommendations, and a quick challenge that complement (don't repeat) the existing content.`;
+          break;
+
         case "bulk_curriculum":
           if (!context.documentContent) {
             return new Response(
@@ -435,7 +504,7 @@ Extract all key concepts from the document and organize them into a logical lear
 
     // Try to parse JSON from the response for structured content types
     let parsedContent = generatedContent;
-    const jsonContentTypes = ["course_outline", "quiz", "worksheet", "activity", "exam", "textbook_chapter", "textbook_page", "bulk_curriculum"];
+    const jsonContentTypes = ["course_outline", "quiz", "worksheet", "activity", "exam", "textbook_chapter", "textbook_page", "bulk_curriculum", "lesson_enrichment"];
     if (jsonContentTypes.includes(type)) {
       try {
         // Extract JSON from markdown code blocks if present

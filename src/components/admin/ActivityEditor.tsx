@@ -1,14 +1,6 @@
 /**
- * @file ActivityEditor.tsx — Admin Activity Builder
- *
- * PURPOSE: Visual editor for creating hands-on activities with objectives,
- * step-by-step instructions, and deliverables. Data stored as JSON in
- * lessons.activity_data. Supports different activity types (discussion,
- * research, create, analyze).
- *
- * PRODUCTION TODO:
- * - Add time estimates per step
- * - Support peer review activities
+ * @file ActivityEditor.tsx — Legacy Activity Builder (used in inline lesson editing)
+ * Now wraps single activity editing within the multi-activity data format.
  */
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { ActivityData } from '@/hooks/useAdmin';
+import { ActivityData, SingleActivity, migrateActivityData } from '@/hooks/useAdmin';
 import { Plus, Trash2, GripVertical } from 'lucide-react';
 import { AIGenerateButton } from './AIGenerateButton';
 import { GeneratedActivity } from '@/hooks/useContentGenerator';
@@ -27,9 +19,19 @@ interface ActivityEditorProps {
 }
 
 export function ActivityEditor({ data, onChange }: ActivityEditorProps) {
-  const instructions = data?.instructions || '';
-  const activityType = data?.type || 'exercise';
-  const steps = data?.steps || [];
+  const migrated = migrateActivityData(data);
+  const activities = migrated?.activities || [];
+  const act = activities[0] || { id: crypto.randomUUID(), title: 'Activity 1', instructions: '', type: 'exercise' as const, steps: [] };
+  const instructions = act.instructions;
+  const activityType = act.type;
+  const steps = act.steps;
+
+  const updateAct = (updates: Partial<SingleActivity>) => {
+    const updated = { ...act, ...updates };
+    const allActs = [...activities];
+    allActs[0] = updated;
+    onChange({ activities: allActs });
+  };
 
   const handleAIGenerate = (result: GeneratedActivity) => {
     if (result) {
@@ -38,48 +40,35 @@ export function ActivityEditor({ data, onChange }: ActivityEditorProps) {
         title: step.title || '',
         description: step.instructions || '',
       })) || [];
-      onChange({
+      const newAct: SingleActivity = {
+        id: crypto.randomUUID(),
+        title: result.title || `Activity ${activities.length + 1}`,
         instructions: result.description || '',
-        type: activityType,
+        type: 'exercise',
         steps: convertedSteps,
-      });
+      };
+      onChange({ activities: [...activities, newAct] });
     }
   };
 
   const addStep = () => {
-    const newStep = {
-      id: crypto.randomUUID(),
-      title: '',
-      description: '',
-    };
-    onChange({
-      instructions,
-      type: activityType,
-      steps: [...steps, newStep],
-    });
+    updateAct({ steps: [...steps, { id: crypto.randomUUID(), title: '', description: '' }] });
   };
 
   const updateStep = (index: number, updates: Partial<typeof steps[0]>) => {
     const updated = [...steps];
     updated[index] = { ...updated[index], ...updates };
-    onChange({ instructions, type: activityType, steps: updated });
+    updateAct({ steps: updated });
   };
 
   const removeStep = (index: number) => {
-    onChange({
-      instructions,
-      type: activityType,
-      steps: steps.filter((_, i) => i !== index),
-    });
+    updateAct({ steps: steps.filter((_, i) => i !== index) });
   };
 
   return (
     <div className="space-y-6">
       <div className="flex justify-end">
-        <AIGenerateButton
-          type="activity"
-          onGenerated={handleAIGenerate}
-        />
+        <AIGenerateButton type="activity" onGenerated={handleAIGenerate} />
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
@@ -87,13 +76,9 @@ export function ActivityEditor({ data, onChange }: ActivityEditorProps) {
           <Label>Activity Type</Label>
           <Select
             value={activityType}
-            onValueChange={(value: ActivityData['type']) =>
-              onChange({ instructions, type: value, steps })
-            }
+            onValueChange={(value: SingleActivity['type']) => updateAct({ type: value })}
           >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
+            <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="reflection">Reflection</SelectItem>
               <SelectItem value="exercise">Exercise</SelectItem>
@@ -108,7 +93,7 @@ export function ActivityEditor({ data, onChange }: ActivityEditorProps) {
         <Label>Activity Instructions</Label>
         <Textarea
           value={instructions}
-          onChange={(e) => onChange({ instructions: e.target.value, type: activityType, steps })}
+          onChange={(e) => updateAct({ instructions: e.target.value })}
           placeholder="Describe the activity and what students should accomplish..."
           rows={4}
         />
@@ -132,12 +117,7 @@ export function ActivityEditor({ data, onChange }: ActivityEditorProps) {
                     />
                   </div>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => removeStep(index)}
-                  className="text-destructive"
-                >
+                <Button variant="ghost" size="icon" onClick={() => removeStep(index)} className="text-destructive">
                   <Trash2 className="h-4 w-4" />
                 </Button>
               </div>

@@ -80,6 +80,7 @@ const Textbook = lazy(() => import("./pages/Textbook"));
 const Certificates = lazy(() => import("./pages/Certificates"));
 const VerifyCertificate = lazy(() => import("./pages/VerifyCertificate"));
 const Leaderboard = lazy(() => import("./pages/Leaderboard"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 /**
@@ -151,6 +152,9 @@ const App = () => (
 
               {/* Public Certificate Verification — standalone page, no layout */}
               <Route path="/verify/:verificationCode" element={<VerifyCertificate />} />
+
+              {/* Password Reset — public standalone page, user arrives via email link */}
+              <Route path="/reset-password" element={<ResetPassword />} />
 
               {/* ═══════════════════════════════════════════
                   PROTECTED ROUTES — Require authentication.

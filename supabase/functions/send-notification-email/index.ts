@@ -99,21 +99,27 @@ serve(async (req: Request): Promise<Response> => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     ) as SupabaseClientLike;
 
-    // Verify the caller is an admin
-    const token = authHeader.replace("Bearer ", "");
-    const { data: claims, error: claimsError } = await supabase.auth.getUser(token);
+    // Verify caller identity using getUser
+    const supabaseAuth = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } }
+    );
+    const { data: authUserData, error: authError } = await supabaseAuth.auth.getUser();
     
-    if (claimsError || !claims.user) {
+    if (authError || !authUserData?.user) {
       return new Response(
         JSON.stringify({ error: "Invalid token" }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
+    const callerId = authUserData.user.id;
+
     const { data: roleData } = await supabase
       .from("user_roles")
       .select("role")
-      .eq("user_id", claims.user.id)
+      .eq("user_id", callerId)
       .eq("role", "admin")
       .single();
 
