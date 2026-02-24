@@ -66,7 +66,7 @@ export default function CourseDetail() {
       return;
     }
 
-    if (!course?.stripe_price_id) {
+    if (!course) {
       toast({
         title: 'Error',
         description: 'This course is not available for purchase.',
@@ -78,9 +78,9 @@ export default function CourseDetail() {
     setIsPurchasing(true);
 
     try {
+      // Only send courseId — stripe_price_id is looked up server-side for security
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: {
-          priceId: course.stripe_price_id,
           courseId: course.id,
         },
       });

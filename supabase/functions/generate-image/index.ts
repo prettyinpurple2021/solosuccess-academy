@@ -1,10 +1,25 @@
+/**
+ * @file generate-image/index.ts — AI Image Generation Edge Function
+ *
+ * PURPOSE: Generates images for textbook illustrations, lesson thumbnails, etc.
+ * AUTH: Requires admin role.
+ * RATE LIMIT: 10 requests/hour per admin (expensive AI operation).
+ */
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { checkRateLimit, rateLimitResponse } from "../_shared/rateLimit.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+};
+
+// Rate limit: 10 image generations per hour (expensive operation)
+const RATE_LIMIT_CONFIG = {
+  endpoint: "generate-image",
+  maxRequests: 10,
+  windowMinutes: 60,
 };
 
 serve(async (req) => {
@@ -36,7 +51,7 @@ serve(async (req) => {
       });
     }
 
-    const userId = claimsData.claims.sub;
+    const userId = claimsData.claims.sub as string;
 
     // Verify admin role
     const { data: roleData } = await supabase
@@ -51,6 +66,12 @@ serve(async (req) => {
         status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    // Check rate limit before processing expensive AI call
+    const rateLimitResult = await checkRateLimit(userId, RATE_LIMIT_CONFIG);
+    if (!rateLimitResult.allowed) {
+      return rateLimitResponse(rateLimitResult, corsHeaders);
     }
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -89,7 +110,6 @@ serve(async (req) => {
     }
 
     console.log(`Generating image with model: ${imageModel}`);
-    console.log(`Prompt: ${enhancedPrompt}`);
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -128,8 +148,7 @@ serve(async (req) => {
           }
         );
       }
-      const errorText = await response.text();
-      console.error("AI gateway error:", response.status, errorText);
+      console.error("AI gateway error:", response.status);
       return new Response(
         JSON.stringify({ error: "Failed to generate image" }),
         {
@@ -165,9 +184,7 @@ serve(async (req) => {
   } catch (error) {
     console.error("generate-image error:", error);
     return new Response(
-      JSON.stringify({
-        error: error instanceof Error ? error.message : "Unknown error",
-      }),
+      JSON.stringify({ error: "Something went wrong. Please try again." }),
       {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },

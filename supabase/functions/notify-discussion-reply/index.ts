@@ -1,10 +1,25 @@
+/**
+ * @file notify-discussion-reply/index.ts — Discussion Reply Notification
+ *
+ * PURPOSE: Sends in-app and email notifications when someone replies to a discussion.
+ * AUTH: Requires authenticated user.
+ * RATE LIMIT: 50 requests/hour per user (prevents email spam).
+ */
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { checkRateLimit, rateLimitResponse } from "../_shared/rateLimit.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+};
+
+// Rate limit: 50 notification requests per hour (prevents email spam)
+const RATE_LIMIT_CONFIG = {
+  endpoint: "notify-discussion-reply",
+  maxRequests: 50,
+  windowMinutes: 60,
 };
 
 async function sendEmail(to: string, subject: string, html: string): Promise<void> {
@@ -59,7 +74,13 @@ serve(async (req: Request): Promise<Response> => {
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
-    const claimsData = { claims: { sub: userData.user.id } };
+    const commenterId = userData.user.id;
+
+    // Check rate limit before processing
+    const rateLimitResult = await checkRateLimit(commenterId, RATE_LIMIT_CONFIG);
+    if (!rateLimitResult.allowed) {
+      return rateLimitResponse(rateLimitResult, corsHeaders);
+    }
 
     const body = await req.json() as { discussionId: string; commentId: string };
     const { discussionId, commentId } = body;
@@ -87,7 +108,6 @@ serve(async (req: Request): Promise<Response> => {
       );
     }
 
-    const commenterId = claimsData.claims.sub as string;
     const authorId = discussion.user_id as string;
     if (authorId === commenterId) {
       return new Response(
@@ -182,9 +202,8 @@ serve(async (req: Request): Promise<Response> => {
     );
   } catch (error: unknown) {
     console.error("Error in notify-discussion-reply:", error);
-    const msg = error instanceof Error ? error.message : "Unknown error";
     return new Response(
-      JSON.stringify({ error: msg }),
+      JSON.stringify({ error: "Something went wrong. Please try again." }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }

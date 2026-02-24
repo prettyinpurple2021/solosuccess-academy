@@ -5,14 +5,23 @@
  * with an analogy and real-world example. Uses Lovable AI Gateway.
  *
  * AUTH: Requires authenticated user (JWT verified manually).
+ * RATE LIMIT: 30 requests/hour per user.
  */
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import { checkRateLimit, rateLimitResponse } from "../_shared/rateLimit.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+};
+
+// Rate limit: 30 explain requests per hour (same as ai-tutor)
+const RATE_LIMIT_CONFIG = {
+  endpoint: "explain-text",
+  maxRequests: 30,
+  windowMinutes: 60,
 };
 
 serve(async (req) => {
@@ -43,6 +52,14 @@ serve(async (req) => {
         JSON.stringify({ error: "Unauthorized" }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
+    }
+
+    const userId = claimsData.claims.sub as string;
+
+    // Check rate limit before processing
+    const rateLimitResult = await checkRateLimit(userId, RATE_LIMIT_CONFIG);
+    if (!rateLimitResult.allowed) {
+      return rateLimitResponse(rateLimitResult, corsHeaders);
     }
 
     const { selectedText, context } = await req.json();
@@ -121,7 +138,7 @@ Keep the total response under 150 words. Use markdown formatting. Be encouraging
   } catch (error) {
     console.error("explain-text error:", error);
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
+      JSON.stringify({ error: "Something went wrong. Please try again." }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
