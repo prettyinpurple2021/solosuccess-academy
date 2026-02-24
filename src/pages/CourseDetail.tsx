@@ -435,6 +435,29 @@ export default function CourseDetail() {
                   </Card>
                 )}
 
+                {/* Final Exam Card */}
+                {hasPurchased && (
+                  <Card className="glass-card border-secondary/30 hover:border-secondary/50 hover:shadow-[0_0_25px_hsl(var(--secondary)/0.2)] transition-all duration-300">
+                    <CardHeader>
+                      <CardTitle className="text-lg flex items-center gap-2 font-display">
+                        <FileText className="h-5 w-5 text-secondary drop-shadow-[0_0_8px_hsl(var(--secondary)/0.5)]" />
+                        Final Exam
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Test your knowledge with the course final exam — mixed format questions covering all lessons.
+                      </p>
+                      <Button variant="outline" className="w-full border-secondary/30 hover:bg-secondary/10 hover:border-secondary/50 hover:shadow-[0_0_15px_hsl(var(--secondary)/0.3)]" asChild>
+                        <Link to={`/courses/${course.id}/final-exam`}>
+                          <FileText className="mr-2 h-4 w-4" />
+                          Take Final Exam
+                        </Link>
+                      </Button>
+                    </CardContent>
+                  </Card>
+                )}
+
                 {/* Textbook Card */}
                 <Card className="glass-card border-amber-500/30 hover:border-amber-500/50 hover:shadow-[0_0_25px_rgba(245,158,11,0.2)] transition-all duration-300">
                   <CardHeader>

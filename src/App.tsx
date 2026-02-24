@@ -82,6 +82,7 @@ const Certificates = lazy(() => import("./pages/Certificates"));
 const VerifyCertificate = lazy(() => import("./pages/VerifyCertificate"));
 const Leaderboard = lazy(() => import("./pages/Leaderboard"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const FinalExam = lazy(() => import("./pages/FinalExam"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 /**
@@ -194,6 +195,7 @@ const App = () => (
                 <Route path="/courses/:courseId/discussions" element={<CourseDiscussions />} />
                 <Route path="/courses/:courseId/discussions/:discussionId" element={<DiscussionDetail />} />
                 <Route path="/courses/:courseId/textbook" element={<Textbook />} />
+                <Route path="/courses/:courseId/final-exam" element={<FinalExam />} />
                 <Route path="/certificates" element={<Certificates />} />
                 <Route path="/leaderboard" element={<Leaderboard />} />
               </Route>
