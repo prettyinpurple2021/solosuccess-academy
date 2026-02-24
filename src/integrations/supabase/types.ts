@@ -231,6 +231,91 @@ export type Database = {
           },
         ]
       }
+      course_essays: {
+        Row: {
+          course_id: string
+          created_at: string
+          id: string
+          prompts: Json
+          rubric: Json
+          title: string
+          updated_at: string
+          word_limit: number | null
+        }
+        Insert: {
+          course_id: string
+          created_at?: string
+          id?: string
+          prompts?: Json
+          rubric?: Json
+          title: string
+          updated_at?: string
+          word_limit?: number | null
+        }
+        Update: {
+          course_id?: string
+          created_at?: string
+          id?: string
+          prompts?: Json
+          rubric?: Json
+          title?: string
+          updated_at?: string
+          word_limit?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_essays_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: true
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      course_final_exams: {
+        Row: {
+          course_id: string
+          created_at: string
+          id: string
+          instructions: string | null
+          passing_score: number
+          question_count: number
+          questions: Json
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          course_id: string
+          created_at?: string
+          id?: string
+          instructions?: string | null
+          passing_score?: number
+          question_count?: number
+          questions?: Json
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          course_id?: string
+          created_at?: string
+          id?: string
+          instructions?: string | null
+          passing_score?: number
+          question_count?: number
+          questions?: Json
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_final_exams_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: true
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       course_projects: {
         Row: {
           ai_feedback: string | null
@@ -421,6 +506,44 @@ export type Database = {
           },
         ]
       }
+      grade_settings: {
+        Row: {
+          activity_weight: number
+          course_id: string | null
+          created_at: string
+          id: string
+          quiz_weight: number
+          updated_at: string
+          worksheet_weight: number
+        }
+        Insert: {
+          activity_weight?: number
+          course_id?: string | null
+          created_at?: string
+          id?: string
+          quiz_weight?: number
+          updated_at?: string
+          worksheet_weight?: number
+        }
+        Update: {
+          activity_weight?: number
+          course_id?: string | null
+          created_at?: string
+          id?: string
+          quiz_weight?: number
+          updated_at?: string
+          worksheet_weight?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "grade_settings_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: true
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lessons: {
         Row: {
           activity_data: Json | null
@@ -583,6 +706,118 @@ export type Database = {
             columns: ["course_id"]
             isOneToOne: false
             referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      student_essay_submissions: {
+        Row: {
+          admin_feedback: string | null
+          admin_graded_at: string | null
+          admin_score: number | null
+          ai_feedback: string | null
+          ai_graded_at: string | null
+          ai_rubric_scores: Json | null
+          ai_score: number | null
+          content: string
+          created_at: string
+          essay_id: string
+          id: string
+          selected_prompt_index: number
+          status: string
+          submitted_at: string | null
+          updated_at: string
+          user_id: string
+          word_count: number | null
+        }
+        Insert: {
+          admin_feedback?: string | null
+          admin_graded_at?: string | null
+          admin_score?: number | null
+          ai_feedback?: string | null
+          ai_graded_at?: string | null
+          ai_rubric_scores?: Json | null
+          ai_score?: number | null
+          content?: string
+          created_at?: string
+          essay_id: string
+          id?: string
+          selected_prompt_index?: number
+          status?: string
+          submitted_at?: string | null
+          updated_at?: string
+          user_id: string
+          word_count?: number | null
+        }
+        Update: {
+          admin_feedback?: string | null
+          admin_graded_at?: string | null
+          admin_score?: number | null
+          ai_feedback?: string | null
+          ai_graded_at?: string | null
+          ai_rubric_scores?: Json | null
+          ai_score?: number | null
+          content?: string
+          created_at?: string
+          essay_id?: string
+          id?: string
+          selected_prompt_index?: number
+          status?: string
+          submitted_at?: string | null
+          updated_at?: string
+          user_id?: string
+          word_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_essay_submissions_essay_id_fkey"
+            columns: ["essay_id"]
+            isOneToOne: false
+            referencedRelation: "course_essays"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      student_exam_attempts: {
+        Row: {
+          answers: Json
+          created_at: string
+          exam_id: string
+          id: string
+          passed: boolean | null
+          score: number | null
+          submitted_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          answers?: Json
+          created_at?: string
+          exam_id: string
+          id?: string
+          passed?: boolean | null
+          score?: number | null
+          submitted_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          answers?: Json
+          created_at?: string
+          exam_id?: string
+          id?: string
+          passed?: boolean | null
+          score?: number | null
+          submitted_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_exam_attempts_exam_id_fkey"
+            columns: ["exam_id"]
+            isOneToOne: false
+            referencedRelation: "course_final_exams"
             referencedColumns: ["id"]
           },
         ]

@@ -15,7 +15,7 @@ const RATE_LIMIT_CONFIG = {
 };
 
 interface GenerateRequest {
-  type: "course_outline" | "lesson_content" | "quiz" | "worksheet" | "activity" | "exam" | "textbook_chapter" | "textbook_page" | "bulk_curriculum" | "lesson_enrichment";
+  type: "course_outline" | "lesson_content" | "quiz" | "worksheet" | "activity" | "exam" | "textbook_chapter" | "textbook_page" | "bulk_curriculum" | "lesson_enrichment" | "final_exam_mixed" | "final_essay" | "grade_essay";
   context: {
     courseTitle?: string;
     courseDescription?: string;
@@ -279,7 +279,105 @@ Generate a complete curriculum package in JSON format:
   }
 }
 
-Extract key concepts, organize them logically, and create comprehensive educational materials. Include a mix of lesson types for varied learning experiences. Ensure quizzes test understanding of the source material.`
+Extract key concepts, organize them logically, and create comprehensive educational materials. Include a mix of lesson types for varied learning experiences. Ensure quizzes test understanding of the source material.`,
+
+  final_exam_mixed: `You are an expert assessment designer for SoloSuccess Academy.
+Create a comprehensive mixed-format final exam with three question types:
+1. Multiple Choice (MCQ) — ~50% of questions
+2. True/False — ~25% of questions
+3. Short Answer — ~25% of questions
+
+Generate in JSON format:
+{
+  "title": "Final Exam: [Course Title]",
+  "instructions": "Clear exam instructions explaining all three question types",
+  "passingScore": 70,
+  "questions": [
+    {
+      "id": "q1",
+      "type": "mcq",
+      "question": "Question text",
+      "options": ["Option A", "Option B", "Option C", "Option D"],
+      "correctIndex": 0,
+      "explanation": "Why this is correct",
+      "points": 5
+    },
+    {
+      "id": "q2",
+      "type": "true_false",
+      "question": "Statement to evaluate as true or false",
+      "options": ["True", "False"],
+      "correctBoolean": true,
+      "explanation": "Why this is true/false",
+      "points": 3
+    },
+    {
+      "id": "q3",
+      "type": "short_answer",
+      "question": "Question requiring a written response",
+      "correctAnswer": "Key concepts/keywords expected in a good answer",
+      "explanation": "What a complete answer should include",
+      "points": 10
+    }
+  ]
+}
+Include questions of varying difficulty covering the breadth of the course material.`,
+
+  final_essay: `You are an expert assessment designer for SoloSuccess Academy.
+Create a final essay assignment with 3-5 essay topic options and a detailed grading rubric.
+
+Generate in JSON format:
+{
+  "title": "Final Essay: [Course Title]",
+  "wordLimit": 1500,
+  "prompts": [
+    {
+      "title": "Essay Topic Title",
+      "description": "2-3 sentence description of what the essay should address",
+      "guiding_questions": [
+        "Question to help structure their thinking",
+        "Another guiding question",
+        "A third guiding question"
+      ]
+    }
+  ],
+  "rubric": {
+    "totalPoints": 100,
+    "criteria": [
+      {
+        "name": "Thesis & Argument",
+        "description": "Clear thesis statement with well-supported arguments",
+        "maxPoints": 25
+      },
+      {
+        "name": "Critical Thinking",
+        "description": "Demonstrates deep understanding and original analysis",
+        "maxPoints": 25
+      },
+      {
+        "name": "Practical Application",
+        "description": "Connects concepts to real-world solo business scenarios",
+        "maxPoints": 20
+      },
+      {
+        "name": "Structure & Organization",
+        "description": "Logical flow with clear introduction, body, and conclusion",
+        "maxPoints": 15
+      },
+      {
+        "name": "Writing Quality",
+        "description": "Clear, professional writing with proper grammar",
+        "maxPoints": 15
+      }
+    ]
+  }
+}
+Create essay topics that require students to synthesize course concepts and apply them to their own entrepreneurial journey.`,
+
+  grade_essay: `You are an expert essay grader for SoloSuccess Academy.
+Grade the student's essay fairly and constructively based on the provided rubric.
+Be encouraging but honest. Provide specific examples from the essay in your feedback.
+Return your assessment as valid JSON matching the requested format.`
 };
 
 serve(async (req) => {
@@ -449,6 +547,30 @@ Target audience: Solo founders and small business owners
 
 Extract all key concepts from the document and organize them into a logical learning progression.`;
           break;
+
+        case "final_exam_mixed":
+          userPrompt = `Create a comprehensive mixed-format final exam for:
+Course: ${context.courseTitle || "Solo Business Mastery"}
+Course Description: ${context.courseDescription || "A course for solo entrepreneurs"}
+Number of questions: ${context.questionCount || 15}
+
+Include approximately 50% MCQ, 25% true/false, and 25% short answer questions.
+Cover all major topics from the course. Vary difficulty levels.`;
+          break;
+
+        case "final_essay":
+          userPrompt = `Create a final essay assignment for:
+Course: ${context.courseTitle || "Solo Business Mastery"}
+Course Description: ${context.courseDescription || "A course for solo entrepreneurs"}
+
+Generate 3-5 compelling essay topic options that require students to synthesize
+what they've learned and apply it to their own solo business journey.
+Include a detailed grading rubric.`;
+          break;
+
+        case "grade_essay":
+          // grade_essay uses customPrompt exclusively (set by the client)
+          break;
       }
     } else if (context.documentContent) {
       // If custom prompt is provided but also has document, prepend document
@@ -504,7 +626,7 @@ Extract all key concepts from the document and organize them into a logical lear
 
     // Try to parse JSON from the response for structured content types
     let parsedContent = generatedContent;
-    const jsonContentTypes = ["course_outline", "quiz", "worksheet", "activity", "exam", "textbook_chapter", "textbook_page", "bulk_curriculum", "lesson_enrichment"];
+    const jsonContentTypes = ["course_outline", "quiz", "worksheet", "activity", "exam", "textbook_chapter", "textbook_page", "bulk_curriculum", "lesson_enrichment", "final_exam_mixed", "final_essay", "grade_essay"];
     if (jsonContentTypes.includes(type)) {
       try {
         // Extract JSON from markdown code blocks if present

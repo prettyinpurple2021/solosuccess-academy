@@ -35,8 +35,10 @@ import { Progress } from '@/components/ui/progress';
 import { ProgressRing } from '@/components/ui/progress-ring';
 import { NeonSpinner } from '@/components/ui/neon-spinner';
 import { GradeEditor } from '@/components/admin/GradeEditor';
+import { GradeWeightsPanel } from '@/components/admin/GradeWeightsPanel';
 import { useAdminCourses } from '@/hooks/useAdmin';
 import { useGradebook, StudentProgress, CourseProgress, QuizScore, ActivityScore, WorksheetScore, calculateCombinedGrade } from '@/hooks/useGradebook';
+import { useGradeSettings, getWeightsForCourse } from '@/hooks/useGradeSettings';
 import { 
   GraduationCap, 
   Search, 
@@ -57,6 +59,10 @@ import jsPDF from 'jspdf';
 export default function Gradebook() {
   const { data: students, isLoading: studentsLoading } = useGradebook();
   const { data: courses } = useAdminCourses();
+  const { data: gradeSettings } = useGradeSettings();
+  
+  // Resolve effective global weights for display
+  const globalWeights = getWeightsForCourse(gradeSettings);
   
   const [searchTerm, setSearchTerm] = useState('');
   const [courseFilter, setCourseFilter] = useState<string>('all');
@@ -228,14 +234,18 @@ export default function Gradebook() {
   return (
     <div className="p-6 md:p-8 lg:p-12">
       {/* Header */}
-      <div className="flex items-center gap-4 mb-8">
-        <div className="h-14 w-14 rounded-full bg-info/20 flex items-center justify-center shadow-[0_0_30px_hsl(var(--info)/0.4)]">
-          <GraduationCap className="h-8 w-8 text-info" style={{ filter: 'drop-shadow(0 0 10px hsl(var(--info)))' }} />
+      <div className="flex items-center justify-between gap-4 mb-8">
+        <div className="flex items-center gap-4">
+          <div className="h-14 w-14 rounded-full bg-info/20 flex items-center justify-center shadow-[0_0_30px_hsl(var(--info)/0.4)]">
+            <GraduationCap className="h-8 w-8 text-info" style={{ filter: 'drop-shadow(0 0 10px hsl(var(--info)))' }} />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold neon-text">Gradebook</h1>
+            <p className="text-muted-foreground">Track student progress and performance</p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-3xl font-bold neon-text">Gradebook</h1>
-          <p className="text-muted-foreground">Track student progress and performance</p>
-        </div>
+        {/* Grade Weights Settings Panel */}
+        <GradeWeightsPanel courses={courses?.map(c => ({ id: c.id, title: c.title })) || []} />
       </div>
 
       {/* Stats */}
@@ -443,7 +453,7 @@ export default function Gradebook() {
                               </TooltipTrigger>
                               <TooltipContent className="bg-background border-primary/30">
                                 <p className="text-sm">{student.combinedGrade.percentage}% weighted average</p>
-                                <p className="text-xs text-muted-foreground">Quiz 50% · Activity 30% · Worksheet 20%</p>
+                                <p className="text-xs text-muted-foreground">Quiz {globalWeights.quizWeight}% · Activity {globalWeights.activityWeight}% · Worksheet {globalWeights.worksheetWeight}%</p>
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>

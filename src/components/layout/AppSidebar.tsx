@@ -30,7 +30,8 @@ import {
   GraduationCap,
   Award,
   Trophy,
-  Sparkles
+  Sparkles,
+  FileText
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -158,6 +159,21 @@ export function AppSidebar() {
                     >
                       <GraduationCap className="h-5 w-5 flex-shrink-0 text-info drop-shadow-[0_0_6px_hsl(var(--info)/0.5)]" />
                       {!collapsed && <span className="font-medium">Gradebook</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink 
+                      to="/admin/exam-essay"
+                      className={cn(
+                        "flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-300",
+                        "hover:bg-primary/10 hover:text-primary",
+                        location.pathname === '/admin/exam-essay' && "bg-primary/20 text-primary shadow-[inset_0_0_20px_hsl(270_80%_60%/0.1)] border-l-2 border-primary"
+                      )}
+                    >
+                      <FileText className="h-5 w-5 flex-shrink-0 text-secondary drop-shadow-[0_0_6px_hsl(var(--secondary)/0.5)]" />
+                      {!collapsed && <span className="font-medium">Exams & Essays</span>}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

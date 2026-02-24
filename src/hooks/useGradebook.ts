@@ -42,11 +42,13 @@ export function calculateCombinedGrade(
   quizScore: number, quizCount: number,
   activityScore: number, activityCount: number,
   worksheetScore: number, worksheetCount: number,
+  weights?: { quizWeight: number; activityWeight: number; worksheetWeight: number },
 ): { percentage: number; letter: string } {
+  const w = weights || { quizWeight: 50, activityWeight: 30, worksheetWeight: 20 };
   const components: { score: number; weight: number }[] = [];
-  if (quizCount > 0) components.push({ score: quizScore, weight: 50 });
-  if (activityCount > 0) components.push({ score: activityScore, weight: 30 });
-  if (worksheetCount > 0) components.push({ score: worksheetScore, weight: 20 });
+  if (quizCount > 0) components.push({ score: quizScore, weight: w.quizWeight });
+  if (activityCount > 0) components.push({ score: activityScore, weight: w.activityWeight });
+  if (worksheetCount > 0) components.push({ score: worksheetScore, weight: w.worksheetWeight });
 
   if (components.length === 0) return { percentage: 0, letter: '—' };
 

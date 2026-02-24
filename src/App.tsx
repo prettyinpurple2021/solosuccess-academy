@@ -76,6 +76,7 @@ const AdminLessonDetail = lazy(() => import("./pages/AdminLessonDetail"));
 const ContentGenerator = lazy(() => import("./pages/ContentGenerator"));
 const AISettings = lazy(() => import("./pages/AISettings"));
 const Gradebook = lazy(() => import("./pages/Gradebook"));
+const AdminExamEssay = lazy(() => import("./pages/AdminExamEssay"));
 const Textbook = lazy(() => import("./pages/Textbook"));
 const Certificates = lazy(() => import("./pages/Certificates"));
 const VerifyCertificate = lazy(() => import("./pages/VerifyCertificate"));
@@ -177,6 +178,7 @@ const App = () => (
                   <Route path="content-generator" element={<ContentGenerator />} />
                   <Route path="ai-settings" element={<AISettings />} />
                   <Route path="gradebook" element={<Gradebook />} />
+                  <Route path="exam-essay" element={<AdminExamEssay />} />
                 </Route>
                 
                 {/* ─── STUDENT LEARNING ROUTES ────────────
