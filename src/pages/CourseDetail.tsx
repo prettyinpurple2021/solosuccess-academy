@@ -27,6 +27,7 @@ import {
   Download,
   Lock,
   MessageSquare,
+  PenLine,
   Play,
   ShoppingCart,
   Sparkles,
@@ -452,6 +453,29 @@ export default function CourseDetail() {
                         <Link to={`/courses/${course.id}/final-exam`}>
                           <FileText className="mr-2 h-4 w-4" />
                           Take Final Exam
+                        </Link>
+                      </Button>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Final Essay Card */}
+                {hasPurchased && (
+                  <Card className="glass-card border-primary/30 hover:border-primary/50 hover:shadow-[0_0_25px_hsl(var(--primary)/0.2)] transition-all duration-300">
+                    <CardHeader>
+                      <CardTitle className="text-lg flex items-center gap-2 font-display">
+                        <PenLine className="h-5 w-5 text-primary drop-shadow-[0_0_8px_hsl(var(--primary)/0.5)]" />
+                        Final Essay
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Write an essay on a prompt of your choice and receive AI-powered feedback with rubric scoring.
+                      </p>
+                      <Button variant="outline" className="w-full border-primary/30 hover:bg-primary/10 hover:border-primary/50 hover:shadow-[0_0_15px_hsl(var(--primary)/0.3)]" asChild>
+                        <Link to={`/courses/${course.id}/final-essay`}>
+                          <PenLine className="mr-2 h-4 w-4" />
+                          Write Essay
                         </Link>
                       </Button>
                     </CardContent>
