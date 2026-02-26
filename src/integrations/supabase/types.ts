@@ -511,6 +511,8 @@ export type Database = {
           activity_weight: number
           course_id: string | null
           created_at: string
+          essay_weight: number
+          exam_weight: number
           id: string
           quiz_weight: number
           updated_at: string
@@ -520,6 +522,8 @@ export type Database = {
           activity_weight?: number
           course_id?: string | null
           created_at?: string
+          essay_weight?: number
+          exam_weight?: number
           id?: string
           quiz_weight?: number
           updated_at?: string
@@ -529,6 +533,8 @@ export type Database = {
           activity_weight?: number
           course_id?: string | null
           created_at?: string
+          essay_weight?: number
+          exam_weight?: number
           id?: string
           quiz_weight?: number
           updated_at?: string
