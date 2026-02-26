@@ -1,10 +1,7 @@
 /**
  * GradeWeightsPanel – A settings drawer inside the Gradebook page
- * that lets admins configure quiz/activity/worksheet grade weights
+ * that lets admins configure quiz/activity/worksheet/exam/essay grade weights
  * globally and per-course.
- *
- * WHY: Replaces the hardcoded 50/30/20 split. Admins can now customise
- * how much each component contributes to the final Combined Grade.
  */
 import { useState, useEffect } from 'react';
 import {
@@ -33,82 +30,89 @@ import {
   useGradeSettings,
   useUpdateGradeSettings,
   getWeightsForCourse,
-  type GradeWeights,
 } from '@/hooks/useGradeSettings';
 
 interface GradeWeightsPanelProps {
-  /** List of courses for the per-course override selector */
   courses: { id: string; title: string }[];
 }
+
+/** Slider config for each weight component */
+const SLIDERS = [
+  { key: 'quiz' as const, label: 'Quiz Weight', colorClass: 'warning' },
+  { key: 'activity' as const, label: 'Activity Weight', colorClass: 'info' },
+  { key: 'worksheet' as const, label: 'Worksheet Weight', colorClass: 'accent' },
+  { key: 'exam' as const, label: 'Final Exam Weight', colorClass: 'secondary' },
+  { key: 'essay' as const, label: 'Final Essay Weight', colorClass: 'primary' },
+] as const;
+
+type WeightKey = typeof SLIDERS[number]['key'];
 
 export function GradeWeightsPanel({ courses }: GradeWeightsPanelProps) {
   const { data: settings, isLoading } = useGradeSettings();
   const updateSettings = useUpdateGradeSettings();
 
-  // Which scope are we editing? null = global, or a course ID
   const [editScope, setEditScope] = useState<string | null>(null);
 
-  // Local slider state (before saving)
-  const [quiz, setQuiz] = useState(50);
-  const [activity, setActivity] = useState(30);
-  const [worksheet, setWorksheet] = useState(20);
+  // Local slider state
+  const [weights, setWeights] = useState<Record<WeightKey, number>>({
+    quiz: 50, activity: 30, worksheet: 20, exam: 0, essay: 0,
+  });
 
-  // When scope or settings change, load current values
+  // Sync from saved settings when scope changes
   useEffect(() => {
     if (!settings) return;
     const current = editScope === 'global'
       ? getWeightsForCourse(settings)
       : getWeightsForCourse(settings, editScope || undefined);
-    setQuiz(current.quizWeight);
-    setActivity(current.activityWeight);
-    setWorksheet(current.worksheetWeight);
+    setWeights({
+      quiz: current.quizWeight,
+      activity: current.activityWeight,
+      worksheet: current.worksheetWeight,
+      exam: current.examWeight,
+      essay: current.essayWeight,
+    });
   }, [editScope, settings]);
 
-  // Derived: do the sliders sum to 100?
-  const total = quiz + activity + worksheet;
+  const total = Object.values(weights).reduce((a, b) => a + b, 0);
   const isValid = total === 100;
 
-  /** Smart slider adjustment: when one slider moves, adjust the others proportionally */
-  const handleSliderChange = (
-    which: 'quiz' | 'activity' | 'worksheet',
-    newValue: number
-  ) => {
+  /** When one slider moves, redistribute remaining proportionally among others */
+  const handleSliderChange = (which: WeightKey, newValue: number) => {
+    const others = SLIDERS.map(s => s.key).filter(k => k !== which);
+    const oldOtherTotal = others.reduce((sum, k) => sum + weights[k], 0) || 1;
     const remaining = 100 - newValue;
-    if (which === 'quiz') {
-      const otherTotal = activity + worksheet || 1;
-      setQuiz(newValue);
-      setActivity(Math.round((activity / otherTotal) * remaining));
-      setWorksheet(100 - newValue - Math.round((activity / otherTotal) * remaining));
-    } else if (which === 'activity') {
-      const otherTotal = quiz + worksheet || 1;
-      setActivity(newValue);
-      setQuiz(Math.round((quiz / otherTotal) * remaining));
-      setWorksheet(100 - newValue - Math.round((quiz / otherTotal) * remaining));
-    } else {
-      const otherTotal = quiz + activity || 1;
-      setWorksheet(newValue);
-      setQuiz(Math.round((quiz / otherTotal) * remaining));
-      setActivity(100 - newValue - Math.round((quiz / otherTotal) * remaining));
-    }
+
+    const updated = { ...weights, [which]: newValue };
+    let allocated = 0;
+    others.forEach((k, i) => {
+      if (i === others.length - 1) {
+        // Last one gets remainder to avoid rounding issues
+        updated[k] = remaining - allocated;
+      } else {
+        const share = Math.round((weights[k] / oldOtherTotal) * remaining);
+        updated[k] = share;
+        allocated += share;
+      }
+    });
+    setWeights(updated);
   };
 
   const handleSave = () => {
     if (!isValid) return;
     updateSettings.mutate({
       courseId: editScope === 'global' ? null : editScope,
-      quizWeight: quiz,
-      activityWeight: activity,
-      worksheetWeight: worksheet,
+      quizWeight: weights.quiz,
+      activityWeight: weights.activity,
+      worksheetWeight: weights.worksheet,
+      examWeight: weights.exam,
+      essayWeight: weights.essay,
     });
   };
 
   const handleReset = () => {
-    setQuiz(50);
-    setActivity(30);
-    setWorksheet(20);
+    setWeights({ quiz: 40, activity: 20, worksheet: 15, exam: 15, essay: 10 });
   };
 
-  // Which courses already have overrides?
   const overrideCourseIds = settings?.filter(s => s.courseId !== null).map(s => s.courseId) || [];
 
   return (
@@ -129,7 +133,7 @@ export function GradeWeightsPanel({ courses }: GradeWeightsPanelProps) {
             Grade Weight Settings
           </SheetTitle>
           <SheetDescription>
-            Configure how quiz, activity, and worksheet scores contribute to the Combined Grade.
+            Configure how each component contributes to the Combined Grade.
             Weights must total 100%.
           </SheetDescription>
         </SheetHeader>
@@ -169,59 +173,25 @@ export function GradeWeightsPanel({ courses }: GradeWeightsPanelProps) {
 
             <Separator className="bg-primary/20" />
 
-            {/* Quiz Weight Slider */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <Label className="text-foreground/80">Quiz Weight</Label>
-                <Badge variant="outline" className="border-warning/50 text-warning font-mono">
-                  {quiz}%
-                </Badge>
+            {/* Weight Sliders */}
+            {SLIDERS.map(({ key, label, colorClass }) => (
+              <div key={key} className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label className="text-foreground/80">{label}</Label>
+                  <Badge variant="outline" className={`border-${colorClass}/50 text-${colorClass} font-mono`}>
+                    {weights[key]}%
+                  </Badge>
+                </div>
+                <Slider
+                  value={[weights[key]]}
+                  onValueChange={([v]) => handleSliderChange(key, v)}
+                  min={0}
+                  max={100}
+                  step={5}
+                  className={`[&_[role=slider]]:border-${colorClass} [&_[role=slider]]:bg-${colorClass} [&_[data-orientation=horizontal]>span]:bg-${colorClass}`}
+                />
               </div>
-              <Slider
-                value={[quiz]}
-                onValueChange={([v]) => handleSliderChange('quiz', v)}
-                min={0}
-                max={100}
-                step={5}
-                className="[&_[role=slider]]:border-warning [&_[role=slider]]:bg-warning [&_[data-orientation=horizontal]>span]:bg-warning"
-              />
-            </div>
-
-            {/* Activity Weight Slider */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <Label className="text-foreground/80">Activity Weight</Label>
-                <Badge variant="outline" className="border-info/50 text-info font-mono">
-                  {activity}%
-                </Badge>
-              </div>
-              <Slider
-                value={[activity]}
-                onValueChange={([v]) => handleSliderChange('activity', v)}
-                min={0}
-                max={100}
-                step={5}
-                className="[&_[role=slider]]:border-info [&_[role=slider]]:bg-info [&_[data-orientation=horizontal]>span]:bg-info"
-              />
-            </div>
-
-            {/* Worksheet Weight Slider */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <Label className="text-foreground/80">Worksheet Weight</Label>
-                <Badge variant="outline" className="border-accent/50 text-accent font-mono">
-                  {worksheet}%
-                </Badge>
-              </div>
-              <Slider
-                value={[worksheet]}
-                onValueChange={([v]) => handleSliderChange('worksheet', v)}
-                min={0}
-                max={100}
-                step={5}
-                className="[&_[role=slider]]:border-accent [&_[role=slider]]:bg-accent [&_[data-orientation=horizontal]>span]:bg-accent"
-              />
-            </div>
+            ))}
 
             {/* Total indicator */}
             <div className={`flex items-center gap-2 p-3 rounded-lg border ${
@@ -231,7 +201,7 @@ export function GradeWeightsPanel({ courses }: GradeWeightsPanelProps) {
             }`}>
               {!isValid && <AlertCircle className="h-4 w-4" />}
               <span className="text-sm font-medium">
-                Total: {total}% {isValid ? '✓' : `(must be 100%)`}
+                Total: {total}% {isValid ? '✓' : '(must be 100%)'}
               </span>
             </div>
 
@@ -267,11 +237,11 @@ export function GradeWeightsPanel({ courses }: GradeWeightsPanelProps) {
                     const course = courses.find(c => c.id === s.courseId);
                     return (
                       <div key={s.id} className="flex items-center justify-between text-xs p-2 rounded bg-muted/20 border border-muted/10">
-                        <span className="text-foreground/70 truncate max-w-[180px]">
+                        <span className="text-foreground/70 truncate max-w-[140px]">
                           {course?.title || 'Unknown'}
                         </span>
                         <span className="font-mono text-muted-foreground">
-                          {s.quizWeight}/{s.activityWeight}/{s.worksheetWeight}
+                          Q{s.quizWeight}/A{s.activityWeight}/W{s.worksheetWeight}/E{s.examWeight}/Es{s.essayWeight}
                         </span>
                       </div>
                     );
