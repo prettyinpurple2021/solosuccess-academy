@@ -120,7 +120,7 @@ export default function Auth() {
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/20 border border-primary/30 text-primary text-sm font-medium mb-4 shadow-[0_0_20px_hsl(var(--primary)/0.3)]">
             <Sparkles className="h-4 w-4" />
-            Join 10,000+ Solo Founders
+            Be among the first founders to join
           </div>
           <h1 className="text-3xl font-display font-bold mb-2 neon-text">
             Start Your Journey
@@ -305,7 +305,10 @@ export default function Auth() {
 
             <CardFooter className="flex flex-col gap-4 pt-0">
               <p className="text-xs text-center text-muted-foreground">
-                By continuing, you agree to our Terms of Service and Privacy Policy.
+                By continuing, you agree to our{' '}
+                <a href="/terms" className="text-primary hover:underline">Terms of Service</a>
+                {' '}and{' '}
+                <a href="/privacy" className="text-primary hover:underline">Privacy Policy</a>.
               </p>
             </CardFooter>
           </Tabs>
