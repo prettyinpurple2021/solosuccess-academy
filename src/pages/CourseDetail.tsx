@@ -35,9 +35,9 @@ import {
   FileText,
   Video
 } from 'lucide-react';
-import { NeonSpinner } from '@/components/ui/neon-spinner';
 import { PageMeta } from '@/components/layout/PageMeta';
 import { ErrorView } from '@/components/ui/error-view';
+import { CourseDetailSkeleton } from '@/components/skeletons/CourseDetailSkeleton';
 
 export default function CourseDetail() {
   const { courseId } = useParams<{ courseId: string }>();
@@ -103,16 +103,7 @@ export default function CourseDetail() {
   };
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex flex-col cyber-bg">
-        <Header />
-        <main className="flex-1 flex items-center justify-center relative">
-          <div className="cyber-grid" />
-          <NeonSpinner size="lg" />
-        </main>
-        <Footer />
-      </div>
-    );
+    return <CourseDetailSkeleton />;
   }
 
   if (isError) {

@@ -29,6 +29,8 @@ import { getCourseThumbnail } from '@/lib/courseThumbnails';
 import { NeonSpinner } from '@/components/ui/neon-spinner';
 import { PageMeta } from '@/components/layout/PageMeta';
 import { QueryStateGuard } from '@/components/ui/query-state-guard';
+import { ErrorView } from '@/components/ui/error-view';
+import { CoursesSkeleton } from '@/components/skeletons/CoursesSkeleton';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -124,15 +126,17 @@ export default function Courses() {
             </p>
           </div>
 
-          <QueryStateGuard
-            isLoading={isLoading}
-            isError={isError}
-            error={error}
-            refetch={refetch}
-            loadingMessage="Loading courses..."
-            backTo="/courses"
-            backLabel="Back to courses"
-          >
+          {/* Skeleton loader while courses load */}
+          {isLoading ? (
+            <CoursesSkeleton />
+          ) : isError ? (
+            <ErrorView
+              message={error?.message}
+              onRetry={refetch}
+              backTo="/courses"
+              backLabel="Back to courses"
+            />
+          ) : (
             <div className="space-y-20">
               {(['initialization', 'orchestration', 'launch'] as CoursePhase[]).map((phase) => {
                 const meta = phaseMetadata[phase];
@@ -251,12 +255,12 @@ export default function Courses() {
                           </Card>
                         );
                       })}
-                </div>
-              </section>
-            );
-          })}
+                    </div>
+                  </section>
+                );
+              })}
             </div>
-          </QueryStateGuard>
+          )}
       </div>
     </section>
   );

@@ -49,6 +49,7 @@ import {
 } from 'lucide-react';
 import { PageMeta } from '@/components/layout/PageMeta';
 import { ErrorView } from '@/components/ui/error-view';
+import { DashboardSkeleton } from '@/components/skeletons/DashboardSkeleton';
 
 export default function Dashboard() {
   const { user, profile } = useAuth();
@@ -130,12 +131,24 @@ export default function Dashboard() {
     return progress && progress.completed < progress.total;
   });
 
+  // Determine loading state — show skeleton while primary data loads
+  const isLoading = !purchases && !purchasesError;
+
   const dataError = purchasesError || progressError;
   const dataErrorMessage = purchasesErr?.message ?? progressErr?.message;
   const refetchData = () => {
     refetchPurchases();
     refetchProgress();
   };
+
+  if (isLoading) {
+    return (
+      <>
+        <PageMeta title="Dashboard" path="/dashboard" noIndex />
+        <DashboardSkeleton />
+      </>
+    );
+  }
 
   if (dataError) {
     return (
