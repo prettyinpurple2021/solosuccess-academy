@@ -31,7 +31,9 @@ import {
   Award,
   Trophy,
   Sparkles,
-  FileText
+  FileText,
+  ScrollText,
+  HelpCircle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -40,8 +42,10 @@ const mainNavItems = [
   { title: 'My Courses', url: '/courses', icon: BookOpen },
   { title: 'Leaderboard', url: '/leaderboard', icon: Trophy },
   { title: 'Certificates', url: '/certificates', icon: Award },
+  { title: 'Transcript', url: '/transcript', icon: ScrollText },
   { title: 'Profile', url: '/profile', icon: User },
   { title: 'Settings', url: '/settings', icon: Settings },
+  { title: 'Help', url: '/help', icon: HelpCircle },
 ];
 
 export function AppSidebar() {

@@ -50,6 +50,18 @@ export function PublicHeader() {
           >
             Pricing
           </a>
+          <Link 
+            to="/about" 
+            className="text-sm font-medium text-muted-foreground hover:text-primary transition-all duration-300 hover:drop-shadow-[0_0_8px_hsl(270_80%_60%/0.5)]"
+          >
+            About
+          </Link>
+          <Link 
+            to="/help" 
+            className="text-sm font-medium text-muted-foreground hover:text-primary transition-all duration-300 hover:drop-shadow-[0_0_8px_hsl(270_80%_60%/0.5)]"
+          >
+            Help
+          </Link>
         </nav>
 
         {/* Auth Section */}
@@ -100,6 +112,20 @@ export function PublicHeader() {
             onClick={() => setMobileMenuOpen(false)}
           >
             Courses
+          </Link>
+          <Link 
+            to="/about" 
+            className="text-sm font-medium text-muted-foreground hover:text-primary py-2"
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            About
+          </Link>
+          <Link 
+            to="/help" 
+            className="text-sm font-medium text-muted-foreground hover:text-primary py-2"
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            Help
           </Link>
           {!isAuthenticated && (
             <div className="flex flex-col gap-2 pt-4 border-t border-primary/20">

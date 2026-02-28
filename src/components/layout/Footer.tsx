@@ -67,8 +67,18 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link to="/auth?mode=signup" className="text-muted-foreground hover:text-secondary transition-colors font-mono">
-                  Get Started
+                <Link to="/help" className="text-muted-foreground hover:text-secondary transition-colors font-mono">
+                  Help Center
+                </Link>
+              </li>
+              <li>
+                <Link to="/about" className="text-muted-foreground hover:text-secondary transition-colors font-mono">
+                  About Us
+                </Link>
+              </li>
+              <li>
+                <Link to="/contact" className="text-muted-foreground hover:text-secondary transition-colors font-mono">
+                  Contact
                 </Link>
               </li>
             </ul>
