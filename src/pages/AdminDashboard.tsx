@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LessonList } from '@/components/admin/LessonList';
 import { CourseEditor } from '@/components/admin/CourseEditor';
+import { AssetUpload } from '@/components/admin/AssetUpload';
 import { TextbookEditor } from '@/components/admin/TextbookEditor';
 import { EnrichLessonsButton } from '@/components/admin/EnrichLessonsButton';
 import { BulkGenerateButton } from '@/components/admin/BulkGenerateButton';
@@ -381,6 +382,10 @@ export default function AdminDashboard() {
                             <BookText className="h-4 w-4" />
                             <span className="hidden xl:inline ml-2">Textbook</span>
                           </Button>
+                          <AssetUpload
+                            courseId={course.id}
+                            currentAsset={course.plug_and_play_asset}
+                          />
                         </div>
                       </div>
                     </div>
