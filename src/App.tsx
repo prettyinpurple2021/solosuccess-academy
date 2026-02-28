@@ -84,6 +84,9 @@ const Leaderboard = lazy(() => import("./pages/Leaderboard"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const FinalExam = lazy(() => import("./pages/FinalExam"));
 const FinalEssay = lazy(() => import("./pages/FinalEssay"));
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const TermsOfService = lazy(() => import("./pages/TermsOfService"));
+const RefundPolicy = lazy(() => import("./pages/RefundPolicy"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 /**
@@ -151,6 +154,9 @@ const App = () => (
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/courses" element={<Courses />} />
                 <Route path="/courses/:courseId" element={<CourseDetail />} />
+                <Route path="/privacy" element={<PrivacyPolicy />} />
+                <Route path="/terms" element={<TermsOfService />} />
+                <Route path="/refund" element={<RefundPolicy />} />
               </Route>
 
               {/* Public Certificate Verification — standalone page, no layout */}
