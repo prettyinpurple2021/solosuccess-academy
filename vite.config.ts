@@ -21,4 +21,21 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(process.cwd(), "./src"),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        /**
+         * Manual chunk splitting — pulls heavy libraries into their own
+         * lazy-loaded files so the main bundle stays small and fast.
+         */
+        manualChunks: {
+          'vendor-charts': ['recharts'],
+          'vendor-pdf': ['jspdf'],
+          'vendor-motion': ['framer-motion'],
+          'vendor-pageflip': ['react-pageflip'],
+          'vendor-dnd': ['@dnd-kit/core', '@dnd-kit/sortable', '@dnd-kit/utilities'],
+        },
+      },
+    },
+  },
 }));
