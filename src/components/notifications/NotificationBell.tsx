@@ -118,6 +118,7 @@ function NotificationItem({
 
 export function NotificationBell() {
   const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
   const { data: notifications, isLoading } = useNotifications();
   const unreadCount = useUnreadCount();
   const markAllAsRead = useMarkAllAsRead();
@@ -176,7 +177,7 @@ export function NotificationBell() {
         </div>
 
         {/* Notification list */}
-        <ScrollArea className="h-[400px]">
+        <ScrollArea className="h-[350px]">
           {isLoading ? (
             <div className="p-8 text-center text-muted-foreground">
               <div className="animate-pulse">Loading notifications...</div>
@@ -201,6 +202,21 @@ export function NotificationBell() {
             </div>
           )}
         </ScrollArea>
+
+        {/* View All link */}
+        <div className="border-t border-primary/20 p-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full text-xs text-muted-foreground hover:text-primary"
+            onClick={() => {
+              setOpen(false);
+              navigate('/notifications');
+            }}
+          >
+            View All Notifications
+          </Button>
+        </div>
       </PopoverContent>
     </Popover>
   );

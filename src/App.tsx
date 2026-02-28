@@ -87,6 +87,11 @@ const FinalEssay = lazy(() => import("./pages/FinalEssay"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 const RefundPolicy = lazy(() => import("./pages/RefundPolicy"));
+const HelpCenter = lazy(() => import("./pages/HelpCenter"));
+const AboutPage = lazy(() => import("./pages/About"));
+const ContactPage = lazy(() => import("./pages/Contact"));
+const NotificationsPage = lazy(() => import("./pages/Notifications"));
+const TranscriptPage = lazy(() => import("./pages/Transcript"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 /**
@@ -157,6 +162,9 @@ const App = () => (
                 <Route path="/privacy" element={<PrivacyPolicy />} />
                 <Route path="/terms" element={<TermsOfService />} />
                 <Route path="/refund" element={<RefundPolicy />} />
+                <Route path="/help" element={<HelpCenter />} />
+                <Route path="/about" element={<AboutPage />} />
+                <Route path="/contact" element={<ContactPage />} />
               </Route>
 
               {/* Public Certificate Verification — standalone page, no layout */}
@@ -206,6 +214,8 @@ const App = () => (
                 <Route path="/courses/:courseId/final-essay" element={<FinalEssay />} />
                 <Route path="/certificates" element={<Certificates />} />
                 <Route path="/leaderboard" element={<Leaderboard />} />
+                <Route path="/notifications" element={<NotificationsPage />} />
+                <Route path="/transcript" element={<TranscriptPage />} />
               </Route>
 
                 {/* 404 catch-all — shows friendly "not found" page */}
