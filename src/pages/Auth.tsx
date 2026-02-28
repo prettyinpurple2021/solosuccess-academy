@@ -31,7 +31,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Eye, EyeOff, Sparkles } from 'lucide-react';
+import { Loader2, Eye, EyeOff, Sparkles, MailCheck } from 'lucide-react';
 import { PageMeta } from '@/components/layout/PageMeta';
 
 export default function Auth() {
@@ -79,17 +79,29 @@ export default function Auth() {
     }
   };
 
+  // Track whether we just signed up and need email confirmation
+  const [showEmailConfirmation, setShowEmailConfirmation] = useState(false);
+
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      await signUp(signUpEmail, signUpPassword, signUpName);
-      toast({
-        title: 'Account created!',
-        description: 'Welcome to SoloSuccess Academy. You can now access your dashboard.',
-      });
-      navigate(from, { replace: true });
+      const data = await signUp(signUpEmail, signUpPassword, signUpName);
+
+      // If the user's email is NOT confirmed yet, Supabase returns a user
+      // but session will be null (email verification required)
+      if (data.user && !data.session) {
+        // Email confirmation is required — show the verification message
+        setShowEmailConfirmation(true);
+      } else {
+        // Auto-confirm is on (dev mode) — go straight to dashboard
+        toast({
+          title: 'Account created!',
+          description: 'Welcome to SoloSuccess Academy.',
+        });
+        navigate(from, { replace: true });
+      }
     } catch (error: any) {
       toast({
         title: 'Error creating account',
@@ -100,6 +112,35 @@ export default function Auth() {
       setIsLoading(false);
     }
   };
+
+  // If the user just signed up and needs to verify, show a dedicated screen
+  if (showEmailConfirmation) {
+    return (
+      <div className="flex-1 flex items-center justify-center py-12 px-4 relative">
+        <PageMeta title="Verify Your Email" description="Check your email to verify your SoloSuccess Academy account." path="/auth" noIndex />
+        <div className="cyber-grid" />
+        <div className="w-full max-w-md relative z-10">
+          <div className="absolute -top-20 -left-20 w-64 h-64 rounded-full blur-3xl animate-orb-glow-primary" />
+          <Card className="glass-card border-primary/30 shadow-[0_0_40px_hsl(var(--primary)/0.2)] text-center p-8">
+            {/* Animated mail icon */}
+            <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-primary/20 border border-primary/30 shadow-[0_0_25px_hsl(var(--primary)/0.4)]">
+              <MailCheck className="h-8 w-8 text-primary" />
+            </div>
+            <h2 className="text-2xl font-display font-bold mb-3 neon-text">Check Your Email</h2>
+            <p className="text-muted-foreground mb-6">
+              We sent a verification link to <span className="text-foreground font-medium">{signUpEmail}</span>. Click the link in your email to activate your account.
+            </p>
+            <p className="text-xs text-muted-foreground mb-6">
+              Didn't receive it? Check your spam folder or try signing up again.
+            </p>
+            <Button variant="neon" className="w-full" onClick={() => setShowEmailConfirmation(false)}>
+              Back to Sign In
+            </Button>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 flex items-center justify-center py-12 px-4 relative">
