@@ -434,6 +434,7 @@ export type Database = {
       }
       courses: {
         Row: {
+          cover_image_url: string | null
           created_at: string
           description: string | null
           discussion_question: string | null
@@ -451,6 +452,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          cover_image_url?: string | null
           created_at?: string
           description?: string | null
           discussion_question?: string | null
@@ -468,6 +470,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          cover_image_url?: string | null
           created_at?: string
           description?: string | null
           discussion_question?: string | null

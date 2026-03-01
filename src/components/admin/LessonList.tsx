@@ -266,10 +266,11 @@ export function LessonList({ courseId }: LessonListProps) {
                       index={index}
                       onEdit={setEditingLesson}
                       onDelete={handleDelete}
-                      
+                      onDuplicate={handleDuplicate}
                       onTogglePublish={toggleLessonPublish}
                       isUpdating={updateLesson.isPending}
                       isDeleting={deleteLesson.isPending}
+                      isDuplicating={duplicateLesson.isPending}
                     />
                   ))}
                 </div>
