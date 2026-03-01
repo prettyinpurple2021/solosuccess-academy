@@ -141,11 +141,18 @@ export function CourseEditor({ onClose }: CourseEditorProps) {
     }
 
     try {
+      // Parse price safely — NaN defaults to $49.00
+      const parsedPrice = parseFloat(price);
+      const priceCents = !isNaN(parsedPrice) && parsedPrice >= 0
+        ? Math.round(parsedPrice * 100)
+        : 4900;
+
       await createCourse.mutateAsync({
         title: title.trim(),
         description: description.trim() || null,
         phase,
-        price_cents: Math.round(parseFloat(price) * 100) || 4900,
+        price_cents: priceCents,
+        cover_image_url: coverImageUrl || null,
       });
       toast({ title: 'Course created!' });
       onClose();

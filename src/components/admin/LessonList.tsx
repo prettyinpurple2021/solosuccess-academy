@@ -31,11 +31,12 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useAdminLessons, useDeleteLesson, useUpdateLesson, useReorderLessons, useBulkPublishLessons, useDuplicateLesson, Lesson } from '@/hooks/useAdmin';
+import { supabase } from '@/integrations/supabase/client';
+import { useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { LessonEditor } from './LessonEditor';
 import { SortableLessonItem } from './SortableLessonItem';
-import { Plus, FileText, Copy, Eye, EyeOff, Trash2, CheckSquare } from 'lucide-react';
-import { Checkbox } from '@/components/ui/checkbox';
+import { Plus, FileText, Eye, EyeOff } from 'lucide-react';
 import { NeonSpinner } from '@/components/ui/neon-spinner';
 
 interface LessonListProps {
@@ -53,6 +54,7 @@ export function LessonList({ courseId }: LessonListProps) {
   const duplicateLesson = useDuplicateLesson();
   
   const bulkPublish = useBulkPublishLessons();
+  const queryClient = useQueryClient();
   const { toast } = useToast();
 
   const sensors = useSensors(
@@ -136,17 +138,23 @@ export function LessonList({ courseId }: LessonListProps) {
     }
   };
 
-  // Bulk delete selected lessons
+  // Bulk delete selected lessons — single DB call using .in() for atomicity
   const handleBulkDelete = async () => {
     if (selectedIds.size === 0) return;
-    if (!confirm(`Delete ${selectedIds.size} selected lesson(s)? This cannot be undone.`)) return;
+    const count = selectedIds.size;
+    if (!confirm(`Delete ${count} selected lesson(s)? This cannot be undone.`)) return;
 
     try {
-      for (const id of selectedIds) {
-        await deleteLesson.mutateAsync({ lessonId: id, courseId });
-      }
+      const { error } = await supabase
+        .from('lessons')
+        .delete()
+        .in('id', Array.from(selectedIds));
+
+      if (error) throw error;
+
       setSelectedIds(new Set());
-      toast({ title: `${selectedIds.size} lesson(s) deleted` });
+      queryClient.invalidateQueries({ queryKey: ['admin-lessons', courseId] });
+      toast({ title: `${count} lesson(s) deleted` });
     } catch (error: any) {
       toast({ title: 'Failed to delete', description: error.message, variant: 'destructive' });
     }

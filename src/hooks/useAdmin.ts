@@ -240,6 +240,7 @@ export function useCreateCourse() {
       description?: string | null;
       phase: CoursePhase;
       price_cents?: number;
+      cover_image_url?: string | null;
     }) => {
       // Get the highest existing order_number for this phase
       const { data: existing } = await supabase
@@ -260,6 +261,7 @@ export function useCreateCourse() {
           price_cents: course.price_cents || 4900,  // Default $49.00
           order_number: nextOrder,
           is_published: false,
+          cover_image_url: course.cover_image_url || null,
         }])
         .select()
         .single();
@@ -694,6 +696,11 @@ export async function uploadLessonVideo(
 
   if (uploadError) throw uploadError;
 
-  const { data } = supabase.storage.from('lesson-videos').getPublicUrl(fileName);
-  return data.publicUrl;
+  // lesson-videos bucket is private — use signed URL (1 hour expiry)
+  const { data: signedData, error: signedError } = await supabase.storage
+    .from('lesson-videos')
+    .createSignedUrl(fileName, 60 * 60);
+
+  if (signedError) throw signedError;
+  return signedData.signedUrl;
 }
