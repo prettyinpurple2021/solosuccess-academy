@@ -111,8 +111,9 @@ export function TextbookEditor({ courseId, courseTitle = 'Course' }: TextbookEdi
       const [moved] = reordered.splice(oldIndex, 1);
       reordered.splice(newIndex, 0, moved);
 
-      // Optimistic update
-      queryClient.setQueryData(['textbook-chapters', courseId], reordered);
+      // Optimistic update — also fix order_number so UI reflects new positions
+      const reorderedWithOrder = reordered.map((ch, i) => ({ ...ch, order_number: i + 1 }));
+      queryClient.setQueryData(['textbook-chapters', courseId], reorderedWithOrder);
 
       // Update order numbers in DB
       try {

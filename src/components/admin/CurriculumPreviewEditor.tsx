@@ -77,6 +77,8 @@ export function CurriculumPreviewEditor({ curriculum, onUpdate, documentContent 
   const undoStackRef = useRef<GeneratedBulkCurriculum[]>([]);
   const redoStackRef = useRef<GeneratedBulkCurriculum[]>([]);
   const MAX_UNDO_HISTORY = 50;
+  // Counter to force re-render when stack lengths change
+  const [historyVersion, setHistoryVersion] = useState(0);
 
   /**
    * Wraps onUpdate to push the *current* state onto the undo stack
@@ -89,6 +91,7 @@ export function CurriculumPreviewEditor({ curriculum, onUpdate, documentContent 
         curriculum,
       ];
       redoStackRef.current = []; // New edit clears redo
+      setHistoryVersion((v) => v + 1);
       onUpdate(newCurriculum);
     },
     [curriculum, onUpdate]
@@ -100,6 +103,7 @@ export function CurriculumPreviewEditor({ curriculum, onUpdate, documentContent 
     const prev = undoStackRef.current[undoStackRef.current.length - 1];
     undoStackRef.current = undoStackRef.current.slice(0, -1);
     redoStackRef.current = [...redoStackRef.current, curriculum];
+    setHistoryVersion((v) => v + 1);
     onUpdate(prev);
   }, [curriculum, onUpdate]);
 
@@ -109,6 +113,7 @@ export function CurriculumPreviewEditor({ curriculum, onUpdate, documentContent 
     const next = redoStackRef.current[redoStackRef.current.length - 1];
     redoStackRef.current = redoStackRef.current.slice(0, -1);
     undoStackRef.current = [...undoStackRef.current, curriculum];
+    setHistoryVersion((v) => v + 1);
     onUpdate(next);
   }, [curriculum, onUpdate]);
 
