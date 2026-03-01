@@ -15,6 +15,10 @@
  * - RLS policies on admin tables check for admin role
  * - Edge Functions verify admin status server-side
  * Never rely solely on client-side route guards for security.
+ * 
+ * PRODUCTION TODO:
+ * - Add an "Unauthorized" page instead of silent redirect to dashboard
+ * - Consider caching the admin check to avoid re-querying on every navigation
  */
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";

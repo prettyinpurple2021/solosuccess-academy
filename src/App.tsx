@@ -21,6 +21,11 @@
  * - Public routes: Landing page, auth, course catalog (no login needed)
  * - Protected routes: Dashboard, profile, lessons (login required)
  * - Admin routes: Course management, analytics (admin role required)
+ * 
+ * PRODUCTION TODO:
+ * - Add route-level error boundaries for graceful per-page error handling
+ * - Consider adding analytics tracking on route changes
+ * - Add proper 301 redirects for any renamed routes
  */
 import { Toaster } from "@/components/ui/toaster";
 import { lazy, Suspense } from "react";
@@ -97,6 +102,10 @@ const NotFound = lazy(() => import("./pages/NotFound"));
  * - staleTime: 5 minutes — data won't refetch for 5 min after a successful load.
  *   This reduces unnecessary API calls while keeping data reasonably fresh.
  * - retry: 1 — only retry failed requests once (default is 3, which can be slow).
+ * 
+ * PRODUCTION TODO:
+ * - Consider adding a global `onError` handler to log query failures
+ * - Adjust staleTime per-query if some data needs to be more real-time
  */
 const queryClient = new QueryClient({
   defaultOptions: {

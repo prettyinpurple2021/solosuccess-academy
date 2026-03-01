@@ -4,6 +4,11 @@
  * PURPOSE: Visual editor for creating multiple-choice quiz questions.
  * Manages an array of questions, each with options, correct answer index,
  * explanation, and passing score. Data stored as JSON in lessons.quiz_data.
+ *
+ * PRODUCTION TODO:
+ * - Support additional question types (true/false, matching, fill-in)
+ * - Add question randomization option
+ * - Add question weighting for scoring
  */
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';

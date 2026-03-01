@@ -16,6 +16,11 @@
  * - If not authenticated → redirects to /auth with `state.from` so the user
  *   returns to their original destination after login
  * - If authenticated → renders sidebar + main content area
+ * 
+ * PRODUCTION TODO:
+ * - Add a <Footer> component inside the layout if needed
+ * - Consider adding a top notification banner slot
+ * - Add breadcrumb navigation for deeply nested routes
  */
 import { Navigate, Outlet, useLocation, useParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';

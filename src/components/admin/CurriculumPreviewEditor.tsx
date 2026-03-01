@@ -9,6 +9,11 @@
  * WORKFLOW: Generate content → CurriculumPreviewEditor → review/edit → Save to DB
  * The save operation uses useSaveBulkCurriculum which creates course, lessons,
  * chapters, pages, and exam in a single transaction.
+ *
+ * PRODUCTION TODO:
+ * - Add undo/redo for edits
+ * - Add diff view showing AI vs edited content
+ * - Support selective saving (e.g., save course but regenerate lessons)
  */
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';

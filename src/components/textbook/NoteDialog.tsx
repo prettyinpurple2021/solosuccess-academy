@@ -4,6 +4,10 @@
  * PURPOSE: Modal dialog for adding a note to highlighted text. Shows the
  * selected text preview, a color picker, and a textarea for the note.
  * Called from TextbookViewer when user clicks "Add Note" in HighlightToolbar.
+ *
+ * PRODUCTION TODO:
+ * - Add rich text formatting for notes (bold, links)
+ * - Support attaching images to notes
  */
 import React, { useState } from 'react';
 import {

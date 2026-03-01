@@ -10,6 +10,12 @@
  * DATA FLOW:
  *   useTextbookChapters → chapter list → expand → useTextbookPages → page list
  *   useCreateChapter/Page, useUpdateChapter/Page, useDeleteChapter/Page → mutations
+ *
+ * PRODUCTION TODO:
+ * - Add drag-and-drop chapter/page reordering
+ * - Add markdown preview for page content
+ * - Support bulk page import from documents
+ * - Add page content character/word count
  */
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';

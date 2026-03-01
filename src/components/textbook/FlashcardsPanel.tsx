@@ -13,6 +13,11 @@
  *   useFlashcards(courseId) → all user's cards for this course
  *   useDueFlashcards(courseId) → cards where next_review_at <= now
  *   useCreateFlashcard / useUpdateFlashcard / useDeleteFlashcard → CRUD mutations
+ *
+ * PRODUCTION TODO:
+ * - Add bulk import/export of flashcard decks
+ * - Support shared flashcard decks between students
+ * - Add tagging/categorization for large card sets
  */
 import React, { useState } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';

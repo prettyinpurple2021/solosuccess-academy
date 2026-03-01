@@ -30,6 +30,16 @@
  * - All mutations rely on RLS policies that check for admin role
  * - The client-side AdminLayout gate prevents non-admin access to the UI
  * - But the REAL security is the RLS policies on the database tables
+ * 
+ * PRODUCTION TODO:
+ * - This file is 365 lines — consider splitting into:
+ *   - useAdminCourses.ts (course CRUD)
+ *   - useAdminLessons.ts (lesson CRUD)
+ *   - adminTypes.ts (shared types)
+ * - Add optimistic updates for drag-and-drop reordering
+ * - Add bulk operations (publish/unpublish multiple lessons)
+ * - The `onProgress` parameter in uploadLessonVideo is unused — implement
+ *   it using tus protocol or XMLHttpRequest for progress tracking
  */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -419,6 +429,11 @@ export function useUpdateLesson() {
  * 
  * WARNING: This is a hard delete with no undo. Consider adding
  * soft delete (is_deleted flag) for production.
+ * 
+ * PRODUCTION TODO:
+ * - Also delete associated files from Storage (videos, etc.)
+ * - Clean up user_progress records for this lesson
+ * - Add confirmation dialog in the UI (handled by the component)
  */
 export function useDeleteLesson() {
   const queryClient = useQueryClient();
@@ -444,6 +459,10 @@ export function useDeleteLesson() {
  * 
  * Uses Promise.all to update all lessons in parallel for speed.
  * If any single update fails, the error is thrown.
+ * 
+ * PRODUCTION TODO:
+ * - Move to a single database function for atomicity
+ * - Add optimistic updates so the UI doesn't flicker
  */
 export function useReorderLessons() {
   const queryClient = useQueryClient();
@@ -605,6 +624,12 @@ export function useUpdateCourse() {
  * @param file - The video File object from an <input>
  * @param onProgress - Optional progress callback (NOT YET IMPLEMENTED)
  * @returns The public URL of the uploaded video
+ * 
+ * PRODUCTION TODO:
+ * - Implement onProgress using tus resumable uploads
+ * - Add video format validation (mp4, webm only)
+ * - Add file size limit (e.g., 500MB max)
+ * - Consider video transcoding via a background job
  */
 export async function uploadLessonVideo(
   courseId: string,

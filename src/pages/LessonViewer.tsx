@@ -24,6 +24,12 @@
  * 3. XP awarded via gamification system (+25 XP)
  * 4. Badge criteria checked after 1 second delay
  * 5. If ALL lessons in course are done → confetti + certificate generated
+ * 
+ * PRODUCTION TODO:
+ * - Add lesson timer (track time spent per lesson)
+ * - Add note-taking inline (currently only via AI tutor)
+ * - Pre-fetch next lesson content for instant navigation
+ * - Add lesson-level error boundary
  */
 import { useState, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';

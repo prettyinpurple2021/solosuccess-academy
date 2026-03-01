@@ -8,6 +8,13 @@
  * DATA FLOW:
  * Database (PostgreSQL) → Supabase SDK → useCourses.ts hook → Components
  *                                         ↑ uses these types
+ * 
+ * PRODUCTION TODO:
+ * - The `LessonType` here only includes 4 values, but the DB enum has 6
+ *   ('text', 'video', 'quiz', 'assignment', 'worksheet', 'activity').
+ *   Update this type to match the full DB enum for consistency.
+ * - Consider generating these types automatically from the Supabase schema
+ *   to prevent drift between frontend types and database columns.
  */
 
 /** The three phases of the SoloSuccess curriculum */
@@ -163,6 +170,8 @@ export const phaseMetadata: Record<CoursePhase, {
  * 
  * @param cents - Price in cents (e.g., 4900)
  * @returns Formatted string (e.g., "$49.00")
+ * 
+ * PRODUCTION TODO: Support multiple currencies if expanding internationally.
  */
 export const formatPrice = (cents: number): string => {
   return new Intl.NumberFormat('en-US', {

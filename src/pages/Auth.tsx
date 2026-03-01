@@ -14,6 +14,13 @@
  * SECURITY NOTE:
  * - Email verification is enabled by default in production
  * - Password minimum length is 6 characters (enforced by Supabase)
+ * 
+ * PRODUCTION TODO:
+ * - Add "Forgot Password" flow with resetPassword() from useAuth
+ * - Add OAuth buttons (Google, GitHub) for social login
+ * - Add password strength indicator
+ * - Add rate limiting feedback for too many failed attempts
+ * - Add CAPTCHA for sign-up to prevent bot registrations
  */
 import { useState } from 'react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';

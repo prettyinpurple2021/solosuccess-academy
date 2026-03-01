@@ -18,6 +18,11 @@
  * - Published courses are public (no auth required to view catalog)
  * - Purchase data requires auth (RLS enforces user_id match)
  * - Stripe IDs are excluded from the select query to avoid leaking them
+ * 
+ * PRODUCTION TODO:
+ * - Add pagination for course listings if catalog grows beyond 20+ courses
+ * - Add search/filter hooks for course discovery
+ * - Consider prefetching course detail when hovering over course cards
  */
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';

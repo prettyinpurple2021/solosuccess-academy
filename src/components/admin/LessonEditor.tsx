@@ -4,6 +4,11 @@
  * PURPOSE: Tabbed form for creating/editing lessons. Supports lesson types:
  * text, video, quiz, worksheet, activity. Content tab switches editor based
  * on type. Media tab provides video upload. AI content generation available.
+ *
+ * PRODUCTION TODO:
+ * - Add auto-save draft functionality
+ * - Add markdown preview for text content
+ * - Add lesson scheduling (publish date)
  */
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';

@@ -13,6 +13,12 @@
  * - Certificate generation requires authenticated user (RLS)
  * - Verification uses a secure RPC function to prevent table enumeration
  * - Duplicate prevention: checks existing certificate before insert
+ *
+ * PRODUCTION TODO:
+ * - Add admin certificate revocation capability
+ * - Implement certificate templates per course category
+ * - Add LinkedIn credential sharing integration
+ * - Consider blockchain-based verification for premium certificates
  */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';

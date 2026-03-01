@@ -4,6 +4,11 @@
  * PURPOSE: Reusable button + dialog that calls the generate-content edge function
  * to create lesson content, quiz questions, worksheets, or activities via AI.
  * Shows a loading state, then passes the generated content back via onGenerated callback.
+ *
+ * PRODUCTION TODO:
+ * - Add prompt customization in the dialog
+ * - Show generation history/versioning
+ * - Add "regenerate" option with different parameters
  */
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';

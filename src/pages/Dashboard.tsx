@@ -15,6 +15,12 @@
  * - progress query → lesson completion data
  * - useCertificateCount() → number of earned certificates
  * - useContinueLater() → bookmarked lesson/textbook position
+ * 
+ * PRODUCTION TODO:
+ * - The progress calculation does a O(n²) lookup in forEach — optimize with a Map
+ * - Add skeleton loading states instead of blank content while data loads
+ * - Add a "Quick Actions" section (start discussion, submit project, etc.)
+ * - Consider server-side aggregation for stats to reduce client computation
  */
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';

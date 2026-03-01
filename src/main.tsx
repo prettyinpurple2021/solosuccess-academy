@@ -10,6 +10,11 @@
  * - The `!` after `getElementById("root")` is TypeScript's "non-null assertion" — it tells
  *   TypeScript "trust me, this element exists." If it doesn't, the app will crash.
  * - `./index.css` is imported for global styles (Tailwind + custom design system).
+ * 
+ * PRODUCTION TODO:
+ * - Consider adding React.StrictMode wrapper for catching bugs in dev:
+ *   `<React.StrictMode><App /></React.StrictMode>`
+ * - Add global error reporting (e.g., Sentry) before createRoot for uncaught errors.
  */
 import React from "react";
 import { createRoot } from "react-dom/client";

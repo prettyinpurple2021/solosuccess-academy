@@ -7,6 +7,10 @@
  *
  * DnD FLOW: DndContext → SortableContext → SortableLessonItem components
  * On drag end → reorder array → useReorderLessons mutation → updates order_number
+ *
+ * PRODUCTION TODO:
+ * - Add bulk actions (delete multiple, publish all)
+ * - Add lesson duplication
  */
 import { useState } from 'react';
 import {

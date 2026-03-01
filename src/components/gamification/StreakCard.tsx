@@ -8,6 +8,11 @@
  * - Streak is tracked via last_activity_date in user_gamification table
  * - The weekly visual uses last_activity_date to approximate active days
  *   (simplified — doesn't track individual day history)
+ *
+ * PRODUCTION TODO:
+ * - Store per-day activity history for accurate weekly calendar
+ * - Add streak recovery (e.g., "freeze" mechanic for premium users)
+ * - Animate streak count changes
  */
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Flame, Trophy, Calendar } from 'lucide-react';

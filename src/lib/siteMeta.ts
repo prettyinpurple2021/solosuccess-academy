@@ -10,6 +10,11 @@
  * WHY THIS FILE EXISTS:
  * Instead of hardcoding SEO strings in every page, we define defaults here.
  * Individual pages can override these via the <PageMeta> component.
+ * 
+ * PRODUCTION TODO:
+ * - Set VITE_SITE_URL in your production .env for correct canonical URLs
+ * - Add a public/og-image.png (1200×630px) for social media sharing
+ * - TWITTER_HANDLE is set to @solosuccessai
  */
 
 /** The name of the application — used in titles like "Page | SoloSuccess Academy" */

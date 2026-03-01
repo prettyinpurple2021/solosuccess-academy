@@ -12,6 +12,12 @@
  *
  * SECURITY: RLS ensures students only see/edit their own highlights and bookmarks.
  * Admin mutations rely on admin role RLS policies.
+ *
+ * PRODUCTION TODO:
+ * - Add pagination for textbooks with 100+ pages
+ * - Implement full-text search via Postgres tsvector
+ * - Add real-time collaboration (shared highlights for study groups)
+ * - Cache pages in localStorage for offline reading
  */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';

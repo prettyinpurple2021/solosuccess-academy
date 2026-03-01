@@ -15,6 +15,11 @@
  *   user_flashcards: per-user, per-course, optionally linked to a highlight
  *   Fields: front_text, back_text, ease_factor, interval_days, repetitions,
  *           next_review_at, last_reviewed_at
+ *
+ * PRODUCTION TODO:
+ * - Add bulk card creation from AI-generated content
+ * - Track review accuracy statistics over time
+ * - Support card tagging and deck organization
  */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
