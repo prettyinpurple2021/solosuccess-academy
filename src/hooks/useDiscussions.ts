@@ -3,7 +3,7 @@
  *
  * PURPOSE: CRUD operations for course discussion threads and comments.
  * Supports threaded replies (parent_comment_id), pinned discussions,
- * and comment count aggregation.
+ * comment count aggregation, comment editing, and real-time updates.
  *
  * PRIVACY NOTE: Uses profiles_public view (not profiles table) to fetch
  * display names and avatars, ensuring email/notification preferences are
@@ -15,15 +15,12 @@
  * SECURITY: RLS policies ensure users can only delete their own comments/discussions.
  * Admin can pin/delete any discussion.
  *
- * PRODUCTION TODO:
- * - Add real-time updates via Supabase Realtime for live discussions
- * - Implement pagination for courses with 100+ discussions
- * - Add content moderation (flagging, admin review queue)
- * - Support markdown formatting in discussion content
- * - Add search within discussions
+ * REAL-TIME: Subscriptions to discussions and discussion_comments tables
+ * provide live updates when other students post or edit.
  */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useEffect } from 'react';
 
 export interface Discussion {
   id: string;
@@ -55,27 +52,30 @@ export interface DiscussionComment {
   };
 }
 
-// Fetch discussions for a course
-export function useCourseDiscussions(courseId: string | undefined) {
+// Fetch discussions for a course with pagination
+export function useCourseDiscussions(courseId: string | undefined, page = 0, pageSize = 20) {
   return useQuery({
-    queryKey: ['discussions', courseId],
-    queryFn: async (): Promise<Discussion[]> => {
-      if (!courseId) return [];
+    queryKey: ['discussions', courseId, page, pageSize],
+    queryFn: async (): Promise<{ discussions: Discussion[]; totalCount: number }> => {
+      if (!courseId) return { discussions: [], totalCount: 0 };
 
-      // Get discussions
-      const { data: discussions, error } = await supabase
+      const from = page * pageSize;
+      const to = from + pageSize - 1;
+
+      // Get discussions with count
+      const { data: discussions, error, count } = await supabase
         .from('discussions')
-        .select('*')
+        .select('*', { count: 'exact' })
         .eq('course_id', courseId)
         .order('is_pinned', { ascending: false })
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .range(from, to);
 
       if (error) throw error;
-      if (!discussions || discussions.length === 0) return [];
+      if (!discussions || discussions.length === 0) return { discussions: [], totalCount: count || 0 };
 
       // Get unique user IDs and fetch profiles
       const userIds = [...new Set(discussions.map(d => d.user_id))];
-      // Use profiles_public view to only access public-safe fields
       const { data: profiles } = await supabase
         .from('profiles_public' as any)
         .select('id, display_name, avatar_url')
@@ -95,17 +95,19 @@ export function useCourseDiscussions(courseId: string | undefined) {
 
       if (countError) throw countError;
 
-      // Count comments per discussion
       const counts: Record<string, number> = {};
       commentCounts?.forEach(c => {
         counts[c.discussion_id] = (counts[c.discussion_id] || 0) + 1;
       });
 
-      return discussions.map(d => ({
-        ...d,
-        profiles: profileMap[d.user_id] || { display_name: null, avatar_url: null },
-        comment_count: counts[d.id] || 0,
-      }));
+      return {
+        discussions: discussions.map(d => ({
+          ...d,
+          profiles: profileMap[d.user_id] || { display_name: null, avatar_url: null },
+          comment_count: counts[d.id] || 0,
+        })),
+        totalCount: count || 0,
+      };
     },
     enabled: !!courseId,
   });
@@ -127,7 +129,6 @@ export function useDiscussion(discussionId: string | undefined) {
       if (error) throw error;
       if (!data) return null;
 
-      // Fetch profile separately using public view
       const { data: profile } = await supabase
         .from('profiles_public' as any)
         .select('display_name, avatar_url')
@@ -143,23 +144,26 @@ export function useDiscussion(discussionId: string | undefined) {
   });
 }
 
-// Fetch comments for a discussion
-export function useDiscussionComments(discussionId: string | undefined) {
+// Fetch comments for a discussion with pagination
+export function useDiscussionComments(discussionId: string | undefined, page = 0, pageSize = 50) {
   return useQuery({
-    queryKey: ['discussion-comments', discussionId],
+    queryKey: ['discussion-comments', discussionId, page, pageSize],
     queryFn: async (): Promise<DiscussionComment[]> => {
       if (!discussionId) return [];
+
+      const from = page * pageSize;
+      const to = from + pageSize - 1;
 
       const { data, error } = await supabase
         .from('discussion_comments')
         .select('*')
         .eq('discussion_id', discussionId)
-        .order('created_at', { ascending: true });
+        .order('created_at', { ascending: true })
+        .range(from, to);
 
       if (error) throw error;
       if (!data || data.length === 0) return [];
 
-      // Fetch profiles separately using public view
       const userIds = [...new Set(data.map(c => c.user_id))];
       const { data: profiles } = await supabase
         .from('profiles_public' as any)
@@ -178,6 +182,57 @@ export function useDiscussionComments(discussionId: string | undefined) {
     },
     enabled: !!discussionId,
   });
+}
+
+/**
+ * Real-time subscription for discussion updates.
+ * Listens for new/edited/deleted discussions and comments.
+ */
+export function useDiscussionRealtime(discussionId: string | undefined, courseId: string | undefined) {
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (!discussionId && !courseId) return;
+
+    const channel = supabase
+      .channel(`discussion-realtime-${discussionId || courseId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'discussion_comments',
+          ...(discussionId ? { filter: `discussion_id=eq.${discussionId}` } : {}),
+        },
+        () => {
+          if (discussionId) {
+            queryClient.invalidateQueries({ queryKey: ['discussion-comments', discussionId] });
+          }
+          if (courseId) {
+            queryClient.invalidateQueries({ queryKey: ['discussions', courseId] });
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'discussions',
+          ...(courseId ? { filter: `course_id=eq.${courseId}` } : {}),
+        },
+        () => {
+          if (courseId) {
+            queryClient.invalidateQueries({ queryKey: ['discussions', courseId] });
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [discussionId, courseId, queryClient]);
 }
 
 // Create a new discussion
@@ -249,6 +304,39 @@ export function useCreateComment() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['discussion-comments', variables.discussionId] });
       queryClient.invalidateQueries({ queryKey: ['discussions'] });
+    },
+  });
+}
+
+/**
+ * Edit an existing comment.
+ * Only the comment author can edit (enforced by RLS).
+ */
+export function useEditComment() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      commentId,
+      discussionId,
+      content,
+    }: {
+      commentId: string;
+      discussionId: string;
+      content: string;
+    }) => {
+      const { data, error } = await supabase
+        .from('discussion_comments')
+        .update({ content, updated_at: new Date().toISOString() })
+        .eq('id', commentId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['discussion-comments', variables.discussionId] });
     },
   });
 }

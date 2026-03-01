@@ -185,6 +185,9 @@ export type Database = {
           created_at: string
           id: string
           issued_at: string
+          revocation_reason: string | null
+          revoked_at: string | null
+          revoked_by: string | null
           student_name: string
           user_id: string
           verification_code: string
@@ -195,6 +198,9 @@ export type Database = {
           created_at?: string
           id?: string
           issued_at?: string
+          revocation_reason?: string | null
+          revoked_at?: string | null
+          revoked_by?: string | null
           student_name: string
           user_id: string
           verification_code: string
@@ -205,6 +211,9 @@ export type Database = {
           created_at?: string
           id?: string
           issued_at?: string
+          revocation_reason?: string | null
+          revoked_at?: string | null
+          revoked_by?: string | null
           student_name?: string
           user_id?: string
           verification_code?: string

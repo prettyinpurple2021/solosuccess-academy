@@ -11,24 +11,18 @@
  * draft → submitted → reviewed (after AI feedback)
  * 
  * DATABASE TABLE: `course_projects`
- * - One project per user per course (unique on user_id + course_id)
- * - Files stored in Supabase Storage 'project-files' bucket
+ * - One project per user per course (unique constraint on user_id + course_id)
+ * - Files stored in Storage 'project-files' bucket
  * 
  * HOOKS IN THIS FILE:
  * - useCourseProject(userId, courseId)  → Fetch existing project
- * - useSaveProjectDraft()              → Save/update draft
+ * - useSaveProjectDraft()              → Save/update draft (upsert)
  * - useSubmitProject()                 → Submit for review
  * - useRequestFeedback()               → Trigger AI feedback
  * 
  * STANDALONE FUNCTIONS:
- * - uploadProjectFile()                → Upload file to Storage
+ * - uploadProjectFile()                → Upload file to Storage (with validation)
  * - deleteProjectFile()                → Remove file from Storage
- * 
- * PRODUCTION TODO:
- * - Add file size limits and type validation
- * - Implement file virus scanning before upload
- * - Add version history for project submissions
- * - Consider debouncing draft saves for auto-save feature
  */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -38,15 +32,33 @@ export interface CourseProject {
   id: string;
   user_id: string;
   course_id: string;
-  submission_content: string | null;    // The student's written submission (Markdown)
-  file_urls: string[] | null;           // Array of Supabase Storage URLs
+  submission_content: string | null;
+  file_urls: string[] | null;
   status: 'draft' | 'submitted' | 'reviewed';
-  ai_feedback: string | null;           // AI-generated feedback text
-  ai_feedback_at: string | null;        // When AI feedback was generated
-  submitted_at: string | null;          // When the student hit "Submit"
+  ai_feedback: string | null;
+  ai_feedback_at: string | null;
+  submitted_at: string | null;
   created_at: string;
   updated_at: string;
 }
+
+/** Allowed MIME types for project file uploads */
+const ALLOWED_FILE_TYPES = [
+  'application/pdf',
+  'image/jpeg',
+  'image/png',
+  'image/gif',
+  'image/webp',
+  'text/plain',
+  'text/markdown',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+];
+
+/** Maximum file size: 10MB */
+const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
 /**
  * Fetch the current user's project for a specific course.
@@ -73,13 +85,8 @@ export function useCourseProject(userId: string | undefined, courseId: string | 
 }
 
 /**
- * Mutation: Save project as a draft.
- * 
- * Uses a check-then-insert/update pattern because there's no
- * upsert-friendly unique constraint exposed via the API.
- * 
- * PRODUCTION TODO: Add a unique constraint on (user_id, course_id)
- * and switch to upsert for atomicity.
+ * Mutation: Save project as a draft using upsert.
+ * Uses the unique constraint on (user_id, course_id) for atomic upsert.
  */
 export function useSaveProjectDraft() {
   const queryClient = useQueryClient();
@@ -96,58 +103,34 @@ export function useSaveProjectDraft() {
       submissionContent: string;
       fileUrls?: string[];
     }) => {
-      // Check if a project already exists for this user+course
-      const { data: existing } = await supabase
+      // Upsert using the unique constraint on (user_id, course_id)
+      const { data, error } = await supabase
         .from('course_projects')
-        .select('id')
-        .eq('user_id', userId)
-        .eq('course_id', courseId)
-        .maybeSingle();
-
-      if (existing) {
-        // Update existing draft
-        const { data, error } = await supabase
-          .from('course_projects')
-          .update({
-            submission_content: submissionContent,
-            file_urls: fileUrls || [],
-            status: 'draft',
-          })
-          .eq('id', existing.id)
-          .select()
-          .single();
-
-        if (error) throw error;
-        return data;
-      } else {
-        // Create new draft project
-        const { data, error } = await supabase
-          .from('course_projects')
-          .insert({
+        .upsert(
+          {
             user_id: userId,
             course_id: courseId,
             submission_content: submissionContent,
             file_urls: fileUrls || [],
-            status: 'draft',
-          })
-          .select()
-          .single();
+            status: 'draft' as const,
+          },
+          { onConflict: 'user_id,course_id' }
+        )
+        .select()
+        .single();
 
-        if (error) throw error;
-        return data;
-      }
+      if (error) throw error;
+      return data;
     },
     onSuccess: (_, variables) => {
-      // Refresh the project data in the cache
       queryClient.invalidateQueries({ queryKey: ['course-project', variables.userId, variables.courseId] });
     },
   });
 }
 
 /**
- * Mutation: Submit project for review.
- * Same check-then-insert/update pattern, but sets status to 'submitted'
- * and records the submission timestamp.
+ * Mutation: Submit project for review using upsert.
+ * Sets status to 'submitted' and records the submission timestamp.
  */
 export function useSubmitProject() {
   const queryClient = useQueryClient();
@@ -164,52 +147,24 @@ export function useSubmitProject() {
       submissionContent: string;
       fileUrls?: string[];
     }) => {
-      // Check if project exists
-      const { data: existing } = await supabase
+      const { data, error } = await supabase
         .from('course_projects')
-        .select('id')
-        .eq('user_id', userId)
-        .eq('course_id', courseId)
-        .maybeSingle();
-
-      let projectId: string;
-
-      if (existing) {
-        // Update existing → submitted
-        const { data, error } = await supabase
-          .from('course_projects')
-          .update({
-            submission_content: submissionContent,
-            file_urls: fileUrls || [],
-            status: 'submitted',
-            submitted_at: new Date().toISOString(),
-          })
-          .eq('id', existing.id)
-          .select()
-          .single();
-
-        if (error) throw error;
-        projectId = data.id;
-      } else {
-        // Create new → submitted
-        const { data, error } = await supabase
-          .from('course_projects')
-          .insert({
+        .upsert(
+          {
             user_id: userId,
             course_id: courseId,
             submission_content: submissionContent,
             file_urls: fileUrls || [],
-            status: 'submitted',
+            status: 'submitted' as const,
             submitted_at: new Date().toISOString(),
-          })
-          .select()
-          .single();
+          },
+          { onConflict: 'user_id,course_id' }
+        )
+        .select()
+        .single();
 
-        if (error) throw error;
-        projectId = data.id;
-      }
-
-      return { projectId };
+      if (error) throw error;
+      return { projectId: data.id };
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['course-project', variables.userId, variables.courseId] });
@@ -219,14 +174,7 @@ export function useSubmitProject() {
 
 /**
  * Mutation: Request AI feedback on a submitted project.
- * 
- * Calls the `project-feedback` Edge Function which:
- * 1. Reads the project submission content
- * 2. Sends it to an AI model for analysis
- * 3. Stores the feedback in the `ai_feedback` column
- * 4. Updates status to 'reviewed'
- * 
- * @param projectId - The project to get feedback on
+ * Calls the `project-feedback` Edge Function.
  */
 export function useRequestFeedback() {
   const queryClient = useQueryClient();
@@ -247,22 +195,27 @@ export function useRequestFeedback() {
 }
 
 /**
- * Upload a file to the 'project-files' Storage bucket.
+ * Upload a file to the 'project-files' Storage bucket with validation.
+ * 
+ * Validates:
+ * - File size (max 10MB)
+ * - MIME type (only PDFs, images, text, Office documents)
  * 
  * File path structure: {userId}/{courseId}/{timestamp}-{random}.{ext}
- * This ensures unique filenames and organizes files by user and course.
- * 
- * @param userId - The uploading user's ID
- * @param courseId - The course this file belongs to
- * @param file - The File object from an <input type="file">
- * @returns The public URL of the uploaded file
- * 
- * PRODUCTION TODO:
- * - Add file size validation (e.g., max 10MB)
- * - Add MIME type validation (only allow PDF, images, etc.)
- * - Consider making the bucket private and using signed URLs
  */
 export async function uploadProjectFile(userId: string, courseId: string, file: File): Promise<string> {
+  // Validate file size
+  if (file.size > MAX_FILE_SIZE) {
+    throw new Error(`File size exceeds the 10MB limit. Your file is ${(file.size / (1024 * 1024)).toFixed(1)}MB.`);
+  }
+
+  // Validate MIME type
+  if (!ALLOWED_FILE_TYPES.includes(file.type)) {
+    throw new Error(
+      `File type "${file.type || 'unknown'}" is not allowed. Accepted types: PDF, images (JPG, PNG, GIF, WebP), text files, and Office documents.`
+    );
+  }
+
   const fileExt = file.name.split('.').pop();
   const fileName = `${userId}/${courseId}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
 
@@ -272,7 +225,6 @@ export async function uploadProjectFile(userId: string, courseId: string, file: 
 
   if (uploadError) throw uploadError;
 
-  // Get the public URL for the uploaded file
   const { data } = supabase.storage
     .from('project-files')
     .getPublicUrl(fileName);
@@ -283,12 +235,8 @@ export async function uploadProjectFile(userId: string, courseId: string, file: 
 /**
  * Delete a file from the 'project-files' Storage bucket.
  * Extracts the storage path from the full public URL.
- * 
- * @param fileUrl - The full public URL of the file to delete
  */
 export async function deleteProjectFile(fileUrl: string): Promise<void> {
-  // Extract the storage path from the URL
-  // URL format: https://...supabase.co/storage/v1/object/public/project-files/{path}
   const urlParts = fileUrl.split('/project-files/');
   if (urlParts.length < 2) return;
   

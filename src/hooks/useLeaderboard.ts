@@ -4,16 +4,14 @@
  * PURPOSE: Fetches ranked student data from the get-leaderboard edge function.
  * Supports XP-based and badge-count-based leaderboards.
  *
- * SECURITY: Requires authenticated session. The edge function uses verify_jwt=true
+ * SECURITY: Requires authenticated session. The edge function validates JWT
  * and queries only public profile data (display name, avatar) — no PII exposed.
+ *
+ * CACHING: Uses 2-minute stale time to reduce edge function calls.
+ * Leaderboard data changes infrequently (only when students earn XP).
  *
  * NOTE: Streak leaderboard was intentionally removed for privacy reasons
  * (it exposed user activity patterns). XP and badges are sufficient.
- *
- * PRODUCTION TODO:
- * - Add weekly/monthly time-scoped leaderboards
- * - Implement leaderboard caching to reduce edge function calls
- * - Add opt-out for students who don't want to appear on leaderboard
  */
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -56,6 +54,7 @@ export function useXPLeaderboard(limit = 10) {
   return useQuery({
     queryKey: ['leaderboard', 'xp', limit],
     queryFn: () => fetchLeaderboard('xp', limit),
+    staleTime: 2 * 60 * 1000, // 2 minutes — leaderboard changes infrequently
   });
 }
 
@@ -63,8 +62,6 @@ export function useBadgeLeaderboard(limit = 10) {
   return useQuery({
     queryKey: ['leaderboard', 'badges', limit],
     queryFn: () => fetchLeaderboard('badges', limit),
+    staleTime: 2 * 60 * 1000,
   });
 }
-
-// Note: Streak leaderboard removed for privacy - it exposed user activity patterns
-// XP and badge leaderboards provide sufficient gamification without privacy concerns
