@@ -30,11 +30,11 @@ import {
 } from '@dnd-kit/sortable';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { useAdminLessons, useDeleteLesson, useUpdateLesson, useReorderLessons, Lesson } from '@/hooks/useAdmin';
+import { useAdminLessons, useDeleteLesson, useUpdateLesson, useReorderLessons, useDuplicateLesson, useBulkPublishLessons, Lesson } from '@/hooks/useAdmin';
 import { useToast } from '@/hooks/use-toast';
 import { LessonEditor } from './LessonEditor';
 import { SortableLessonItem } from './SortableLessonItem';
-import { Plus, FileText } from 'lucide-react';
+import { Plus, FileText, Copy, Eye, EyeOff } from 'lucide-react';
 import { NeonSpinner } from '@/components/ui/neon-spinner';
 
 interface LessonListProps {
@@ -48,6 +48,8 @@ export function LessonList({ courseId }: LessonListProps) {
   const deleteLesson = useDeleteLesson();
   const updateLesson = useUpdateLesson();
   const reorderLessons = useReorderLessons();
+  const duplicateLesson = useDuplicateLesson();
+  const bulkPublish = useBulkPublishLessons();
   const { toast } = useToast();
 
   const sensors = useSensors(
@@ -121,6 +123,31 @@ export function LessonList({ courseId }: LessonListProps) {
     }
   };
 
+  /** Duplicate a lesson */
+  const handleDuplicate = async (lesson: Lesson) => {
+    try {
+      await duplicateLesson.mutateAsync({ lesson, courseId });
+      toast({ title: 'Lesson duplicated!' });
+    } catch (error: any) {
+      toast({ title: 'Failed to duplicate', description: error.message, variant: 'destructive' });
+    }
+  };
+
+  /** Bulk publish/unpublish all lessons */
+  const handleBulkPublish = async (isPublished: boolean) => {
+    if (!lessons?.length) return;
+    try {
+      await bulkPublish.mutateAsync({
+        courseId,
+        lessonIds: lessons.map(l => l.id),
+        isPublished,
+      });
+      toast({ title: isPublished ? 'All lessons published!' : 'All lessons unpublished' });
+    } catch (error: any) {
+      toast({ title: 'Failed to update', description: error.message, variant: 'destructive' });
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -133,13 +160,26 @@ export function LessonList({ courseId }: LessonListProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <h3 className="text-lg font-semibold">Lessons ({lessons?.length || 0})</h3>
         {!isCreating && !editingLesson && (
-          <Button onClick={() => setIsCreating(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Add Lesson
-          </Button>
+          <div className="flex items-center gap-2">
+            {/* Bulk actions */}
+            {(lessons?.length ?? 0) > 0 && (
+              <>
+                <Button variant="outline" size="sm" onClick={() => handleBulkPublish(true)} disabled={bulkPublish.isPending}>
+                  <Eye className="mr-1 h-3 w-3" /> Publish All
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => handleBulkPublish(false)} disabled={bulkPublish.isPending}>
+                  <EyeOff className="mr-1 h-3 w-3" /> Unpublish All
+                </Button>
+              </>
+            )}
+            <Button onClick={() => setIsCreating(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Add Lesson
+            </Button>
+          </div>
         )}
       </div>
 
@@ -189,6 +229,7 @@ export function LessonList({ courseId }: LessonListProps) {
                       index={index}
                       onEdit={setEditingLesson}
                       onDelete={handleDelete}
+                      onDuplicate={handleDuplicate}
                       onTogglePublish={toggleLessonPublish}
                       isUpdating={updateLesson.isPending}
                       isDeleting={deleteLesson.isPending}

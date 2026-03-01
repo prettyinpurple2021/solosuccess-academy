@@ -493,10 +493,139 @@ export function useReorderLessons() {
 }
 
 /**
+ * Duplicate an existing lesson within the same course.
+ * Creates a copy with " (Copy)" appended to the title and places it
+ * at the end of the lesson list.
+ */
+export function useDuplicateLesson() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ lesson, courseId }: { lesson: Lesson; courseId: string }) => {
+      // Get next order number
+      const { data: existing } = await supabase
+        .from('lessons')
+        .select('order_number')
+        .eq('course_id', courseId)
+        .order('order_number', { ascending: false })
+        .limit(1);
+
+      const nextOrder = (existing?.[0]?.order_number || 0) + 1;
+
+      const { data, error } = await supabase
+        .from('lessons')
+        .insert([{
+          course_id: courseId,
+          title: `${lesson.title} (Copy)`,
+          type: lesson.type,
+          order_number: nextOrder,
+          content: lesson.content,
+          video_url: lesson.video_url,
+          duration_minutes: lesson.duration_minutes,
+          quiz_data: lesson.quiz_data as any,
+          worksheet_data: lesson.worksheet_data as any,
+          activity_data: lesson.activity_data as any,
+          is_published: false, // Copies always start as draft
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+      return transformLesson(data);
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-lessons', variables.courseId] });
+    },
+  });
+}
+
+/**
+ * Bulk update lesson publish status.
+ * Sets all provided lesson IDs to the specified published state.
+ */
+export function useBulkPublishLessons() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      courseId,
+      lessonIds,
+      isPublished,
+    }: {
+      courseId: string;
+      lessonIds: string[];
+      isPublished: boolean;
+    }) => {
+      const { error } = await supabase
+        .from('lessons')
+        .update({ is_published: isPublished })
+        .in('id', lessonIds);
+
+      if (error) throw error;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-lessons', variables.courseId] });
+    },
+  });
+}
+
+/**
+ * Admin hook to revoke a certificate.
+ * Sets revoked_at, revoked_by, and revocation_reason.
+ */
+export function useRevokeCertificate() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      certificateId,
+      reason,
+      adminUserId,
+    }: {
+      certificateId: string;
+      reason: string;
+      adminUserId: string;
+    }) => {
+      const { data, error } = await supabase
+        .from('certificates')
+        .update({
+          revoked_at: new Date().toISOString(),
+          revoked_by: adminUserId,
+          revocation_reason: reason,
+        })
+        .eq('id', certificateId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-certificates'] });
+    },
+  });
+}
+
+/**
+ * Admin hook to fetch all certificates for management.
+ */
+export function useAdminCertificates() {
+  return useQuery({
+    queryKey: ['admin-certificates'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('certificates')
+        .select('*')
+        .order('issued_at', { ascending: false });
+
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
+/**
  * Update a course's fields (title, description, price, etc.).
- * Accepts any record of updates for flexibility.
- * 
- * PRODUCTION TODO: Add proper typing instead of Record<string, any>
  */
 export function useUpdateCourse() {
   const queryClient = useQueryClient();

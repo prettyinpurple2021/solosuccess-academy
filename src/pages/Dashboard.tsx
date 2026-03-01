@@ -106,20 +106,25 @@ export default function Dashboard() {
     ? Math.round((completedLessons / totalLessonsInPurchased) * 100) 
     : 0;
 
-  // Get course progress details
+  // Get course progress details — optimized with Map for O(n) instead of O(n²)
   const courseProgressMap = new Map<string, { total: number; completed: number }>();
+  
+  // Step 1: Build lesson-to-course lookup map
+  const lessonToCourseMap = new Map<string, string>();
   progressData?.lessons?.forEach(lesson => {
+    lessonToCourseMap.set(lesson.id, lesson.course_id);
     if (!courseProgressMap.has(lesson.course_id)) {
       courseProgressMap.set(lesson.course_id, { total: 0, completed: 0 });
     }
-    const current = courseProgressMap.get(lesson.course_id)!;
-    current.total++;
+    courseProgressMap.get(lesson.course_id)!.total++;
   });
+  
+  // Step 2: Count completed lessons using the lookup map (O(n))
   progressData?.progress?.forEach(p => {
     if (p.completed) {
-      const lesson = progressData.lessons?.find(l => l.id === p.lesson_id);
-      if (lesson) {
-        const current = courseProgressMap.get(lesson.course_id);
+      const courseId = lessonToCourseMap.get(p.lesson_id);
+      if (courseId) {
+        const current = courseProgressMap.get(courseId);
         if (current) current.completed++;
       }
     }
@@ -448,13 +453,25 @@ export default function Dashboard() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                <Button variant="outline" className="w-full justify-start" asChild>
+                <Button variant="outline" className="w-full justify-start border-primary/30 hover:bg-primary/10" asChild>
                   <Link to="/courses">
                     <BookOpen className="mr-2 h-4 w-4" />
                     Browse All Courses
                   </Link>
                 </Button>
-                <Button variant="outline" className="w-full justify-start" asChild>
+                <Button variant="outline" className="w-full justify-start border-primary/30 hover:bg-primary/10" asChild>
+                  <Link to="/leaderboard">
+                    <Trophy className="mr-2 h-4 w-4" />
+                    View Leaderboard
+                  </Link>
+                </Button>
+                <Button variant="outline" className="w-full justify-start border-primary/30 hover:bg-primary/10" asChild>
+                  <Link to="/certificates">
+                    <Sparkles className="mr-2 h-4 w-4" />
+                    Your Certificates
+                  </Link>
+                </Button>
+                <Button variant="outline" className="w-full justify-start border-primary/30 hover:bg-primary/10" asChild>
                   <Link to="/profile">
                     <Target className="mr-2 h-4 w-4" />
                     View Profile

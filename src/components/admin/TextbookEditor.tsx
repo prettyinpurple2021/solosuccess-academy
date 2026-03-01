@@ -560,15 +560,35 @@ function PageForm({
         </Button>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Content editor with word count */}
         <div className="space-y-2">
-          <Label>Page Content (Markdown supported)</Label>
-          <Textarea
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            placeholder="# Heading&#10;&#10;Paragraph text..."
-            rows={10}
-            className="font-mono text-sm"
-          />
+          <div className="flex items-center justify-between">
+            <Label>Page Content (Markdown supported)</Label>
+            <span className="text-xs text-muted-foreground font-mono">
+              {content.trim().split(/\s+/).filter(Boolean).length} words
+            </span>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Editor */}
+            <Textarea
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder="# Heading&#10;&#10;Paragraph text..."
+              rows={12}
+              className="font-mono text-sm"
+            />
+            {/* Live markdown preview */}
+            <div className="border rounded-lg p-4 prose prose-sm prose-invert max-w-none overflow-auto max-h-[300px] bg-black/20">
+              {content ? content.split('\n').map((line, i) => {
+                if (line.startsWith('# ')) return <h1 key={i} className="text-xl font-bold mb-2 text-cyan-300">{line.slice(2)}</h1>;
+                if (line.startsWith('## ')) return <h2 key={i} className="text-lg font-semibold mb-2 text-primary">{line.slice(3)}</h2>;
+                if (line.startsWith('### ')) return <h3 key={i} className="text-base font-medium mb-1 text-purple-300">{line.slice(4)}</h3>;
+                if (line.startsWith('- ')) return <li key={i} className="ml-4 list-disc text-foreground/90">{line.slice(2)}</li>;
+                if (line.trim() === '') return <br key={i} />;
+                return <p key={i} className="mb-1 text-foreground/90">{line}</p>;
+              }) : <p className="text-muted-foreground italic">Preview will appear here...</p>}
+            </div>
+          </div>
         </div>
 
         <div className="space-y-4 p-4 border rounded-lg">
