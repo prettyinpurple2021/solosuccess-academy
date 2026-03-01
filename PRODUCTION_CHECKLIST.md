@@ -86,10 +86,9 @@ After signing up, the current sign-up handler immediately navigates to the dashb
 
 ## 🟡 Medium Priority (Before or Shortly After Launch)
 
-### 13. 🎨 Plug and Play Asset Download Not Implemented
+### 13. ✅ Plug and Play Asset Download Implemented
 **File:** `src/pages/CourseDetail.tsx`  
-The "Download Asset" button renders but has no `onClick` or `href`.  
-**Action needed:** Implement the download by linking to a storage URL or an external asset URL.
+**Status:** Fixed — The "Download Asset" button opens the file from the `course-assets` storage bucket using the public URL pattern `{courseId}/{plug_and_play_asset}`.
 
 ### 14. 👤 Twitter Handle Is a Placeholder
 **File:** `src/lib/siteMeta.ts` (line 31)  
@@ -124,26 +123,25 @@ The notification email function exists but requires an email service provider to
 
 ## 🔵 Low Priority (Polish — Before or After Launch)
 
-### 21. 🛠️ CORS Headers Are Wildcard (`*`)
-**Files:** All `supabase/functions/*/index.ts`  
-All edge functions use `"Access-Control-Allow-Origin": "*"`.  
-**Recommendation:** Restrict to your production domain after deploying.
+### 21. ✅ CORS Headers Restricted
+**Files:** `supabase/functions/_shared/cors.ts` + all edge functions  
+All edge functions now use a shared CORS module that reflects only allowed origins (production + preview domains) instead of `*`.  
+**Status:** Fixed — centralized in `_shared/cors.ts` with `getCorsHeaders(req)` dynamic origin matching.
 
 ### 22. 🎨 Auth Page No OAuth Buttons
 The sign-in form only supports email/password. Adding Google OAuth would increase conversion.
 
-### 23. 🛠️ No Route-Level Error Boundaries
-**File:** `src/App.tsx`  
-There is a top-level `ErrorBoundary` but no per-route error boundaries.  
-**Recommendation:** Wrap each `<Route>` in its own `<ErrorBoundary>`.
+### 23. ✅ Route-Level Error Boundaries
+**File:** `src/App.tsx`, `src/components/layout/RouteErrorBoundary.tsx`  
+**Status:** Fixed — Every route is wrapped in `<RouteErrorBoundary>` for graceful per-page error handling.
 
 ### 24. 👤 `robots.txt` Has No Sitemap Reference
 **File:** `public/robots.txt`  
 **Action needed after deploying:** Generate a sitemap and add `Sitemap: https://yourdomain.com/sitemap.xml`.
 
-### 25. 🛠️ PWA Not Configured
-`vite-plugin-pwa` is installed but not configured in `vite.config.ts`.  
-**Action needed:** Either configure PWA properly or remove the unused package.
+### 25. ✅ PWA Package Removed
+`vite-plugin-pwa` has been removed from the project since it was unused.  
+**Status:** Fixed.
 
 ### 26. 🎨 ESLint Has 270 Errors (Pre-Existing)
 **Files:** Multiple admin components and edge functions  
@@ -157,8 +155,8 @@ Mainly `@typescript-eslint/no-explicit-any`. Won't block the build but should be
 |----------|-------|----------|-----------|
 | 🚨 Critical (blockers) | 6 | 4 | 2 (Stripe, AI keys) |
 | ⚠️ High priority | 6 | 5 | 1 (Email verification flow) |
-| 🟡 Medium priority | 8 | 2 | 6 |
-| 🔵 Low priority / polish | 6 | 0 | 6 |
+| 🟡 Medium priority | 8 | 3 | 5 |
+| 🔵 Low priority / polish | 6 | 3 | 3 |
 
 **The most important remaining actions before launching:**
 1. Configure Stripe (pricing IDs, webhook, secrets)
