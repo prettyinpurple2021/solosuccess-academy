@@ -25,7 +25,7 @@ interface SortableLessonItemProps {
   index: number;
   onEdit: (lesson: Lesson) => void;
   onDelete: (lesson: Lesson) => void;
-  onDuplicate?: (lesson: Lesson) => void;
+  
   onTogglePublish: (lesson: Lesson) => void;
   isUpdating: boolean;
   isDeleting: boolean;
@@ -52,7 +52,7 @@ export function SortableLessonItem({
   index, 
   onEdit, 
   onDelete, 
-  onDuplicate,
+  
   onTogglePublish,
   isUpdating,
   isDeleting 
@@ -147,16 +147,6 @@ export function SortableLessonItem({
             >
               <Pencil className="h-4 w-4" />
             </Button>
-            {onDuplicate && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => onDuplicate(lesson)}
-                title="Duplicate lesson"
-              >
-                <Copy className="h-4 w-4" />
-              </Button>
-            )}
             <Button
               variant="ghost"
               size="icon"

@@ -492,52 +492,6 @@ export function useReorderLessons() {
   });
 }
 
-/**
- * Duplicate an existing lesson within the same course.
- * Creates a copy with " (Copy)" appended to the title and places it
- * at the end of the lesson list.
- */
-export function useDuplicateLesson() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({ lesson, courseId }: { lesson: Lesson; courseId: string }) => {
-      // Get next order number
-      const { data: existing } = await supabase
-        .from('lessons')
-        .select('order_number')
-        .eq('course_id', courseId)
-        .order('order_number', { ascending: false })
-        .limit(1);
-
-      const nextOrder = (existing?.[0]?.order_number || 0) + 1;
-
-      const { data, error } = await supabase
-        .from('lessons')
-        .insert([{
-          course_id: courseId,
-          title: `${lesson.title} (Copy)`,
-          type: lesson.type,
-          order_number: nextOrder,
-          content: lesson.content,
-          video_url: lesson.video_url,
-          duration_minutes: lesson.duration_minutes,
-          quiz_data: lesson.quiz_data as any,
-          worksheet_data: lesson.worksheet_data as any,
-          activity_data: lesson.activity_data as any,
-          is_published: false, // Copies always start as draft
-        }])
-        .select()
-        .single();
-
-      if (error) throw error;
-      return transformLesson(data);
-    },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['admin-lessons', variables.courseId] });
-    },
-  });
-}
 
 /**
  * Bulk update lesson publish status.

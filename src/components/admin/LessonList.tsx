@@ -30,7 +30,7 @@ import {
 } from '@dnd-kit/sortable';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { useAdminLessons, useDeleteLesson, useUpdateLesson, useReorderLessons, useDuplicateLesson, useBulkPublishLessons, Lesson } from '@/hooks/useAdmin';
+import { useAdminLessons, useDeleteLesson, useUpdateLesson, useReorderLessons, useBulkPublishLessons, Lesson } from '@/hooks/useAdmin';
 import { useToast } from '@/hooks/use-toast';
 import { LessonEditor } from './LessonEditor';
 import { SortableLessonItem } from './SortableLessonItem';
@@ -48,7 +48,7 @@ export function LessonList({ courseId }: LessonListProps) {
   const deleteLesson = useDeleteLesson();
   const updateLesson = useUpdateLesson();
   const reorderLessons = useReorderLessons();
-  const duplicateLesson = useDuplicateLesson();
+  
   const bulkPublish = useBulkPublishLessons();
   const { toast } = useToast();
 
@@ -123,15 +123,6 @@ export function LessonList({ courseId }: LessonListProps) {
     }
   };
 
-  /** Duplicate a lesson */
-  const handleDuplicate = async (lesson: Lesson) => {
-    try {
-      await duplicateLesson.mutateAsync({ lesson, courseId });
-      toast({ title: 'Lesson duplicated!' });
-    } catch (error: any) {
-      toast({ title: 'Failed to duplicate', description: error.message, variant: 'destructive' });
-    }
-  };
 
   /** Bulk publish/unpublish all lessons */
   const handleBulkPublish = async (isPublished: boolean) => {
@@ -229,7 +220,7 @@ export function LessonList({ courseId }: LessonListProps) {
                       index={index}
                       onEdit={setEditingLesson}
                       onDelete={handleDelete}
-                      onDuplicate={handleDuplicate}
+                      
                       onTogglePublish={toggleLessonPublish}
                       isUpdating={updateLesson.isPending}
                       isDeleting={deleteLesson.isPending}
