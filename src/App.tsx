@@ -94,6 +94,7 @@ const AboutPage = lazy(() => import("./pages/About"));
 const ContactPage = lazy(() => import("./pages/Contact"));
 const NotificationsPage = lazy(() => import("./pages/Notifications"));
 const TranscriptPage = lazy(() => import("./pages/Transcript"));
+const StudentGrades = lazy(() => import("./pages/StudentGrades"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 /**
@@ -217,6 +218,7 @@ const App = () => (
                 <Route path="/leaderboard" element={<RouteErrorBoundary><Leaderboard /></RouteErrorBoundary>} />
                 <Route path="/notifications" element={<RouteErrorBoundary><NotificationsPage /></RouteErrorBoundary>} />
                 <Route path="/transcript" element={<RouteErrorBoundary><TranscriptPage /></RouteErrorBoundary>} />
+                <Route path="/grades" element={<RouteErrorBoundary><StudentGrades /></RouteErrorBoundary>} />
               </Route>
 
                 {/* 404 catch-all — shows friendly "not found" page */}

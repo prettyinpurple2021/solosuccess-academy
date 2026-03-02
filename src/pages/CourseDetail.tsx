@@ -367,10 +367,19 @@ export default function CourseDetail() {
                               <div className="flex items-center gap-2">
                                 <h3 className="font-medium truncate">{lesson.title}</h3>
                                 {lesson.type === 'video' && (
-                                  <Video className="h-4 w-4 text-secondary" />
+                                  <Badge variant="outline" className="text-[10px] border-secondary/30 text-secondary">Video</Badge>
                                 )}
                                 {lesson.type === 'quiz' && (
-                                  <Sparkles className="h-4 w-4 text-accent" />
+                                  <Badge variant="outline" className="text-[10px] border-accent/30 text-accent">Quiz</Badge>
+                                )}
+                                {lesson.type === 'activity' && (
+                                  <Badge variant="outline" className="text-[10px] border-primary/30 text-primary">Activity</Badge>
+                                )}
+                                {lesson.type === 'worksheet' && (
+                                  <Badge variant="outline" className="text-[10px] border-info/30 text-info">Worksheet</Badge>
+                                )}
+                                {lesson.type === 'assignment' && (
+                                  <Badge variant="outline" className="text-[10px] border-warning/30 text-warning">Assignment</Badge>
                                 )}
                               </div>
                               {lesson.duration_minutes && (
