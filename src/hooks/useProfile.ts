@@ -36,6 +36,7 @@ export interface UserAchievements {
   projectsWithFeedback: number;
   discussionsStarted: number;
   commentsPosted: number;
+  chaptersRead: number;
 }
 
 // Fetch user profile
@@ -241,22 +242,27 @@ export function useUserAchievements(userId: string | undefined) {
           projectsWithFeedback: 0,
           discussionsStarted: 0,
           commentsPosted: 0,
+          chaptersRead: 0,
         };
       }
 
       // Fetch all stats in parallel
+      // Fetch all stats in parallel (including textbook chapter bookmarks as "chapters read")
       const [
         purchasesResult,
         progressResult,
         projectsResult,
         discussionsResult,
         commentsResult,
+        bookmarksResult,
       ] = await Promise.all([
         supabase.from('purchases').select('id', { count: 'exact' }).eq('user_id', userId),
         supabase.from('user_progress').select('id', { count: 'exact' }).eq('user_id', userId).eq('completed', true),
         supabase.from('course_projects').select('id, status, ai_feedback').eq('user_id', userId),
         supabase.from('discussions').select('id', { count: 'exact' }).eq('user_id', userId),
         supabase.from('discussion_comments').select('id', { count: 'exact' }).eq('user_id', userId),
+        // Count distinct chapters the user has bookmarked (proxy for chapters read)
+        supabase.from('user_textbook_bookmarks').select('chapter_id', { count: 'exact' }).eq('user_id', userId),
       ]);
 
       const projectsData = projectsResult.data || [];
@@ -270,6 +276,7 @@ export function useUserAchievements(userId: string | undefined) {
         projectsWithFeedback,
         discussionsStarted: discussionsResult.count || 0,
         commentsPosted: commentsResult.count || 0,
+        chaptersRead: bookmarksResult.count || 0,
       };
     },
     enabled: !!userId,

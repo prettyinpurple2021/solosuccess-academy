@@ -98,6 +98,7 @@ export function GamificationProvider({ children }: { children: ReactNode }) {
           commentsPosted: achievements.commentsPosted,
           projectsSubmitted: achievements.projectsSubmitted,
           projectsWithFeedback: achievements.projectsWithFeedback,
+          chaptersRead: achievements.chaptersRead,
         },
       });
 

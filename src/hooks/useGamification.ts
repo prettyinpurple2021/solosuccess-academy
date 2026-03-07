@@ -256,6 +256,7 @@ export function useCheckBadges() {
         commentsPosted: number;
         projectsSubmitted: number;
         projectsWithFeedback: number;
+        chaptersRead: number;
       };
     }) => {
       // Get all available badges
@@ -301,6 +302,9 @@ export function useCheckBadges() {
             break;
           case 'projects_with_feedback':
             earned = stats.projectsWithFeedback >= badge.criteria_value;
+            break;
+          case 'chapters_read':
+            earned = stats.chaptersRead >= badge.criteria_value;
             break;
         }
 
