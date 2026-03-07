@@ -120,7 +120,7 @@ export function TextbookViewer({ courseId, courseName }: TextbookViewerProps) {
   const createHighlight = useCreateHighlight();
   const { toast } = useToast();
   const { user } = useAuth();
-  const awardXP = useAwardXP();
+  const { awardXP, checkAndAwardBadges } = useGamification();
 
   // Get all page IDs for fetching highlights
   const pageIds = useMemo(() => pages?.map(p => p.id) || [], [pages]);
