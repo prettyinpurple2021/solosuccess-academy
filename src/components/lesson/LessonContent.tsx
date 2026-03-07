@@ -55,9 +55,9 @@ const sanitizeAndFormat = (content: string): string => {
     .replace(/\n/g, '<br/>')
     .replace(/^/, '<p class="mb-4">')
     .replace(/$/, '</p>')
-    .replace(/\*\*(.*?)\*\*/g, '<strong class="text-cyan-300">$1</strong>')
+    .replace(/\*\*(.*?)\*\*/g, '<strong class="text-secondary">$1</strong>')
     .replace(/\*(.*?)\*/g, '<em class="text-primary/80">$1</em>')
-    .replace(/`(.*?)`/g, '<code class="bg-primary/20 px-1.5 py-0.5 rounded text-sm text-cyan-300 border border-primary/30">$1</code>');
+    .replace(/`(.*?)`/g, '<code class="bg-primary/20 px-1.5 py-0.5 rounded text-sm text-secondary border border-primary/30">$1</code>');
 
   return DOMPurify.sanitize(formatted, {
     ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'code', 'h1', 'h2', 'h3', 'ul', 'ol', 'li'],

@@ -74,7 +74,7 @@ export function TextbookKeyboardHelp({ open, onOpenChange }: TextbookKeyboardHel
 
           {/* Mobile gestures */}
           <div className="border-t border-primary/20 pt-4">
-            <h4 className="text-sm font-medium text-cyan-300 mb-3">Touch Gestures</h4>
+            <h4 className="text-sm font-medium text-secondary mb-3">Touch Gestures</h4>
             <div className="space-y-2">
               {mobileGestures.map((gesture, index) => (
                 <div 

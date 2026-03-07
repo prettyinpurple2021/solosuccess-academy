@@ -56,9 +56,9 @@ export function NoteDialog({ open, onOpenChange, selectedText, onSave }: NoteDia
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[425px] bg-black/95 backdrop-blur-xl border-primary/30 shadow-[0_0_40px_rgba(168,85,247,0.3)]">
+      <DialogContent className="sm:max-w-[425px] bg-popover backdrop-blur-xl border-primary/30 shadow-[0_0_40px_hsl(var(--primary)/0.3)]">
         <DialogHeader>
-          <DialogTitle className="font-display text-cyan-300">Add Note</DialogTitle>
+          <DialogTitle className="font-display text-secondary">Add Note</DialogTitle>
         </DialogHeader>
         
         <div className="space-y-4 py-4">
@@ -70,7 +70,7 @@ export function NoteDialog({ open, onOpenChange, selectedText, onSave }: NoteDia
 
           {/* Color selection */}
           <div className="space-y-2">
-            <Label className="text-cyan-300">Highlight color</Label>
+            <Label className="text-secondary">Highlight color</Label>
             <div className="flex gap-3">
               {HIGHLIGHT_COLORS.map((c) => (
                 <button
@@ -79,7 +79,7 @@ export function NoteDialog({ open, onOpenChange, selectedText, onSave }: NoteDia
                   className={cn(
                     "w-8 h-8 rounded-full transition-all focus:outline-none",
                     c.class,
-                    color === c.name && cn("ring-2 ring-white ring-offset-2 ring-offset-black scale-110", c.shadow)
+                    color === c.name && cn("ring-2 ring-foreground ring-offset-2 ring-offset-background scale-110", c.shadow)
                   )}
                   title={c.name}
                 />
@@ -89,13 +89,13 @@ export function NoteDialog({ open, onOpenChange, selectedText, onSave }: NoteDia
 
           {/* Note input */}
           <div className="space-y-2">
-            <Label htmlFor="note" className="text-cyan-300">Your note (optional)</Label>
+            <Label htmlFor="note" className="text-secondary">Your note (optional)</Label>
             <Textarea
               id="note"
               value={note}
               onChange={(e) => setNote(e.target.value)}
               placeholder="Add your thoughts, questions, or insights..."
-              className="min-h-[100px] bg-black/30 border-primary/30 focus:border-primary placeholder:text-muted-foreground/50"
+              className="min-h-[100px] bg-input border-primary/30 focus:border-primary placeholder:text-muted-foreground/50"
               autoFocus
             />
           </div>

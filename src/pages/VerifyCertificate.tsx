@@ -58,7 +58,7 @@ export default function VerifyCertificate() {
       <div className="cyber-grid" />
       
       {/* Header */}
-      <header className="border-b border-primary/20 bg-black/60 backdrop-blur-xl">
+      <header className="border-b border-primary/20 header-glass">
         <div className="container py-4">
           <Link to="/" className="flex items-center gap-3 group w-fit">
             <div className="relative flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-primary via-accent to-secondary text-primary-foreground font-bold overflow-hidden shadow-[0_0_20px_hsl(270_80%_50%/0.5)]">
@@ -129,7 +129,7 @@ export default function VerifyCertificate() {
 
                 {/* Details Grid */}
                 <div className="grid grid-cols-2 gap-4 max-w-sm mx-auto">
-                  <div className="flex items-center gap-3 p-3 rounded-lg bg-black/20">
+                  <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
                     <Calendar className="h-5 w-5 text-primary" />
                     <div>
                       <p className="text-xs text-muted-foreground">Issue Date</p>
@@ -138,7 +138,7 @@ export default function VerifyCertificate() {
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3 p-3 rounded-lg bg-black/20">
+                  <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
                     <BookOpen className="h-5 w-5 text-secondary" />
                     <div>
                       <p className="text-xs text-muted-foreground">Course</p>
@@ -162,7 +162,7 @@ export default function VerifyCertificate() {
               </div>
 
               {/* Footer */}
-              <CardContent className="bg-black/40 py-4">
+              <CardContent className="bg-muted/50 py-4">
                 <p className="text-xs text-center text-muted-foreground">
                   This certificate was issued by SoloSuccess Academy and can be independently verified.
                 </p>

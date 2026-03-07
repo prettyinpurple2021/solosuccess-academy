@@ -700,6 +700,39 @@
     border: 1px solid hsl(var(--border) / 0.5);
   }
 
+  /* ====== THEMED SURFACE OVERLAYS ====== */
+  /* Use instead of bg-black/X for theme-aware overlays */
+
+  .surface-overlay {
+    background: hsl(var(--card) / 0.2);
+  }
+
+  .surface-overlay-medium {
+    background: hsl(var(--card) / 0.5);
+  }
+
+  .surface-overlay-heavy {
+    background: hsl(var(--card) / 0.8);
+  }
+
+  .surface-panel {
+    background: hsl(var(--popover));
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+
+  /* ====== THEMED INPUT BACKGROUND ====== */
+  .neon-input {
+    background: hsl(var(--input));
+    border: 1px solid hsl(var(--border));
+  }
+
+  .neon-input:focus {
+    border-color: hsl(var(--primary));
+    box-shadow: 0 0 20px hsl(var(--primary) / 0.4);
+    outline: none;
+  }
+
   /* ====== GRID PATTERNS ====== */
   
   .grid-pattern {

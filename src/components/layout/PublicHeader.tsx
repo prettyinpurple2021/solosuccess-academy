@@ -1,12 +1,19 @@
 import { Link } from 'react-router-dom';
+import { useTheme } from 'next-themes';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
-import { Zap, Menu, X } from 'lucide-react';
+import { Zap, Menu, X, Sun, Moon } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 export function PublicHeader() {
   const { isAuthenticated, isLoading } = useAuth();
+  const { theme, setTheme } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
@@ -65,7 +72,28 @@ export function PublicHeader() {
         </nav>
 
         {/* Auth Section */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
+          {/* Theme Toggle */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                className="h-9 w-9 hover:bg-primary/10"
+                aria-label="Toggle theme"
+              >
+                {theme === 'dark' ? (
+                  <Sun className="h-4 w-4 text-amber-400" />
+                ) : (
+                  <Moon className="h-4 w-4 text-primary" />
+                )}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              <p className="text-xs">{theme === 'dark' ? 'Switch to Pastel Goth' : 'Switch to Cyberpunk'}</p>
+            </TooltipContent>
+          </Tooltip>
           {!isLoading && isAuthenticated ? (
             <Button variant="neon" asChild>
               <Link to="/dashboard">Go to Dashboard</Link>

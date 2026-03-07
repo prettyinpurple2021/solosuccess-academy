@@ -88,7 +88,7 @@ export function ExplainThisPanel({ selectedText, chapterTitle, onClose }: Explai
             <div className="h-7 w-7 rounded-full bg-primary/20 flex items-center justify-center">
               <Lightbulb className="h-4 w-4 text-primary" />
             </div>
-            <span className="font-display font-semibold text-sm text-cyan-300">Explain This</span>
+            <span className="font-display font-semibold text-sm text-secondary">Explain This</span>
           </div>
           <Button variant="ghost" size="icon" onClick={onClose} className="h-7 w-7 hover:bg-destructive/20">
             <X className="h-4 w-4" />

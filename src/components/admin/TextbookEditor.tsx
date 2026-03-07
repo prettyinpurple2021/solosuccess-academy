@@ -661,9 +661,9 @@ function PageForm({
               className="font-mono text-sm"
             />
             {/* Live markdown preview */}
-            <div className="border rounded-lg p-4 prose prose-sm prose-invert max-w-none overflow-auto max-h-[300px] bg-black/20">
+            <div className="border rounded-lg p-4 prose prose-sm prose-invert max-w-none overflow-auto max-h-[300px] bg-muted/30">
               {content ? content.split('\n').map((line, i) => {
-                if (line.startsWith('# ')) return <h1 key={i} className="text-xl font-bold mb-2 text-cyan-300">{line.slice(2)}</h1>;
+                if (line.startsWith('# ')) return <h1 key={i} className="text-xl font-bold mb-2 text-secondary">{line.slice(2)}</h1>;
                 if (line.startsWith('## ')) return <h2 key={i} className="text-lg font-semibold mb-2 text-primary">{line.slice(3)}</h2>;
                 if (line.startsWith('### ')) return <h3 key={i} className="text-base font-medium mb-1 text-purple-300">{line.slice(4)}</h3>;
                 if (line.startsWith('- ')) return <li key={i} className="ml-4 list-disc text-foreground/90">{line.slice(2)}</li>;

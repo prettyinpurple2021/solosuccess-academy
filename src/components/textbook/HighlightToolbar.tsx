@@ -36,13 +36,13 @@ export function HighlightToolbar({ position, onHighlight, onAddNote, onExplain, 
       }}
     >
       <div className="flex items-center gap-1 pr-2 border-r border-primary/30">
-        <Highlighter className="h-4 w-4 text-cyan-400 mr-1" />
+        <Highlighter className="h-4 w-4 text-secondary mr-1" />
         {HIGHLIGHT_COLORS.map((color) => (
           <button
             key={color.name}
             onClick={() => onHighlight(color.name)}
             className={cn(
-              "w-5 h-5 rounded-full transition-all hover:scale-125 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 focus:ring-offset-black",
+              "w-5 h-5 rounded-full transition-all hover:scale-125 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 focus:ring-offset-background",
               color.class,
               color.hover,
               color.shadow
@@ -51,12 +51,12 @@ export function HighlightToolbar({ position, onHighlight, onAddNote, onExplain, 
           />
         ))}
       </div>
-      <Button variant="ghost" size="sm" onClick={onAddNote} className="h-7 px-2 text-xs hover:bg-primary/20 text-cyan-300">
+      <Button variant="ghost" size="sm" onClick={onAddNote} className="h-7 px-2 text-xs hover:bg-primary/20 text-secondary">
         <StickyNote className="h-3 w-3 mr-1" />
         Note
       </Button>
       {onExplain && (
-        <Button variant="ghost" size="sm" onClick={onExplain} className="h-7 px-2 text-xs hover:bg-primary/20 text-amber-300">
+        <Button variant="ghost" size="sm" onClick={onExplain} className="h-7 px-2 text-xs hover:bg-primary/20 text-accent">
           <Lightbulb className="h-3 w-3 mr-1" />
           Explain
         </Button>
