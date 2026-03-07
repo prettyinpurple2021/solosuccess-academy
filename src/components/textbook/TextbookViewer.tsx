@@ -58,7 +58,6 @@ import { ReadingTimer } from './ReadingTimer';
 import { useAuth } from '@/hooks/useAuth';
 import { useGamification } from '@/components/gamification/GamificationProvider';
 import { useReadingTime } from '@/hooks/useReadingTime';
-import { useGamification } from '@/components/gamification/GamificationProvider';
 import { 
   ChevronLeft, 
   ChevronRight, 
