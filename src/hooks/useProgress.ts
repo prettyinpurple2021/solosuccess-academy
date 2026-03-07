@@ -23,6 +23,8 @@ export interface UserProgress {
   completed: boolean;
   completed_at: string | null;
   quiz_score: number | null;
+  /** Number of quiz attempts taken (max 3 allowed) */
+  quiz_attempts: number;
   activity_score: number | null;
   notes: string | null;
   created_at: string;
@@ -148,13 +150,20 @@ export function useSubmitQuizScore() {
       score: number;
       passingScore: number;
     }) => {
-      // Fetch existing progress to compare scores
+      // Fetch existing progress to compare scores and check attempt count
       const { data: existing } = await supabase
         .from('user_progress')
-        .select('quiz_score, completed')
+        .select('quiz_score, completed, quiz_attempts')
         .eq('user_id', userId)
         .eq('lesson_id', lessonId)
         .maybeSingle();
+
+      const currentAttempts = (existing as any)?.quiz_attempts ?? 0;
+
+      // Enforce 3-attempt limit — throw so the UI can catch it
+      if (currentAttempts >= 3) {
+        throw new Error('MAX_ATTEMPTS_REACHED');
+      }
 
       // Keep the best score: only update if new score is higher
       const bestScore = Math.max(score, existing?.quiz_score ?? 0);
@@ -168,6 +177,7 @@ export function useSubmitQuizScore() {
             user_id: userId,
             lesson_id: lessonId,
             quiz_score: bestScore,
+            quiz_attempts: currentAttempts + 1,
             // Never un-complete a lesson that was already completed
             completed: passed || alreadyCompleted,
             completed_at: (passed || alreadyCompleted) ? new Date().toISOString() : null,

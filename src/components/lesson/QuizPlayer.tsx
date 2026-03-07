@@ -32,11 +32,16 @@ import {
 import type { QuizData, QuizQuestion } from '@/lib/courseData';
 
 /* ── Props ──────────────────────────────────────────────────────────────── */
+/** Maximum number of quiz attempts allowed */
+const MAX_QUIZ_ATTEMPTS = 3;
+
 interface QuizPlayerProps {
   /** Structured quiz data from the lesson */
   quizData: QuizData;
   /** Previous quiz score from user_progress (null = never attempted) */
   initialScore?: number | null;
+  /** Number of attempts already used (0-3) */
+  attemptCount?: number;
   /** Callback fired with the final percentage when the quiz is finished */
   onComplete: (score: number) => void;
 }
