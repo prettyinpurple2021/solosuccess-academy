@@ -381,6 +381,7 @@ export default function LessonViewer() {
                     lesson={currentLesson}
                     savedNotes={currentProgress?.notes ?? null}
                     quizScore={currentProgress?.quiz_score ?? null}
+                    quizAttempts={(currentProgress as any)?.quiz_attempts ?? 0}
                     activityScore={currentProgress?.activity_score ?? null}
                     onQuizSubmit={handleQuizSubmit}
                     onActivityProgress={handleActivityProgress}
