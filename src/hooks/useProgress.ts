@@ -129,7 +129,10 @@ export function useMarkLessonComplete() {
   });
 }
 
-/** Mutation: Submit a quiz score. Auto-completes if passing. */
+/**
+ * Mutation: Submit a quiz score. Keeps the BEST score across retakes.
+ * Auto-completes the lesson if the score meets the passing threshold.
+ */
 export function useSubmitQuizScore() {
   const queryClient = useQueryClient();
 
@@ -145,16 +148,29 @@ export function useSubmitQuizScore() {
       score: number;
       passingScore: number;
     }) => {
-      const passed = score >= passingScore;
+      // Fetch existing progress to compare scores
+      const { data: existing } = await supabase
+        .from('user_progress')
+        .select('quiz_score, completed')
+        .eq('user_id', userId)
+        .eq('lesson_id', lessonId)
+        .maybeSingle();
+
+      // Keep the best score: only update if new score is higher
+      const bestScore = Math.max(score, existing?.quiz_score ?? 0);
+      const passed = bestScore >= passingScore;
+      const alreadyCompleted = existing?.completed === true;
+
       const { data, error } = await supabase
         .from('user_progress')
         .upsert(
           {
             user_id: userId,
             lesson_id: lessonId,
-            quiz_score: score,
-            completed: passed,
-            completed_at: passed ? new Date().toISOString() : null,
+            quiz_score: bestScore,
+            // Never un-complete a lesson that was already completed
+            completed: passed || alreadyCompleted,
+            completed_at: (passed || alreadyCompleted) ? new Date().toISOString() : null,
           },
           { onConflict: 'user_id,lesson_id' }
         )
