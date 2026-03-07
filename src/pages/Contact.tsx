@@ -89,7 +89,7 @@ export default function Contact() {
                       id="contact-message"
                       placeholder="Tell us more..."
                       rows={6}
-                      className="border-primary/30 bg-black/60 backdrop-blur-sm focus:border-primary focus:shadow-[0_0_20px_hsl(var(--primary)/0.4)] focus:outline-none"
+                      className="border-primary/30 bg-input backdrop-blur-sm focus:border-primary focus:shadow-[0_0_20px_hsl(var(--primary)/0.4)] focus:outline-none"
                       value={form.message}
                       onChange={(e) => setForm({ ...form, message: e.target.value })}
                     />

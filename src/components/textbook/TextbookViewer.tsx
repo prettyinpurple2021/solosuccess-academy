@@ -548,9 +548,9 @@ export function TextbookViewer({ courseId, courseName }: TextbookViewerProps) {
                 <List className="h-4 w-4" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="bg-black/95 backdrop-blur-xl border-r border-primary/30">
+            <SheetContent side="left" className="bg-popover/95 backdrop-blur-xl border-r border-primary/30">
               <SheetHeader>
-                <SheetTitle className="font-display text-cyan-300">Table of Contents</SheetTitle>
+                <SheetTitle className="font-display text-secondary">Table of Contents</SheetTitle>
               </SheetHeader>
               <ScrollArea className="h-[calc(100vh-100px)] mt-4">
                 <div className="space-y-2">
@@ -581,9 +581,9 @@ export function TextbookViewer({ courseId, courseName }: TextbookViewerProps) {
                 <Search className="h-4 w-4" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="bg-black/95 backdrop-blur-xl border-l border-primary/30">
+            <SheetContent side="right" className="bg-popover/95 backdrop-blur-xl border-l border-primary/30">
               <SheetHeader>
-                <SheetTitle className="font-display text-cyan-300">Search Textbook</SheetTitle>
+                <SheetTitle className="font-display text-secondary">Search Textbook</SheetTitle>
               </SheetHeader>
               <div className="mt-4 space-y-4">
                 <div className="flex gap-2">
@@ -592,7 +592,7 @@ export function TextbookViewer({ courseId, courseName }: TextbookViewerProps) {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                    className="bg-black/30 border-primary/30 focus:border-primary"
+                    className="bg-input border-primary/30 focus:border-primary"
                   />
                   <Button onClick={handleSearch} variant="neon" size="icon">
                     <Search className="h-4 w-4" />
@@ -607,7 +607,7 @@ export function TextbookViewer({ courseId, courseName }: TextbookViewerProps) {
                         whileHover={{ x: 4 }}
                         className="block w-full text-left p-3 rounded-lg hover:bg-primary/20 transition-all border border-transparent hover:border-primary/30"
                       >
-                        <span className="text-sm font-medium text-cyan-300">{result.chapter.title}</span>
+                        <span className="text-sm font-medium text-secondary">{result.chapter.title}</span>
                         <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
                           {result.content.substring(0, 150)}...
                         </p>

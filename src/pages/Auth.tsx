@@ -174,7 +174,7 @@ export default function Auth() {
         <Card className="glass-card border-primary/30 shadow-[0_0_40px_hsl(var(--primary)/0.2)]">
           <Tabs defaultValue={defaultTab} className="w-full">
             <CardHeader className="pb-4">
-              <TabsList className="grid w-full grid-cols-2 bg-black/60 border border-primary/20 p-1">
+              <TabsList className="grid w-full grid-cols-2 bg-muted border border-primary/20 p-1">
                 <TabsTrigger 
                   value="signin" 
                   className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:shadow-[0_0_15px_hsl(var(--primary)/0.4)] transition-all duration-300"

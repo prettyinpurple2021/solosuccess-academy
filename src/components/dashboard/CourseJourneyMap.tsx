@@ -290,7 +290,7 @@ export function CourseJourneyMap({
                     </a>
                   </g>
                 </TooltipTrigger>
-                <TooltipContent side="top" className="bg-black/90 border-primary/30 max-w-[200px]">
+                <TooltipContent side="top" className="bg-popover border-primary/30 max-w-[200px]">
                   <p className="font-semibold text-xs">{lesson.title}</p>
                   <p className="text-[10px] text-muted-foreground capitalize">{lesson.type} lesson</p>
                   {isCompleted && (

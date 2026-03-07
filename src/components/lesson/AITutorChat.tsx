@@ -186,13 +186,13 @@ export function AITutorChat({
   return (
     <div className="fixed bottom-4 right-4 z-50 w-96 h-[500px] glass-card shadow-[0_0_40px_rgba(168,85,247,0.3)] border-primary/30 flex flex-col">
       {/* Header */}
-      <div className="p-4 border-b border-primary/20 flex items-center justify-between flex-shrink-0 bg-black/20">
+      <div className="p-4 border-b border-primary/20 flex items-center justify-between flex-shrink-0 surface-overlay">
         <div className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded-full bg-cyan-500/20 flex items-center justify-center shadow-[0_0_15px_rgba(34,211,238,0.4)]">
-            <Bot className="h-4 w-4 text-cyan-400" />
+          <div className="h-8 w-8 rounded-full bg-secondary/20 flex items-center justify-center shadow-[0_0_15px_hsl(var(--secondary)/0.4)]">
+            <Bot className="h-4 w-4 text-secondary" />
           </div>
           <div>
-            <h3 className="font-display font-medium text-cyan-300">AI Tutor</h3>
+            <h3 className="font-display font-medium text-secondary">AI Tutor</h3>
             <p className="text-xs text-muted-foreground">Ask me anything about this lesson</p>
           </div>
         </div>
@@ -223,7 +223,7 @@ export function AITutorChat({
             <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center mb-4 shadow-[0_0_20px_rgba(168,85,247,0.4)]">
               <Sparkles className="h-6 w-6 text-primary" />
             </div>
-            <h4 className="font-display font-medium mb-2 text-cyan-300">Welcome to AI Tutor!</h4>
+            <h4 className="font-display font-medium mb-2 text-secondary">Welcome to AI Tutor!</h4>
             <p className="text-sm text-muted-foreground">
               I'm here to help you understand this lesson. Ask me any questions about the material, concepts, or how to apply them to your business.
             </p>
@@ -242,8 +242,8 @@ export function AITutorChat({
                   className={cn(
                     'h-8 w-8 rounded-full flex items-center justify-center flex-shrink-0',
                     message.role === 'user'
-                      ? 'bg-primary/30 text-primary shadow-[0_0_10px_rgba(168,85,247,0.4)]'
-                      : 'bg-cyan-500/20 text-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.3)]'
+                      ? 'bg-primary/30 text-primary shadow-[0_0_10px_hsl(var(--primary)/0.4)]'
+                      : 'bg-secondary/20 text-secondary shadow-[0_0_10px_hsl(var(--secondary)/0.3)]'
                   )}
                 >
                   {message.role === 'user' ? (
@@ -257,14 +257,14 @@ export function AITutorChat({
                     'rounded-lg px-3 py-2 max-w-[80%] text-sm',
                     message.role === 'user'
                       ? 'bg-primary/20 text-foreground border border-primary/30'
-                      : 'bg-cyan-500/10 text-foreground border border-cyan-500/20'
+                      : 'bg-secondary/10 text-foreground border border-secondary/20'
                   )}
                 >
                   {message.content || (
                     <span className="inline-flex gap-1">
-                      <span className="h-2 w-2 rounded-full bg-cyan-400 animate-bounce" style={{ animationDelay: '0ms' }} />
-                      <span className="h-2 w-2 rounded-full bg-cyan-400 animate-bounce" style={{ animationDelay: '150ms' }} />
-                      <span className="h-2 w-2 rounded-full bg-cyan-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+                      <span className="h-2 w-2 rounded-full bg-secondary animate-bounce" style={{ animationDelay: '0ms' }} />
+                      <span className="h-2 w-2 rounded-full bg-secondary animate-bounce" style={{ animationDelay: '150ms' }} />
+                      <span className="h-2 w-2 rounded-full bg-secondary animate-bounce" style={{ animationDelay: '300ms' }} />
                     </span>
                   )}
                 </div>
@@ -275,14 +275,14 @@ export function AITutorChat({
       </ScrollArea>
 
       {/* Input */}
-      <div className="p-4 border-t border-primary/20 flex-shrink-0 bg-black/20">
+      <div className="p-4 border-t border-primary/20 flex-shrink-0 surface-overlay">
         <div className="flex gap-2">
           <Textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Ask a question..."
-            className="min-h-[40px] max-h-[100px] resize-none bg-black/30 border-primary/30 focus:border-primary placeholder:text-muted-foreground/50"
+            className="min-h-[40px] max-h-[100px] resize-none bg-input border-primary/30 focus:border-primary placeholder:text-muted-foreground/50"
             rows={1}
           />
           <Button
