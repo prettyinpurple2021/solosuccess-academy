@@ -14,7 +14,8 @@
  *  - Final results screen with full review
  *  - Retake support
  */
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
+import { toast } from '@/hooks/use-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -361,6 +362,17 @@ export function QuizPlayer({ quizData, initialScore, attemptCount = 0, onComplet
 
   // If student already used all attempts, show their previous score immediately
   const maxedOut = attemptsUsed >= MAX_QUIZ_ATTEMPTS && !finished;
+
+  // Show a toast when the student just used their final attempt
+  useEffect(() => {
+    if (finished && attemptsUsed >= MAX_QUIZ_ATTEMPTS) {
+      toast({
+        title: '🚫 No Retakes Remaining',
+        description: `You've used all ${MAX_QUIZ_ATTEMPTS} attempts. Your best score has been saved.`,
+        variant: 'destructive',
+      });
+    }
+  }, [finished, attemptsUsed]);
 
   /** Called when the student locks in an answer for the current question */
   const handleAnswer = useCallback(
