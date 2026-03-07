@@ -2,78 +2,80 @@
 @tailwind components;
 @tailwind utilities;
 
-/* SoloSuccess Academy - Cyberpunk Command Center Design System
-   All colors MUST be HSL.
+/* SoloSuccess Academy — Design System
+   Dark: Cyberpunk Command Center
+   Light: Pastel Goth — soft lavenders, dusty pinks, and muted teals
+   on a warm cream/lilac base. All colors MUST be HSL.
 */
 
 @layer base {
   :root {
-    /* Light mode - clean tech aesthetic */
-    --background: 220 20% 97%;
-    --foreground: 240 10% 10%;
+    /* ═══ PASTEL GOTH — Light Mode ═══ */
+    --background: 270 20% 96%;
+    --foreground: 270 30% 15%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 10%;
+    --card: 270 25% 98%;
+    --card-foreground: 270 30% 15%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 10%;
+    --popover: 270 25% 98%;
+    --popover-foreground: 270 30% 15%;
 
-    /* Neon Purple as primary */
-    --primary: 270 70% 55%;
+    /* Soft purple primary */
+    --primary: 270 50% 55%;
     --primary-foreground: 0 0% 100%;
 
-    /* Cyan as secondary */
-    --secondary: 185 80% 45%;
+    /* Dusty teal secondary */
+    --secondary: 185 40% 42%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 220 15% 92%;
-    --muted-foreground: 220 10% 45%;
+    --muted: 270 15% 91%;
+    --muted-foreground: 270 10% 45%;
 
-    /* Accent for highlights */
-    --accent: 320 80% 55%;
+    /* Dusty rose accent */
+    --accent: 330 45% 58%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 72% 51%;
+    --destructive: 0 60% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 15% 88%;
-    --input: 220 15% 92%;
-    --ring: 270 70% 55%;
+    --border: 270 15% 85%;
+    --input: 270 15% 90%;
+    --ring: 270 50% 55%;
 
     --radius: 0.75rem;
 
-    /* Custom semantic colors */
-    --success: 142 70% 45%;
+    /* Semantic colors — softer in light mode */
+    --success: 142 45% 42%;
     --success-foreground: 0 0% 100%;
-    --warning: 38 92% 50%;
+    --warning: 38 70% 50%;
     --warning-foreground: 0 0% 10%;
-    --info: 200 90% 50%;
+    --info: 200 60% 48%;
     --info-foreground: 0 0% 100%;
 
-    /* Phase colors */
-    --phase-initialization: 270 70% 55%;
-    --phase-orchestration: 185 80% 45%;
-    --phase-launch: 320 80% 55%;
+    /* Phase colors — muted pastels */
+    --phase-initialization: 270 50% 55%;
+    --phase-orchestration: 185 40% 42%;
+    --phase-launch: 330 45% 58%;
 
-    /* Neon glow colors */
-    --glow-purple: 270 100% 65%;
-    --glow-cyan: 185 100% 55%;
-    --glow-pink: 320 100% 65%;
+    /* Glow colors — very subtle in light mode */
+    --glow-purple: 270 60% 60%;
+    --glow-cyan: 185 50% 50%;
+    --glow-pink: 330 55% 60%;
 
-    /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(270 70% 55%), hsl(320 80% 55%));
-    --gradient-secondary: linear-gradient(135deg, hsl(185 80% 45%), hsl(200 90% 50%));
-    --gradient-dark: linear-gradient(135deg, hsl(240 15% 10%), hsl(260 20% 15%));
+    /* Gradients — soft pastel */
+    --gradient-primary: linear-gradient(135deg, hsl(270 50% 55%), hsl(330 45% 58%));
+    --gradient-secondary: linear-gradient(135deg, hsl(185 40% 42%), hsl(200 60% 48%));
+    --gradient-dark: linear-gradient(135deg, hsl(270 20% 96%), hsl(270 25% 92%));
 
-    /* Sidebar - keep consistent */
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 270 70% 55%;
+    /* Sidebar — lavender tinted */
+    --sidebar-background: 270 25% 97%;
+    --sidebar-foreground: 270 20% 25%;
+    --sidebar-primary: 270 50% 55%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 270 50% 95%;
-    --sidebar-accent-foreground: 270 70% 35%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 270 70% 55%;
+    --sidebar-accent: 270 30% 92%;
+    --sidebar-accent-foreground: 270 50% 40%;
+    --sidebar-border: 270 15% 88%;
+    --sidebar-ring: 270 50% 55%;
   }
 
   .dark {
