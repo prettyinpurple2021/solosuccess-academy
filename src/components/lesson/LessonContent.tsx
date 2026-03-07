@@ -30,6 +30,8 @@ interface LessonContentProps {
   savedNotes?: string | null;
   /** The student's previous quiz score (null if never attempted) */
   quizScore?: number | null;
+  /** Number of quiz attempts already used (0-3) */
+  quizAttempts?: number;
   /** The student's previous activity score (null if never attempted) */
   activityScore?: number | null;
   /** Called when a quiz is submitted with the resulting score (0-100) */
@@ -182,6 +184,7 @@ export function LessonContent({
           <QuizPlayer
             quizData={lesson.quiz_data}
             initialScore={quizScore}
+            attemptCount={quizAttempts ?? 0}
             onComplete={onQuizSubmit ?? (() => {})}
           />
         </div>
