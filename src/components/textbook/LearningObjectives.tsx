@@ -187,7 +187,7 @@ export function LearningObjectives({ chapterId, chapterTitle, chapterContent }: 
           <Target className="h-4 w-4 text-secondary" />
           <span className="text-sm font-display font-semibold text-secondary">Learning Objectives</span>
           {completionPercent === 100 && (
-            <Trophy className="h-4 w-4 text-yellow-400" />
+            <Trophy className="h-4 w-4 text-accent" />
           )}
         </div>
         <div className="flex items-center gap-3">

@@ -87,7 +87,7 @@ export function VocabularyGlossary({ terms, className }: VocabularyGlossaryProps
       </SheetTrigger>
       <SheetContent
         side="right"
-        className="bg-black/95 backdrop-blur-xl border-l border-primary/30"
+        className="bg-popover/95 backdrop-blur-xl border-l border-primary/30"
       >
         <SheetHeader>
           <SheetTitle className="font-display text-secondary flex items-center gap-2">
