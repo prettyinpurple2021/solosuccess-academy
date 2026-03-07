@@ -193,7 +193,7 @@ export default function Dashboard() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-10">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-10">
           <Card className="glass-card glass-card-hover group">
             <CardContent className="pt-6">
               <div className="flex items-center gap-4">
@@ -250,6 +250,28 @@ export default function Dashboard() {
             </CardContent>
           </Card>
           <Link to="/certificates" className="hidden" />
+
+          {/* Reading Time Stats */}
+          <Card className="glass-card glass-card-hover group">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-4">
+                <div className="h-14 w-14 rounded-xl bg-primary/10 border border-primary/30 flex items-center justify-center group-hover:shadow-[0_0_20px_hsl(270_80%_60%/0.4)] transition-all">
+                  <Clock className="h-7 w-7 text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground font-mono">Reading Time</p>
+                  <p className="text-3xl font-display font-bold text-gradient">
+                    {readingStats ? formatReadableTime(readingStats.totalSeconds) : '0m'}
+                  </p>
+                  {readingStats && readingStats.todaySeconds > 0 && (
+                    <p className="text-xs text-muted-foreground font-mono mt-0.5">
+                      Today: {formatReadableTime(readingStats.todaySeconds)}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
