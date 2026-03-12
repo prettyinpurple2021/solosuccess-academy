@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { PageMeta } from '@/components/layout/PageMeta';
 import { ErrorView } from '@/components/ui/error-view';
+import { useMemo } from 'react';
 
 export default function VerifyCertificate() {
   const { verificationCode } = useParams<{ verificationCode: string }>();
@@ -46,7 +47,10 @@ export default function VerifyCertificate() {
     );
   }
 
-  const theme = certificate ? getThemeByCourseTitle(certificate.course_title) : null;
+  const theme = useMemo(
+    () => (certificate ? getThemeByCourseTitle(certificate.course_title) : null),
+    [certificate?.course_title]
+  );
 
   return (
     <div className="min-h-screen cyber-bg">
