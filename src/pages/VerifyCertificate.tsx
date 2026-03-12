@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -23,6 +24,11 @@ export default function VerifyCertificate() {
   const { verificationCode } = useParams<{ verificationCode: string }>();
   const { data: certificate, isLoading, error, refetch } = useVerifyCertificate(verificationCode);
 
+  const theme = useMemo(
+    () => (certificate ? getThemeByCourseTitle(certificate.course_title) : null),
+    [certificate?.course_title]
+  );
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center cyber-bg">
@@ -45,8 +51,6 @@ export default function VerifyCertificate() {
       </div>
     );
   }
-
-  const theme = certificate ? getThemeByCourseTitle(certificate.course_title) : null;
 
   return (
     <div className="min-h-screen cyber-bg">
