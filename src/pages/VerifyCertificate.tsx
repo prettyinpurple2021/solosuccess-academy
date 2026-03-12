@@ -140,7 +140,7 @@ export default function VerifyCertificate() {
                   </div>
                   <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
                     <BookOpen className="h-5 w-5 text-secondary" />
-                    <div>
+                    <div className="min-w-0">
                       <p className="text-xs text-muted-foreground">Course</p>
                       <p className="font-medium text-sm truncate">
                         {certificate.course_title}

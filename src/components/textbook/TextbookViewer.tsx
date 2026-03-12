@@ -253,12 +253,12 @@ export function TextbookViewer({ courseId, courseName }: TextbookViewerProps) {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Ignore if user is typing or interacting with an input-like control
-      const target = e.target as HTMLElement | null;
-      if (!target) {
+      const target = e.target;
+      if (!(target instanceof Element)) {
         return;
       }
       const interactiveRoot = target.closest(
-        'input, textarea, select, [contenteditable="true"], [data-interactive-region="true"]'
+        'input, textarea, select, [contenteditable], [data-interactive-region="true"]'
       );
       if (interactiveRoot) {
         return;
