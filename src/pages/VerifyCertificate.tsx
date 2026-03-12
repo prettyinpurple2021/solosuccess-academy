@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -18,11 +19,15 @@ import {
 } from 'lucide-react';
 import { PageMeta } from '@/components/layout/PageMeta';
 import { ErrorView } from '@/components/ui/error-view';
-import { useMemo } from 'react';
 
 export default function VerifyCertificate() {
   const { verificationCode } = useParams<{ verificationCode: string }>();
   const { data: certificate, isLoading, error, refetch } = useVerifyCertificate(verificationCode);
+
+  const theme = useMemo(
+    () => (certificate ? getThemeByCourseTitle(certificate.course_title) : null),
+    [certificate?.course_title]
+  );
 
   if (isLoading) {
     return (
@@ -46,11 +51,6 @@ export default function VerifyCertificate() {
       </div>
     );
   }
-
-  const theme = useMemo(
-    () => (certificate ? getThemeByCourseTitle(certificate.course_title) : null),
-    [certificate?.course_title]
-  );
 
   return (
     <div className="min-h-screen cyber-bg">
