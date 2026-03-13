@@ -76,9 +76,7 @@ export function PublicHeader() {
                 {item.label}
               </a>
             );
-          })}
-            );
-          })}
+        </nav>
         </nav>
 
         {/* Auth Section */}
