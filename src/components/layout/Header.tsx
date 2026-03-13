@@ -24,6 +24,7 @@ import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { XPDisplay } from '@/components/gamification/XPDisplay';
 import { GlobalSearch } from '@/components/search/GlobalSearch';
 import { cn } from '@/lib/utils';
+import { useScrollOpacity } from '@/hooks/useScrollOpacity';
 import {
   Tooltip,
   TooltipContent,

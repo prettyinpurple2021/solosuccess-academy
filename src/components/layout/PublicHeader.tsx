@@ -16,6 +16,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Zap, Menu, X, Sun, Moon } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
+import { useScrollOpacity } from '@/hooks/useScrollOpacity';
 import {
   Tooltip,
   TooltipContent,
