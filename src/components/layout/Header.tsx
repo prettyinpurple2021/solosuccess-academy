@@ -147,12 +147,12 @@ export function Header() {
                 variant="ghost"
                 size="sm"
                 onClick={() => setSearchOpen(true)}
-                className="hidden sm:flex items-center gap-2 text-muted-foreground hover:text-secondary border border-secondary/20 hover:border-secondary/40 px-3 h-9 font-heading tracking-wider text-xs uppercase"
+                className="hidden sm:flex items-center gap-2 text-foreground hover:text-secondary border border-secondary/55 hover:border-secondary px-3 h-9 font-heading tracking-[0.1em] text-xs uppercase bg-background/20 hover:bg-secondary/10"
                 title="Search (Ctrl+K)"
               >
                 <Search className="h-4 w-4" />
                 <span>Search</span>
-                <kbd className="pointer-events-none hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border border-muted-foreground/30 bg-muted/50 px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
+                <kbd className="pointer-events-none hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border border-secondary/45 bg-background/30 px-1.5 font-mono text-[10px] font-medium text-foreground/80">
                   ⌘K
                 </kbd>
               </Button>
