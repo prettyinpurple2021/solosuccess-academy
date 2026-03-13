@@ -1,35 +1,30 @@
 /**
  * @file PublicLayout.tsx — Public (Unauthenticated) Page Shell
  * 
- * Wraps public-facing pages that don't require login:
- * - Landing page (/)
- * - Auth page (/auth)
- * - Course catalog (/courses)
- * - Course detail (/courses/:id)
- * 
- * Structure: PublicHeader → main content → Footer
- * 
- * The `cyber-bg` and `cyber-grid` classes apply the cyberpunk-themed
- * background gradient and grid overlay (defined in index.css).
+ * Wraps public-facing pages with the cyberpunk background,
+ * floating bokeh particles, grid overlay, header, and footer.
  */
 import { Outlet } from 'react-router-dom';
 import { PublicHeader } from './PublicHeader';
 import { Footer } from './Footer';
+import { FloatingParticles } from '@/components/landing/FloatingParticles';
 
 export function PublicLayout() {
   return (
     <div className="min-h-screen flex flex-col cyber-bg">
-      {/* Public navigation header — logo + auth buttons */}
+      {/* Floating bokeh / digital dust particles for 3D depth */}
+      <FloatingParticles count={25} />
+
+      {/* Public navigation header */}
       <PublicHeader />
       
-      {/* Main content area — id="main-content" is the target for SkipLink accessibility */}
+      {/* Main content area */}
       <main id="main-content" tabIndex={-1} className="flex-1 relative">
         <div className="cyber-grid" />
-        {/* <Outlet /> renders whichever child route matches the current URL */}
         <Outlet />
       </main>
       
-      {/* Site footer with links and copyright */}
+      {/* Site footer */}
       <Footer />
     </div>
   );
