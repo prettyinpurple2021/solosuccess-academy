@@ -16,6 +16,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Zap, Menu, X, Sun, Moon } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
+import { useScrollOpacity } from '@/hooks/useScrollOpacity';
 import {
   Tooltip,
   TooltipContent,
@@ -41,9 +42,13 @@ export function PublicHeader() {
   const { theme, setTheme } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const navOpacity = useScrollOpacity();
 
   return (
-    <header className="sticky top-0 z-[80] w-full header-glass">
+    <header
+      className="sticky top-0 z-[80] w-full header-glass transition-[background-color] duration-300"
+      style={{ '--nav-opacity': navOpacity } as React.CSSProperties}
+    >
       <div className="container flex h-16 items-center justify-between">
         {/* ── Logo ── */}
         <Link to="/" className="flex items-center gap-3 group">

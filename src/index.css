@@ -692,7 +692,8 @@
   /* Global dark-translucent glass style (no gray wash in any theme) */
 
   .header-glass {
-    background: hsl(var(--nav-surface) / 0.75);
+    --nav-opacity: 0.75;
+    background: hsl(var(--nav-surface) / var(--nav-opacity));
     backdrop-filter: blur(20px) saturate(1.8);
     -webkit-backdrop-filter: blur(20px) saturate(1.8);
     border-bottom: 1px solid hsl(var(--nav-neon-cyan) / 0.95);
