@@ -66,7 +66,7 @@ export function AppLayout() {
         
         <div className="flex-1 flex flex-col relative min-w-0">
           {/* Mobile-only top bar — matches cyberpunk header-glass */}
-          <header className="sticky top-0 z-40 h-14 mobile-header-glass flex items-center px-4 md:hidden">
+          <header className="sticky top-0 z-[80] h-14 mobile-header-glass flex items-center px-4 md:hidden">
             <SidebarTrigger />
           </header>
           
