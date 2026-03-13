@@ -377,7 +377,8 @@ export function useTextbookSearch(courseId: string | undefined, query: string) {
           ...page,
           embedded_quiz: safeQuiz,
           chapter: chapters.find(c => c.id === page.chapter_id)!,
-      }));
+        };
+      });
     },
     enabled: !!courseId && query.trim().length >= 2,
   });
