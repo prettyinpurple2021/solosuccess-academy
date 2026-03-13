@@ -77,9 +77,10 @@ export function Header() {
               <Zap className="h-5 w-5 relative z-10" />
               <div className="absolute inset-0 bg-gradient-to-br from-primary via-accent to-secondary opacity-100 group-hover:animate-pulse" />
             </div>
-            <span className="font-display font-bold text-xl tracking-[0.15em] hidden sm:block">
+            <span className="font-display font-extrabold text-base tracking-[0.15em] hidden sm:block" style={{ textShadow: '0 0 12px hsl(185 100% 50% / 0.5)' }}>
               <span className="text-gradient">SOLO</span>
               <span className="text-foreground">SUCCESS</span>
+              <span className="text-muted-foreground text-[0.65rem] tracking-[0.2em] ml-1.5">ACADEMY</span>
             </span>
           </Link>
 
