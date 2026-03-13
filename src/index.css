@@ -136,6 +136,13 @@
     --glow-cyan: 185 100% 60%;
     --glow-pink: 320 100% 70%;
 
+    /* Global top-nav tokens (same in dark mode for consistency) */
+    --nav-surface: 0 0% 2%;
+    --nav-neon-cyan: 185 100% 58%;
+    --nav-neon-amethyst: 270 85% 67%;
+    --nav-text: 0 0% 100%;
+    --nav-text-hover: 185 100% 82%;
+
     /* Gradients */
     --gradient-primary: linear-gradient(135deg, hsl(270 100% 70%), hsl(320 100% 65%));
     --gradient-secondary: linear-gradient(135deg, hsl(185 100% 55%), hsl(200 100% 60%));
