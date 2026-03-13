@@ -62,6 +62,13 @@
     --glow-cyan: 185 50% 50%;
     --glow-pink: 330 55% 60%;
 
+    /* Global top-nav tokens (kept consistent across themes) */
+    --nav-surface: 0 0% 2%;
+    --nav-neon-cyan: 185 100% 58%;
+    --nav-neon-amethyst: 270 85% 67%;
+    --nav-text: 0 0% 100%;
+    --nav-text-hover: 185 100% 82%;
+
     /* Gradients — soft pastel */
     --gradient-primary: linear-gradient(135deg, hsl(270 50% 55%), hsl(330 45% 58%));
     --gradient-secondary: linear-gradient(135deg, hsl(185 40% 42%), hsl(200 60% 48%));
