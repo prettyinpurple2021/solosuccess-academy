@@ -1010,7 +1010,7 @@
   }
 
   .animate-pulse-glow {
-    animation: pulse-glow 3s ease-in-out infinite;
+    animation: pulse-glow 6s ease-in-out infinite;
   }
 
   @keyframes pulse-glow {
@@ -1024,7 +1024,7 @@
 
   /* Glowing orb animation for background effects */
   .animate-orb-glow {
-    animation: orb-glow 4s ease-in-out infinite;
+    animation: orb-glow 8s ease-in-out infinite;
   }
 
   @keyframes orb-glow {
@@ -1042,7 +1042,7 @@
 
   /* Orb glow with color shift for primary */
   .animate-orb-glow-primary {
-    animation: orb-glow-primary 5s ease-in-out infinite;
+    animation: orb-glow-primary 10s ease-in-out infinite;
   }
 
   @keyframes orb-glow-primary {
@@ -1060,7 +1060,7 @@
 
   /* Orb glow for secondary */
   .animate-orb-glow-secondary {
-    animation: orb-glow-secondary 6s ease-in-out infinite;
+    animation: orb-glow-secondary 12s ease-in-out infinite;
   }
 
   @keyframes orb-glow-secondary {
@@ -1078,7 +1078,7 @@
 
   /* Orb glow for accent */
   .animate-orb-glow-accent {
-    animation: orb-glow-accent 5.5s ease-in-out infinite;
+    animation: orb-glow-accent 11s ease-in-out infinite;
   }
 
   @keyframes orb-glow-accent {
@@ -1096,7 +1096,7 @@
 
   /* Flicker effect for extra cyberpunk feel */
   .animate-flicker {
-    animation: flicker 4s infinite;
+    animation: flicker 8s infinite;
   }
 
   @keyframes flicker {
@@ -1110,7 +1110,7 @@
 
   /* Neon text glow animation for H1 headings */
   .animate-neon-glow {
-    animation: neon-heading-glow 3s ease-in-out infinite alternate;
+    animation: neon-heading-glow 6s ease-in-out infinite alternate;
   }
 
   @keyframes neon-heading-glow {
