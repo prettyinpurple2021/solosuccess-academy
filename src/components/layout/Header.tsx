@@ -69,7 +69,7 @@ export function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 w-full header-glass">
+      <header className="sticky top-0 z-[80] w-full header-glass">
         <div className="container flex h-16 items-center justify-between">
           {/* ── Logo ── */}
           <Link to="/" className="flex items-center gap-3 group">
@@ -77,15 +77,13 @@ export function Header() {
               <Zap className="h-5 w-5 relative z-10" />
               <div className="absolute inset-0 bg-gradient-to-br from-primary via-accent to-secondary opacity-100 group-hover:animate-pulse" />
             </div>
-            <span className="font-display font-extrabold text-base tracking-[0.15em] hidden sm:block" style={{ textShadow: '0 0 12px hsl(185 100% 50% / 0.5)' }}>
-              <span className="text-gradient">SOLO</span>
-              <span className="text-foreground">SUCCESS</span>
-              <span className="text-muted-foreground text-[0.65rem] tracking-[0.2em] ml-1.5">ACADEMY</span>
+            <span className="nav-brand-text hidden sm:block">
+              SOLOSUCCESS ACADEMY
             </span>
           </Link>
 
           {/* ── Desktop Nav — cyber styled ── */}
-          <nav className="hidden md:flex items-center gap-8">
+          <nav className="hidden md:flex h-16 items-center gap-8">
             <Link
               to="/courses"
               className={cn(
