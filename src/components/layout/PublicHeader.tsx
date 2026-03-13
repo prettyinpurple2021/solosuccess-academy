@@ -157,9 +157,6 @@ export function PublicHeader() {
               <Button variant="outline" asChild className="btn-cyber-chamfer justify-start font-heading tracking-[0.1em] uppercase text-xs">
                 <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>Sign In</Link>
               </Button>
-              <Button variant="neon" asChild className="btn-cyber-chamfer">
-                <Link to="/auth?mode=signup" onClick={() => setMobileMenuOpen(false)}>Get Started</Link>
-              </Button>
             </div>
           )}
         </nav>

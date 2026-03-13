@@ -233,14 +233,9 @@ export function Header() {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <div className="flex items-center gap-3">
-                <Button variant="outline" asChild className="btn-cyber-chamfer font-heading tracking-[0.1em] text-xs uppercase min-w-[104px]">
-                  <Link to="/auth">Sign In</Link>
-                </Button>
-                <Button variant="neon" asChild className="btn-cyber-chamfer min-w-[124px]">
-                  <Link to="/auth?mode=signup">Get Started</Link>
-                </Button>
-              </div>
+              <Button variant="outline" asChild className="btn-cyber-chamfer font-heading tracking-[0.1em] text-xs uppercase min-w-[104px]">
+                <Link to="/auth">Sign In</Link>
+              </Button>
             )}
           </div>
         </div>
