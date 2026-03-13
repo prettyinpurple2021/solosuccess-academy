@@ -35,7 +35,7 @@ interface FinalExamGeneratorProps {
 export function FinalExamGenerator({ courses }: FinalExamGeneratorProps) {
   const [selectedCourseId, setSelectedCourseId] = useState<string>('');
   const [questionCount, setQuestionCount] = useState(15);
-  const { data: existingExam, isLoading: examLoading } = useFinalExam(selectedCourseId || undefined);
+  const { data: existingExam, isLoading: examLoading } = useFinalExamAdmin(selectedCourseId || undefined);
   const generateExam = useGenerateFinalExam();
 
   const selectedCourse = courses.find(c => c.id === selectedCourseId);
