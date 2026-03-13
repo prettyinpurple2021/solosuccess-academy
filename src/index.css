@@ -1078,7 +1078,7 @@
 
   /* Orb glow for accent */
   .animate-orb-glow-accent {
-    animation: orb-glow-accent 5.5s ease-in-out infinite;
+    animation: orb-glow-accent 11s ease-in-out infinite;
   }
 
   @keyframes orb-glow-accent {
