@@ -60,7 +60,8 @@ export function VocabularyGlossary({ terms, className }: VocabularyGlossaryProps
   const groupedTerms = useMemo(() => {
     const groups: Record<string, GlossaryTerm[]> = {};
     for (const term of filteredTerms) {
-      const letter = term.term[0]?.toUpperCase() || '#';
+      const firstChar = term.term?.charAt(0) ?? '';
+      const letter = /^\p{L}$/u.test(firstChar) ? firstChar.toUpperCase() : '#';
       if (!groups[letter]) groups[letter] = [];
       groups[letter].push(term);
     }
