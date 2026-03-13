@@ -700,6 +700,37 @@
     box-shadow:
       0 4px 20px -5px hsl(var(--nav-neon-cyan) / 0.55),
       0 1px 0 hsl(var(--nav-neon-amethyst) / 0.14) inset;
+    position: relative;
+    overflow: visible;
+  }
+
+  /* Animated scan-line that sweeps across the bottom border */
+  .header-glass::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 80px;
+    height: 3px;
+    border-radius: 2px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      hsl(var(--nav-neon-cyan) / 0.9) 40%,
+      hsl(var(--nav-neon-cyan)) 50%,
+      hsl(var(--nav-neon-cyan) / 0.9) 60%,
+      transparent
+    );
+    box-shadow: 0 0 12px hsl(var(--nav-neon-cyan) / 0.7);
+    animation: nav-scanline 4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    pointer-events: none;
+  }
+
+  @keyframes nav-scanline {
+    0%   { left: -80px; opacity: 0; }
+    10%  { opacity: 1; }
+    90%  { opacity: 1; }
+    100% { left: 100%; opacity: 0; }
   }
 
   /* ====== NAV BRAND TYPOGRAPHY ====== */
