@@ -21,6 +21,8 @@ import { MessageCircle, Send, X, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 
+const MIN_COMMENT_LENGTH = 2;
+
 interface InlineCommentsProps {
   /** The textbook page ID */
   pageId: string;
@@ -176,7 +178,7 @@ function CommentThread({ pageId, paragraphIndex, onClose }: {
 
   const handleSubmit = () => {
     const trimmed = newComment.trim();
-    if (!trimmed || trimmed.length < 2) return;
+    if (!trimmed || trimmed.length < MIN_COMMENT_LENGTH) return;
     createComment.mutate(trimmed);
   };
 

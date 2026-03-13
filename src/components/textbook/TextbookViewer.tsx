@@ -77,6 +77,17 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 
+const INTERACTIVE_ROOT_SELECTOR =
+  'input, textarea, select, [contenteditable], [data-interactive-region="true"]';
+
+/**
+ * Minimum and maximum allowed lengths for extracted glossary terms.
+ * Shorter strings are usually noise (e.g., "a", "an"), and very long ones
+ * are likely full phrases rather than concise vocabulary terms.
+ */
+const MIN_TERM_LENGTH = 2;
+const MAX_TERM_LENGTH = 60;
+
 interface TextbookViewerProps {
   courseId: string;
   courseName: string;
@@ -172,7 +183,7 @@ export function TextbookViewer({ courseId, courseName }: TextbookViewerProps) {
       let match;
       while ((match = boldPattern.exec(page.content)) !== null) {
         const term = match[1].trim();
-        if (term.length < 2 || term.length > 60 || termMap.has(term.toLowerCase())) continue;
+        if (term.length < MIN_TERM_LENGTH || term.length > MAX_TERM_LENGTH || termMap.has(term.toLowerCase())) continue;
         
         // Extract the sentence around the term as the definition
         const start = Math.max(0, page.content.lastIndexOf('.', match.index) + 1);
@@ -257,9 +268,7 @@ export function TextbookViewer({ courseId, courseName }: TextbookViewerProps) {
       if (!(target instanceof Element)) {
         return;
       }
-      const interactiveRoot = target.closest(
-        'input, textarea, select, [contenteditable], [data-interactive-region="true"]'
-      );
+      const interactiveRoot = target.closest(INTERACTIVE_ROOT_SELECTOR);
       if (interactiveRoot) {
         return;
       }

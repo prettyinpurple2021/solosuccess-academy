@@ -44,7 +44,7 @@ export default function Contact() {
   return (
     <>
       <PageMeta
-        title="Contact Us — SoloSuccess Academy"
+        fullTitle="Contact Us — SoloSuccess Academy"
         description="Get in touch with the SoloSuccess Academy team."
         path="/contact"
       />
