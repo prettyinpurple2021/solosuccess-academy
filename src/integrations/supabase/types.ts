@@ -1572,8 +1572,16 @@ export type Database = {
         Args: { _action?: string; _user_id: string; _xp_amount: number }
         Returns: Json
       }
+      check_textbook_quiz_answer: {
+        Args: { _page_id: string; _selected_answer: number }
+        Returns: Json
+      }
       get_exam_for_student: { Args: { _course_id: string }; Returns: Json }
       get_overall_progress: { Args: { _user_id: string }; Returns: Json }
+      get_textbook_pages_for_student: {
+        Args: { _course_id: string }
+        Returns: Json
+      }
       grade_and_submit_exam: {
         Args: { _answers: Json; _exam_id: string }
         Returns: Json
