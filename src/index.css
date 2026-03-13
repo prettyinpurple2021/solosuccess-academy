@@ -1055,6 +1055,53 @@
     97% { opacity: 1; }
   }
 
+  /* Neon text glow animation for H1 headings */
+  .animate-neon-glow {
+    animation: neon-heading-glow 3s ease-in-out infinite alternate;
+  }
+
+  @keyframes neon-heading-glow {
+    0% {
+      text-shadow:
+        0 0 5px hsl(270 100% 70% / 0.4),
+        0 0 20px hsl(270 100% 70% / 0.2),
+        0 0 40px hsl(185 100% 55% / 0.1);
+      filter: brightness(1);
+    }
+    100% {
+      text-shadow:
+        0 0 10px hsl(270 100% 70% / 0.6),
+        0 0 30px hsl(270 100% 70% / 0.35),
+        0 0 60px hsl(185 100% 55% / 0.2);
+      filter: brightness(1.1);
+    }
+  }
+
+  /* Floating particles drift */
+  @keyframes particle-drift {
+    0% {
+      transform: translate(0, 0) scale(1);
+    }
+    50% {
+      transform: translate(30px, -40px) scale(1.5);
+    }
+    100% {
+      transform: translate(-20px, 20px) scale(0.8);
+    }
+  }
+
+  /* Scanning line for UI frames */
+  .animate-scan-line {
+    animation: scan-line 3s ease-in-out infinite;
+  }
+
+  @keyframes scan-line {
+    0% { top: 0; opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { top: 100%; opacity: 0; }
+  }
+
   /* Dialog/Modal Neon Border Effect */
   .dialog-neon-border {
     position: relative;
