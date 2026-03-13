@@ -65,8 +65,8 @@ export function AppLayout() {
         <AppSidebar />
         
         <div className="flex-1 flex flex-col relative min-w-0">
-          {/* Mobile-only top bar with hamburger menu trigger */}
-          <header className="sticky top-0 z-40 h-14 border-b border-primary/20 bg-background/80 backdrop-blur-xl flex items-center px-4 md:hidden">
+          {/* Mobile-only top bar — matches cyberpunk header-glass */}
+          <header className="sticky top-0 z-40 h-14 mobile-header-glass flex items-center px-4 md:hidden">
             <SidebarTrigger />
           </header>
           
