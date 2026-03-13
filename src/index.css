@@ -1024,7 +1024,7 @@
 
   /* Glowing orb animation for background effects */
   .animate-orb-glow {
-    animation: orb-glow 4s ease-in-out infinite;
+    animation: orb-glow 8s ease-in-out infinite;
   }
 
   @keyframes orb-glow {
