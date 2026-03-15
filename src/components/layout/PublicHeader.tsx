@@ -116,7 +116,7 @@ export function PublicHeader() {
               <Link to="/dashboard">Dashboard</Link>
             </Button>
           ) : !isLoading ? (
-            <Button variant="neon" asChild className="hidden md:inline-flex btn-cyber font-heading tracking-[0.1em] text-xs uppercase min-w-[104px]">
+            <Button variant="neon" asChild className="hidden md:inline-flex btn-cyber font-heading tracking-[0.1em] text-sm uppercase min-w-[104px]">
               <Link to="/auth">Sign In</Link>
             </Button>
           ) : null}
