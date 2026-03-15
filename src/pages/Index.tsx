@@ -173,8 +173,8 @@ export default function Index() {
       {/* ═══════════════════════════════════════
           WHO IS THIS FOR + FEATURES
           ═══════════════════════════════════════ */}
-      <section id="features" className="py-24 relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/5 to-transparent" />
+      <section id="features" className="py-24 relative nebula-section">
+        <div className="cosmic-divider mb-16" />
         
         <div className="container relative">
           <div className="text-center mb-16">
