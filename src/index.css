@@ -1191,4 +1191,263 @@
       background-position: 100% 50%;
     }
   }
+
+  /* ====== NEBULA-INSPIRED ANIMATIONS ====== */
+
+  /* Slow swirling nebula cloud — large ambient background effect */
+  .nebula-cloud {
+    position: fixed;
+    border-radius: 50%;
+    pointer-events: none;
+    filter: blur(80px);
+    mix-blend-mode: screen;
+    opacity: 0;
+    animation: nebula-breathe 18s ease-in-out infinite;
+  }
+
+  .dark .nebula-cloud { opacity: 0; animation: nebula-breathe 18s ease-in-out infinite; }
+  :root .nebula-cloud, .light .nebula-cloud, :not(.dark) .nebula-cloud {
+    mix-blend-mode: multiply;
+  }
+
+  .nebula-cloud-1 {
+    width: 600px; height: 600px;
+    top: -10%; left: -5%;
+    background: radial-gradient(circle, hsl(270 80% 50% / 0.18) 0%, hsl(320 60% 50% / 0.08) 50%, transparent 70%);
+    animation-delay: 0s;
+  }
+  .nebula-cloud-2 {
+    width: 500px; height: 500px;
+    bottom: -5%; right: -5%;
+    background: radial-gradient(circle, hsl(185 80% 50% / 0.15) 0%, hsl(200 60% 45% / 0.06) 50%, transparent 70%);
+    animation-delay: -6s;
+  }
+  .nebula-cloud-3 {
+    width: 700px; height: 700px;
+    top: 30%; right: 10%;
+    background: radial-gradient(circle, hsl(320 70% 55% / 0.12) 0%, hsl(270 50% 40% / 0.05) 50%, transparent 70%);
+    animation-delay: -12s;
+  }
+
+  @keyframes nebula-breathe {
+    0%, 100% {
+      opacity: 0.3;
+      transform: scale(1) rotate(0deg);
+    }
+    25% {
+      opacity: 0.5;
+      transform: scale(1.08) rotate(3deg);
+    }
+    50% {
+      opacity: 0.6;
+      transform: scale(1.15) rotate(-2deg);
+    }
+    75% {
+      opacity: 0.45;
+      transform: scale(1.05) rotate(1deg);
+    }
+  }
+
+  /* Star twinkle effect — tiny glint on elements */
+  .animate-star-twinkle {
+    animation: star-twinkle 6s ease-in-out infinite;
+  }
+
+  @keyframes star-twinkle {
+    0%, 100% { opacity: 0.2; transform: scale(0.8); }
+    20% { opacity: 1; transform: scale(1.2); }
+    40% { opacity: 0.3; transform: scale(0.9); }
+    60% { opacity: 0.9; transform: scale(1.1); }
+    80% { opacity: 0.15; transform: scale(0.85); }
+  }
+
+  /* Nebula gradient border — animated shifting gradient on card borders */
+  .nebula-border {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .nebula-border::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    padding: 1px;
+    border-radius: inherit;
+    background: linear-gradient(
+      var(--nebula-angle, 135deg),
+      hsl(270 80% 60% / 0.5),
+      hsl(185 90% 55% / 0.3),
+      hsl(320 80% 60% / 0.4),
+      hsl(240 70% 60% / 0.3),
+      hsl(270 80% 60% / 0.5)
+    );
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    background-size: 400% 400%;
+    animation: nebula-border-shift 12s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  @keyframes nebula-border-shift {
+    0% { background-position: 0% 50%; }
+    25% { background-position: 100% 0%; }
+    50% { background-position: 100% 100%; }
+    75% { background-position: 0% 100%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  /* Cosmic dust trail — for section dividers */
+  .cosmic-divider {
+    position: relative;
+    height: 2px;
+    background: transparent;
+    overflow: visible;
+  }
+
+  .cosmic-divider::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      hsl(270 80% 60% / 0.4) 20%,
+      hsl(185 90% 55% / 0.6) 40%,
+      hsl(320 80% 60% / 0.5) 60%,
+      hsl(270 80% 60% / 0.4) 80%,
+      transparent 100%
+    );
+    filter: blur(1px);
+  }
+
+  .cosmic-divider::after {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: 0;
+    right: 0;
+    height: 10px;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      hsl(270 80% 60% / 0.15) 20%,
+      hsl(185 90% 55% / 0.25) 50%,
+      hsl(320 80% 60% / 0.15) 80%,
+      transparent 100%
+    );
+    filter: blur(6px);
+  }
+
+  /* Nebula section background — subtle color wash behind sections */
+  .nebula-section {
+    position: relative;
+  }
+
+  .nebula-section::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 15% 50%, hsl(270 60% 50% / 0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 85% 30%, hsl(185 60% 50% / 0.06) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 80%, hsl(320 60% 50% / 0.05) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .dark .nebula-section::before {
+    background:
+      radial-gradient(ellipse at 15% 50%, hsl(270 80% 50% / 0.12) 0%, transparent 50%),
+      radial-gradient(ellipse at 85% 30%, hsl(185 80% 50% / 0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 80%, hsl(320 80% 50% / 0.07) 0%, transparent 50%);
+  }
+
+  /* Animated nebula text shimmer */
+  .text-nebula {
+    background: linear-gradient(
+      90deg,
+      hsl(270 100% 70%),
+      hsl(185 100% 55%),
+      hsl(320 100% 65%),
+      hsl(240 80% 65%),
+      hsl(270 100% 70%)
+    );
+    background-size: 300% 100%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: nebula-text-flow 10s ease-in-out infinite;
+  }
+
+  @keyframes nebula-text-flow {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  /* Nebula card glow on hover */
+  .nebula-glow-hover {
+    transition: box-shadow 0.5s ease, border-color 0.5s ease;
+  }
+
+  .nebula-glow-hover:hover {
+    border-color: hsl(270 60% 60% / 0.4);
+    box-shadow:
+      0 0 20px hsl(270 80% 60% / 0.15),
+      0 0 40px hsl(185 80% 55% / 0.1),
+      0 0 60px hsl(320 80% 60% / 0.08);
+  }
+
+  :root .nebula-glow-hover:hover,
+  .light .nebula-glow-hover:hover,
+  :not(.dark) .nebula-glow-hover:hover {
+    border-color: hsl(270 40% 70% / 0.5);
+    box-shadow:
+      0 0 15px hsl(270 50% 60% / 0.1),
+      0 0 30px hsl(185 50% 55% / 0.06);
+  }
+
+  /* Stardust particles — smaller, faster twinklers */
+  @keyframes stardust-drift {
+    0% { transform: translate(0, 0) rotate(0deg); opacity: 0; }
+    10% { opacity: 1; }
+    50% { transform: translate(15px, -25px) rotate(180deg); opacity: 0.6; }
+    90% { opacity: 0.8; }
+    100% { transform: translate(-10px, 15px) rotate(360deg); opacity: 0; }
+  }
+
+  /* Nebula pulse ring — expanding ring effect */
+  .nebula-pulse-ring {
+    position: relative;
+  }
+
+  .nebula-pulse-ring::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: inherit;
+    border: 1px solid hsl(270 80% 60% / 0.3);
+    animation: nebula-ring-expand 8s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  @keyframes nebula-ring-expand {
+    0%, 100% {
+      inset: -4px;
+      opacity: 0.5;
+      border-color: hsl(270 80% 60% / 0.3);
+    }
+    33% {
+      inset: -8px;
+      opacity: 0.3;
+      border-color: hsl(185 80% 55% / 0.25);
+    }
+    66% {
+      inset: -6px;
+      opacity: 0.4;
+      border-color: hsl(320 80% 60% / 0.3);
+    }
+  }
 }

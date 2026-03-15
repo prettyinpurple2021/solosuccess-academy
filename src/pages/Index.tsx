@@ -104,7 +104,7 @@ export default function Index() {
       {/* ═══════════════════════════════════════
           HERO SECTION
           ═══════════════════════════════════════ */}
-      <section className="relative overflow-hidden py-24 md:py-36">
+      <section className="relative overflow-hidden py-24 md:py-36 nebula-section">
         {/* Animated orb background effects */}
         <div className="absolute inset-0 -z-10">
           <div className="absolute top-0 left-1/4 w-[600px] h-[600px] rounded-full blur-[150px] animate-orb-glow-primary" />
@@ -124,7 +124,7 @@ export default function Index() {
             <h1 className="text-5xl md:text-7xl lg:text-8xl font-display font-black tracking-tight mb-8 leading-tight">
               <span className="text-foreground animate-neon-glow inline-block">BUILD YOUR</span>
               <br />
-              <span className="text-gradient animate-flicker">DREAM BUSINESS</span>
+              <span className="text-nebula animate-flicker">DREAM BUSINESS</span>
             </h1>
 
             <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed font-sans">
@@ -152,7 +152,8 @@ export default function Index() {
             </UIFrame>
 
             {/* Academy highlights */}
-            <div className="flex flex-wrap items-center justify-center gap-8 mt-16 pt-10 border-t border-primary/20">
+            <div className="flex flex-wrap items-center justify-center gap-8 mt-16 pt-10 border-t border-primary/20 relative">
+              <div className="cosmic-divider absolute top-0 left-0 right-0" />
               {[
                 { value: '10', label: 'Expert Courses', hoverColor: 'group-hover:text-primary' },
                 { value: '3', label: 'Learning Phases', hoverColor: 'group-hover:text-secondary' },
@@ -172,8 +173,8 @@ export default function Index() {
       {/* ═══════════════════════════════════════
           WHO IS THIS FOR + FEATURES
           ═══════════════════════════════════════ */}
-      <section id="features" className="py-24 relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/5 to-transparent" />
+      <section id="features" className="py-24 relative nebula-section">
+        <div className="cosmic-divider mb-16" />
         
         <div className="container relative">
           <div className="text-center mb-16">
@@ -196,7 +197,7 @@ export default function Index() {
               { icon: GraduationCap, title: 'Career Changers', desc: 'Transitioning from corporate? Graduate with a professional portfolio and investor-ready pitch.', color: 'accent' },
               { icon: Users, title: 'Indie Hackers', desc: 'Already building? Fill the gaps in your knowledge with targeted courses on branding, sales, and automation.', color: 'primary' },
             ].map((item) => (
-              <div key={item.title} className="data-card p-6 group cursor-default">
+              <div key={item.title} className="data-card p-6 group cursor-default nebula-glow-hover">
                 <div className={`h-14 w-14 rounded-xl bg-${item.color}/10 border border-${item.color}/30 flex items-center justify-center mb-4 transition-all duration-300`}>
                   <item.icon className={`h-7 w-7 text-${item.color}`} />
                 </div>
@@ -214,7 +215,7 @@ export default function Index() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {features.map((feature) => (
-              <div key={feature.title} className="data-card p-6 group cursor-default">
+              <div key={feature.title} className="data-card p-6 group cursor-default nebula-glow-hover">
                 <div className="h-14 w-14 rounded-xl bg-primary/10 border border-primary/30 flex items-center justify-center mb-4 transition-all duration-300">
                   <feature.icon className="h-7 w-7 text-primary" />
                 </div>
@@ -229,13 +230,13 @@ export default function Index() {
       {/* ═══════════════════════════════════════
           PRICING SECTION
           ═══════════════════════════════════════ */}
-      <section id="pricing" className="py-24 relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-secondary/5 to-transparent" />
+      <section id="pricing" className="py-24 relative nebula-section">
+        <div className="cosmic-divider mb-16" />
         
         <div className="container relative">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-display font-bold mb-6">
-              <span className="text-gradient-cyan animate-neon-glow inline-block">SIMPLE PRICING</span>
+              <span className="text-nebula animate-neon-glow inline-block">SIMPLE PRICING</span>
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
               Pay per course. No subscriptions. Lifetime access to everything you purchase.
@@ -297,7 +298,7 @@ export default function Index() {
       {/* ═══════════════════════════════════════
           COURSE JOURNEY — TIMELINE LAYOUT
           ═══════════════════════════════════════ */}
-      <section className="py-24">
+      <section className="py-24 nebula-section">
         <div className="container">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-display font-bold mb-6">
