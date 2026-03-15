@@ -215,7 +215,7 @@ export default function Index() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {features.map((feature) => (
-              <div key={feature.title} className="data-card p-6 group cursor-default">
+              <div key={feature.title} className="data-card p-6 group cursor-default nebula-glow-hover">
                 <div className="h-14 w-14 rounded-xl bg-primary/10 border border-primary/30 flex items-center justify-center mb-4 transition-all duration-300">
                   <feature.icon className="h-7 w-7 text-primary" />
                 </div>
