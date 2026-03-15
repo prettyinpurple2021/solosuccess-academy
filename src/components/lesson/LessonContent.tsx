@@ -48,6 +48,8 @@ interface LessonContentProps {
   existingNotes?: string | null;
   /** Current user ID — passed to interactive players for persistence */
   userId?: string;
+  /** Course ID — needed for practice lab file uploads */
+  courseId?: string;
 }
 
 // Sanitize and format content to prevent XSS attacks
