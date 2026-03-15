@@ -142,7 +142,7 @@ export default function Index() {
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Link>
                 </Button>
-                <Button size="lg" variant="outline" asChild className="text-lg px-10 h-14 btn-cyber">
+                <Button size="lg" variant="secondary" asChild className="text-lg px-10 h-14 btn-cyber border border-secondary/40">
                   <Link to="/courses">
                     <Play className="mr-2 h-5 w-5" />
                     View Courses
