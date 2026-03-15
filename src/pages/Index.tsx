@@ -236,7 +236,7 @@ export default function Index() {
         <div className="container relative">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-display font-bold mb-6">
-              <span className="text-gradient-cyan animate-neon-glow inline-block">SIMPLE PRICING</span>
+              <span className="text-nebula animate-neon-glow inline-block">SIMPLE PRICING</span>
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
               Pay per course. No subscriptions. Lifetime access to everything you purchase.
