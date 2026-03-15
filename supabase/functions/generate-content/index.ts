@@ -653,7 +653,7 @@ Return ONLY valid JSON matching the format specified in the system prompt.`;
 
     // Try to parse JSON from the response for structured content types
     let parsedContent = generatedContent;
-    const jsonContentTypes = ["course_outline", "quiz", "worksheet", "activity", "exam", "textbook_chapter", "textbook_page", "bulk_curriculum", "lesson_enrichment", "final_exam_mixed", "final_essay", "grade_essay"];
+    const jsonContentTypes = ["course_outline", "quiz", "worksheet", "activity", "exam", "textbook_chapter", "textbook_page", "bulk_curriculum", "lesson_enrichment", "final_exam_mixed", "final_essay", "grade_essay", "practice_lab"];
     if (jsonContentTypes.includes(type)) {
       try {
         // Extract JSON from markdown code blocks if present
@@ -661,8 +661,17 @@ Return ONLY valid JSON matching the format specified in the system prompt.`;
         const jsonString = jsonMatch ? jsonMatch[1] : generatedContent;
         parsedContent = JSON.parse(jsonString.trim());
       } catch {
-        // If parsing fails, return raw content
-        console.log("Could not parse JSON, returning raw content");
+        // Fallback: try to find a JSON object in the raw text
+        try {
+          const objMatch = generatedContent.match(/\{[\s\S]*"[^"]+"\s*:[\s\S]*\}/);
+          if (objMatch) {
+            parsedContent = JSON.parse(objMatch[0]);
+          } else {
+            console.log("Could not parse JSON, returning raw content");
+          }
+        } catch {
+          console.log("Could not parse JSON even with fallback, returning raw content");
+        }
       }
     }
 
