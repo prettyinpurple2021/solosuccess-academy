@@ -80,7 +80,11 @@ export function LessonContent({
   onSaveNotes,
   isCompleted = false,
   existingNotes = null,
+  userId,
+  courseId,
 }: LessonContentProps) {
+  /** Fetch practice lab for this lesson (if one exists) */
+  const { data: practiceLab } = usePracticeLab(lesson.id);
   /** Returns the icon for the lesson type badge */
   const getTypeIcon = () => {
     switch (lesson.type) {
