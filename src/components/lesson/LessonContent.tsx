@@ -269,6 +269,18 @@ export function LessonContent({
           <p className="text-muted-foreground">Lesson content coming soon</p>
         </div>
       )}
+
+      {/* ── Practice Lab ─────────────────────────────────────────────────── */}
+      {/* Shown for ANY lesson type that has a practice lab attached */}
+      {practiceLab && userId && courseId && (
+        <div className="mt-8 pt-8 border-t border-accent/20">
+          <PracticeLabPlayer
+            lab={practiceLab}
+            userId={userId}
+            courseId={courseId}
+          />
+        </div>
+      )}
     </div>
   );
 }
