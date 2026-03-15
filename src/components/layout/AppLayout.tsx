@@ -62,6 +62,10 @@ export function AppLayout() {
       <div className="min-h-screen flex w-full cyber-bg">
         {/* Background grid overlay (purely decorative) */}
         <div className="cyber-grid fixed inset-0 pointer-events-none" />
+
+        {/* Nebula ambient clouds + star field */}
+        <NebulaBackground />
+        <StarField count={20} />
         
         {/* Sidebar navigation — see AppSidebar.tsx for menu items */}
         <AppSidebar />

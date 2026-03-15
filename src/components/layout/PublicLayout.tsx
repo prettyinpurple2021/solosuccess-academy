@@ -8,10 +8,18 @@ import { Outlet } from 'react-router-dom';
 import { PublicHeader } from './PublicHeader';
 import { Footer } from './Footer';
 import { FloatingParticles } from '@/components/landing/FloatingParticles';
+import { NebulaBackground } from '@/components/landing/NebulaBackground';
+import { StarField } from '@/components/landing/StarField';
 
 export function PublicLayout() {
   return (
     <div className="min-h-screen flex flex-col cyber-bg">
+      {/* Deep-space nebula clouds — ambient color washes */}
+      <NebulaBackground />
+
+      {/* Twinkling star field for depth */}
+      <StarField count={35} />
+
       {/* Floating bokeh / digital dust particles for 3D depth */}
       <FloatingParticles count={25} />
 
