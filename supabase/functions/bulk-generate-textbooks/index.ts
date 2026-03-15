@@ -77,7 +77,6 @@ serve(async (req) => {
     const { data: allCourses } = await serviceClient
       .from("courses")
       .select("id, title, description, order_number")
-      .eq("is_published", true)
       .order("order_number", { ascending: true });
 
     if (!allCourses?.length) {
