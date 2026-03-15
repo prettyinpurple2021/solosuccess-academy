@@ -104,7 +104,7 @@ export default function Index() {
       {/* ═══════════════════════════════════════
           HERO SECTION
           ═══════════════════════════════════════ */}
-      <section className="relative overflow-hidden py-24 md:py-36">
+      <section className="relative overflow-hidden py-24 md:py-36 nebula-section">
         {/* Animated orb background effects */}
         <div className="absolute inset-0 -z-10">
           <div className="absolute top-0 left-1/4 w-[600px] h-[600px] rounded-full blur-[150px] animate-orb-glow-primary" />
