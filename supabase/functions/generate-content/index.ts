@@ -460,12 +460,6 @@ serve(async (req) => {
       );
     }
 
-    // Check rate limit
-    const rateLimitResult = await checkRateLimit(userId, RATE_LIMIT_CONFIG);
-    if (!rateLimitResult.allowed) {
-      return rateLimitResponse(rateLimitResult, corsHeaders);
-    }
-
     const { type, context, customPrompt }: GenerateRequest = await req.json();
 
     if (!type || !systemPrompts[type]) {
@@ -473,6 +467,13 @@ serve(async (req) => {
         JSON.stringify({ error: "Invalid content type" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
+    }
+
+    // Apply a rate-limit bucket that matches the specific generation workload.
+    const rateLimitConfig = getRateLimitConfig(type);
+    const rateLimitResult = await checkRateLimit(userId, rateLimitConfig);
+    if (!rateLimitResult.allowed) {
+      return rateLimitResponse(rateLimitResult, corsHeaders);
     }
 
     // Check if document content is provided and prepend it

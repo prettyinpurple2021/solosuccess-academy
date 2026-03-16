@@ -101,42 +101,73 @@ export function BulkGeneratePracticeLabsButton() {
         setProgress({ current: i + 1, total: lessonsToGenerate.length });
 
         try {
-          // Call generate-content with practice_lab type
-          const { data, error } = await supabase.functions.invoke('generate-content', {
-            body: {
-              type: 'practice_lab',
-              context: {
-                courseTitle,
-                lessonTitle: lesson.title,
-                lessonType: lesson.type,
-              },
-            },
-          });
+          const maxRetries = 3;
+          let attempt = 0;
+          let isGenerated = false;
 
-          if (error) throw error;
-          if (data?.error) throw new Error(data.error);
+          while (attempt < maxRetries && !isGenerated) {
+            try {
+              // Ask the backend for one practice lab at a time.
+              const { data, error } = await supabase.functions.invoke('generate-content', {
+                body: {
+                  type: 'practice_lab',
+                  context: {
+                    courseTitle,
+                    lessonTitle: lesson.title,
+                    lessonType: lesson.type,
+                  },
+                },
+              });
 
-          const labContent = data.content;
-          if (!labContent?.title || !labContent?.instructions) {
-            throw new Error('Invalid practice lab format returned');
+              if (error) throw error;
+              if (data?.error) throw new Error(data.error);
+
+              const labContent = data.content;
+              if (!labContent?.title || !labContent?.instructions) {
+                throw new Error('Invalid practice lab format returned');
+              }
+
+              // Persist the generated practice lab for this lesson.
+              const { error: insertError } = await supabase
+                .from('practice_labs')
+                .insert({
+                  lesson_id: lesson.id,
+                  title: labContent.title,
+                  instructions: labContent.instructions,
+                  deliverable_description: labContent.deliverable_description || labContent.deliverable || 'Submit your completed work.',
+                  estimated_minutes: labContent.estimated_minutes || 15,
+                  difficulty: labContent.difficulty || 'intermediate',
+                });
+
+              if (insertError) throw insertError;
+
+              addLog(`✅ ${lesson.title}`, 'success');
+              successCount++;
+              isGenerated = true;
+            } catch (err) {
+              const retryAfterSeconds = extractRetryAfterSeconds(err);
+              const errorMessage = err instanceof Error ? err.message : String(err ?? 'Unknown error');
+              const isRateLimitError = retryAfterSeconds !== null || errorMessage.includes('Rate limit');
+
+              // Respect short retry windows automatically, but avoid freezing the UI
+              // for very long cooldowns.
+              if (isRateLimitError && attempt < maxRetries - 1) {
+                if (retryAfterSeconds !== null && retryAfterSeconds > 60) {
+                  throw new Error(`Rate limit window is ${Math.ceil(retryAfterSeconds / 60)} minutes. Please resume generation later.`);
+                }
+
+                const waitSeconds = retryAfterSeconds ?? Math.min(5 * 2 ** attempt, 30);
+                addLog(
+                  `⏳ Rate limited for ${lesson.title}. Waiting ${waitSeconds}s before retry ${attempt + 2}/${maxRetries}...`
+                );
+                await wait(waitSeconds * 1000);
+                attempt++;
+                continue;
+              }
+
+              throw err;
+            }
           }
-
-          // Insert into practice_labs table
-          const { error: insertError } = await supabase
-            .from('practice_labs')
-            .insert({
-              lesson_id: lesson.id,
-              title: labContent.title,
-              instructions: labContent.instructions,
-              deliverable_description: labContent.deliverable_description || labContent.deliverable || 'Submit your completed work.',
-              estimated_minutes: labContent.estimated_minutes || 15,
-              difficulty: labContent.difficulty || 'intermediate',
-            });
-
-          if (insertError) throw insertError;
-
-          addLog(`✅ ${lesson.title}`, 'success');
-          successCount++;
         } catch (err: any) {
           addLog(`❌ ${lesson.title}: ${err.message}`, 'error');
           errorCount++;
