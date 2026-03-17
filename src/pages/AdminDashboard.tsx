@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { MilestoneEditor } from '@/components/admin/MilestoneEditor';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { CourseBreadcrumb } from '@/components/navigation/CourseBreadcrumb';
@@ -30,7 +31,8 @@ import {
   BookText,
   Sparkles,
   GraduationCap,
-  ArrowLeft
+  ArrowLeft,
+  Target,
 } from 'lucide-react';
 import { NeonSpinner } from '@/components/ui/neon-spinner';
 
@@ -184,6 +186,14 @@ export default function AdminDashboard() {
           >
             <BookText className="h-4 w-4 mr-2" />
             Textbook
+          </TabsTrigger>
+          <TabsTrigger 
+            value="milestones" 
+            disabled={!selectedCourseId}
+            className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:shadow-[0_0_10px_hsl(var(--primary)/0.3)]"
+          >
+            <Target className="h-4 w-4 mr-2" />
+            Milestones
           </TabsTrigger>
         </TabsList>
 
@@ -384,6 +394,15 @@ export default function AdminDashboard() {
                             <BookText className="h-4 w-4" />
                             <span className="hidden xl:inline ml-2">Textbook</span>
                           </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleManageCourse(course.id, 'milestones')}
+                            className="border-accent/50 hover:border-accent hover:bg-accent/10 hover:text-accent"
+                          >
+                            <Target className="h-4 w-4" />
+                            <span className="hidden xl:inline ml-2">Milestones</span>
+                          </Button>
                           <AssetUpload
                             courseId={course.id}
                             currentAsset={course.plug_and_play_asset}
@@ -462,6 +481,40 @@ export default function AdminDashboard() {
                 <p className="text-sm text-muted-foreground">Manage interactive textbook content</p>
               </div>
               <TextbookEditor courseId={selectedCourseId} courseTitle={selectedCourse?.title} />
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="milestones">
+          {selectedCourseId && (
+            <div className="space-y-4">
+              {/* Breadcrumb + Back button */}
+              <div className="flex items-center gap-3">
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={() => {
+                    setSelectedCourseId(null);
+                    setActiveTab('courses');
+                  }}
+                  className="hover:bg-primary/10 hover:text-primary shrink-0"
+                  title="Back to Courses"
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                </Button>
+                <CourseBreadcrumb
+                  segments={[
+                    { label: 'Admin', href: '/admin' },
+                    { label: selectedCourse?.title || 'Course' },
+                    { label: 'Milestones' },
+                  ]}
+                />
+              </div>
+              <div>
+                <h2 className="text-xl font-semibold neon-text">{selectedCourse?.title} - Milestones & Rubric</h2>
+                <p className="text-sm text-muted-foreground">Manage project checkpoints and scoring criteria</p>
+              </div>
+              <MilestoneEditor courseId={selectedCourseId} courseTitle={selectedCourse?.title} />
             </div>
           )}
         </TabsContent>
