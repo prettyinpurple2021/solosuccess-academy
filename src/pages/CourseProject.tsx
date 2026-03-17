@@ -1,5 +1,5 @@
 /**
- * @file CourseProject.tsx — Course Project Page (Milestone-Based)
+ * @file CourseProject.tsx — Course Project Page (Milestone-Based + Graduation Gate)
  * 
  * Shows the milestone-based project workflow:
  * - Displays course project title & description
@@ -7,6 +7,11 @@
  * - Each milestone has its own submission, AI feedback, and rubric scorecard
  * - Milestones unlock sequentially (must complete previous to proceed)
  * - Falls back to the legacy single-submission form if no milestones exist
+ * 
+ * COURSE 10 SPECIAL BEHAVIOR:
+ * - Shows a Graduation Gate requiring all 9 courses to be 100% complete
+ * - Includes a Portfolio Compiler button to download all projects as PDF
+ * - Only unlocks the project form after prerequisites are met
  */
 import { useParams, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -14,17 +19,25 @@ import { Progress } from '@/components/ui/progress';
 import { ProjectSubmissionForm } from '@/components/project/ProjectSubmissionForm';
 import { ProjectFeedback } from '@/components/project/ProjectFeedback';
 import { MilestoneCard } from '@/components/project/MilestoneCard';
+import { GraduationGate } from '@/components/project/GraduationGate';
 import { CourseBreadcrumb } from '@/components/navigation/CourseBreadcrumb';
 import { useCourse, useHasPurchasedCourse } from '@/hooks/useCourses';
 import { useCourseProject } from '@/hooks/useProjects';
 import { useCourseMilestones, useMilestoneSubmissions } from '@/hooks/useProjectMilestones';
+import { useGraduationGate } from '@/hooks/useGraduationGate';
+import { usePortfolioData } from '@/hooks/usePortfolioData';
 import { useAuth } from '@/hooks/useAuth';
-import { Lock, Target } from 'lucide-react';
+import { useProfile } from '@/hooks/useProfile';
+import { useToast } from '@/hooks/use-toast';
+import { downloadPortfolioPDF } from '@/lib/portfolioGenerator';
+import { Lock, Target, Download, GraduationCap } from 'lucide-react';
 import { NeonSpinner } from '@/components/ui/neon-spinner';
 
 export default function CourseProject() {
   const { courseId } = useParams<{ courseId: string }>();
   const { user, isLoading: authLoading } = useAuth();
+  const { data: profile } = useProfile(user?.id);
+  const { toast } = useToast();
 
   const { data: course, isLoading: courseLoading } = useCourse(courseId);
   const { data: hasPurchased, isLoading: purchaseLoading } = useHasPurchasedCourse(user?.id, courseId);
@@ -33,6 +46,21 @@ export default function CourseProject() {
   // Milestone data
   const { data: milestones = [], isLoading: milestonesLoading } = useCourseMilestones(courseId);
   const { data: submissions = [], isLoading: subsLoading } = useMilestoneSubmissions(user?.id, courseId);
+
+  // Graduation gate — only active for Course 10 (order_number = 10)
+  const isGraduationCourse = course?.order_number === 10;
+  const { data: gate, isLoading: gateLoading } = useGraduationGate(
+    isGraduationCourse ? user?.id : undefined,
+    isGraduationCourse ? courseId : undefined
+  );
+
+  // Portfolio data — for the PDF download button
+  const studentName = profile?.display_name || user?.email?.split('@')[0] || 'Student';
+  const { data: portfolioData } = usePortfolioData(
+    isGraduationCourse ? user?.id : undefined,
+    isGraduationCourse ? courseId : undefined,
+    studentName
+  );
 
   const isLoading = authLoading || courseLoading || purchaseLoading;
 
@@ -101,14 +129,30 @@ export default function CourseProject() {
 
   // Determine which milestones are unlocked (sequential gating)
   const isMilestoneUnlocked = (index: number) => {
-    if (index === 0) return true; // First milestone is always unlocked
+    if (index === 0) return true;
     const prevMilestone = milestones[index - 1];
     const prevSubmission = submissionMap.get(prevMilestone.id);
     return prevSubmission?.status === 'reviewed';
   };
 
-  // Has milestones? Use milestone UI. Otherwise fall back to legacy form.
   const hasMilestones = milestones.length > 0;
+
+  /** Handle portfolio PDF download */
+  const handleDownloadPortfolio = () => {
+    if (!portfolioData) {
+      toast({ title: 'Loading...', description: 'Portfolio data is still loading. Try again in a moment.' });
+      return;
+    }
+    try {
+      downloadPortfolioPDF(portfolioData);
+      toast({ title: 'Portfolio Downloaded', description: 'Your professional portfolio PDF has been saved.' });
+    } catch (err: any) {
+      toast({ title: 'Download Failed', description: err.message, variant: 'destructive' });
+    }
+  };
+
+  // For graduation course: check if gate is still loading
+  const gateBlocked = isGraduationCourse && (gateLoading || !gate?.isUnlocked);
 
   return (
     <div className="p-6 md:p-8 lg:p-12">
@@ -128,10 +172,15 @@ export default function CourseProject() {
             <div className="p-6">
               <div className="flex items-start justify-between gap-4 mb-4">
                 <div>
-                  <h1 className="text-2xl font-bold neon-text">{course.project_title}</h1>
+                  <div className="flex items-center gap-2 mb-2">
+                    {isGraduationCourse && (
+                      <GraduationCap className="h-6 w-6 text-accent drop-shadow-[0_0_8px_hsl(var(--accent)/0.5)]" />
+                    )}
+                    <h1 className="text-2xl font-bold neon-text">{course.project_title}</h1>
+                  </div>
                   <p className="text-muted-foreground mt-2">{course.project_description}</p>
                 </div>
-                {hasMilestones && (
+                {hasMilestones && !gateBlocked && (
                   <div className="text-right shrink-0">
                     <div className="flex items-center gap-2 mb-1">
                       <Target className="h-4 w-4 text-primary" />
@@ -143,39 +192,71 @@ export default function CourseProject() {
                   </div>
                 )}
               </div>
+
+              {/* Portfolio Download Button — only for graduation course when gate is open */}
+              {isGraduationCourse && gate?.isUnlocked && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleDownloadPortfolio}
+                  disabled={!portfolioData}
+                  className="border-accent/50 hover:border-accent hover:bg-accent/10 hover:text-accent mt-2"
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Download Portfolio PDF
+                </Button>
+              )}
             </div>
           </div>
 
-          {/* ─── Milestone-based workflow ─── */}
-          {hasMilestones ? (
-            <div className="space-y-4">
-              <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
-                <Target className="h-5 w-5 text-primary" />
-                Project Milestones
-              </h2>
-              {(milestonesLoading || subsLoading) ? (
+          {/* ─── Graduation Gate (Course 10 only) ─── */}
+          {isGraduationCourse && (
+            <>
+              {gateLoading ? (
                 <div className="flex items-center justify-center py-8">
                   <NeonSpinner size="md" />
                 </div>
-              ) : (
-                milestones.map((milestone, index) => (
-                  <MilestoneCard
-                    key={milestone.id}
-                    milestone={milestone}
-                    submission={submissionMap.get(milestone.id)}
-                    userId={user!.id}
-                    courseId={courseId!}
-                    number={index + 1}
-                    isUnlocked={isMilestoneUnlocked(index)}
-                  />
-                ))
-              )}
-            </div>
-          ) : (
-            /* ─── Legacy single-submission fallback ─── */
+              ) : gate ? (
+                <GraduationGate gate={gate} />
+              ) : null}
+            </>
+          )}
+
+          {/* ─── Project Content (only if gate is open or not a graduation course) ─── */}
+          {!gateBlocked && (
             <>
-              <ProjectSubmissionForm course={course} userId={user!.id} />
-              {project?.ai_feedback && <ProjectFeedback project={project} />}
+              {/* Milestone-based workflow */}
+              {hasMilestones ? (
+                <div className="space-y-4">
+                  <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                    <Target className="h-5 w-5 text-primary" />
+                    Project Milestones
+                  </h2>
+                  {(milestonesLoading || subsLoading) ? (
+                    <div className="flex items-center justify-center py-8">
+                      <NeonSpinner size="md" />
+                    </div>
+                  ) : (
+                    milestones.map((milestone, index) => (
+                      <MilestoneCard
+                        key={milestone.id}
+                        milestone={milestone}
+                        submission={submissionMap.get(milestone.id)}
+                        userId={user!.id}
+                        courseId={courseId!}
+                        number={index + 1}
+                        isUnlocked={isMilestoneUnlocked(index)}
+                      />
+                    ))
+                  )}
+                </div>
+              ) : (
+                /* Legacy single-submission fallback */
+                <>
+                  <ProjectSubmissionForm course={course} userId={user!.id} />
+                  {project?.ai_feedback && <ProjectFeedback project={project} />}
+                </>
+              )}
             </>
           )}
         </div>
