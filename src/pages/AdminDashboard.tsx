@@ -187,6 +187,14 @@ export default function AdminDashboard() {
             <BookText className="h-4 w-4 mr-2" />
             Textbook
           </TabsTrigger>
+          <TabsTrigger 
+            value="milestones" 
+            disabled={!selectedCourseId}
+            className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:shadow-[0_0_10px_hsl(var(--primary)/0.3)]"
+          >
+            <Target className="h-4 w-4 mr-2" />
+            Milestones
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="courses" className="space-y-4">
