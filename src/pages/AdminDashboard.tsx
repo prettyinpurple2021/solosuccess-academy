@@ -31,7 +31,8 @@ import {
   BookText,
   Sparkles,
   GraduationCap,
-  ArrowLeft
+  ArrowLeft,
+  Target,
 } from 'lucide-react';
 import { NeonSpinner } from '@/components/ui/neon-spinner';
 
