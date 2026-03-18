@@ -20,6 +20,7 @@ import { ProjectSubmissionForm } from '@/components/project/ProjectSubmissionFor
 import { ProjectFeedback } from '@/components/project/ProjectFeedback';
 import { MilestoneCard } from '@/components/project/MilestoneCard';
 import { GraduationGate } from '@/components/project/GraduationGate';
+import { PortfolioAssembler } from '@/components/project/PortfolioAssembler';
 import { CourseBreadcrumb } from '@/components/navigation/CourseBreadcrumb';
 import { useCourse, useHasPurchasedCourse } from '@/hooks/useCourses';
 import { useCourseProject } from '@/hooks/useProjects';
@@ -225,8 +226,11 @@ export default function CourseProject() {
           {/* ─── Project Content (only if gate is open or not a graduation course) ─── */}
           {!gateBlocked && (
             <>
-              {/* Milestone-based workflow */}
-              {hasMilestones ? (
+              {/* Course 10: Portfolio Assembler */}
+              {isGraduationCourse ? (
+                <PortfolioAssembler userId={user!.id} graduationCourseId={courseId!} />
+              ) : hasMilestones ? (
+                /* Milestone-based workflow */
                 <div className="space-y-4">
                   <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
                     <Target className="h-5 w-5 text-primary" />
