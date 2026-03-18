@@ -87,10 +87,10 @@ export function VocabularyGlossary({ terms, className }: VocabularyGlossaryProps
       </SheetTrigger>
       <SheetContent
         side="right"
-        className="bg-black/95 backdrop-blur-xl border-l border-primary/30"
+        className="bg-popover/95 backdrop-blur-xl border-l border-primary/30"
       >
         <SheetHeader>
-          <SheetTitle className="font-display text-cyan-300 flex items-center gap-2">
+          <SheetTitle className="font-display text-secondary flex items-center gap-2">
             <BookA className="h-5 w-5" />
             Vocabulary ({terms.length} terms)
           </SheetTitle>
@@ -145,7 +145,7 @@ export function VocabularyGlossary({ terms, className }: VocabularyGlossaryProps
                                 {item.definition}
                               </p>
                               {item.chapter && (
-                                <span className="text-xs text-cyan-400/60 mt-1 inline-block">
+                                <span className="text-xs text-secondary/60 mt-1 inline-block">
                                   {item.chapter}
                                 </span>
                               )}

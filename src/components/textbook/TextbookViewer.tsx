@@ -54,8 +54,10 @@ import { ReadingMilestones } from './ReadingMilestones';
 import { type MiniGameData } from './MiniGame';
 import { ExplainThisPanel } from './ExplainThisPanel';
 import { TextToSpeech } from './TextToSpeech';
+import { ReadingTimer } from './ReadingTimer';
 import { useAuth } from '@/hooks/useAuth';
-import { useAwardXP, XP_VALUES } from '@/hooks/useGamification';
+import { useGamification } from '@/components/gamification/GamificationProvider';
+import { useReadingTime } from '@/hooks/useReadingTime';
 import { 
   ChevronLeft, 
   ChevronRight, 
@@ -120,7 +122,21 @@ export function TextbookViewer({ courseId, courseName }: TextbookViewerProps) {
   const createHighlight = useCreateHighlight();
   const { toast } = useToast();
   const { user } = useAuth();
-  const awardXP = useAwardXP();
+  const { awardXP, checkAndAwardBadges } = useGamification();
+
+  // Reading time tracker — awards XP at 15m, 30m, 60m milestones
+  const { formattedTime, elapsedSeconds } = useReadingTime({
+    userId: user?.id,
+    courseId,
+    onMilestone: async (milestone) => {
+      toast({
+        title: `⏱️ ${milestone.label}`,
+        description: `+${milestone.xp} XP for sustained reading!`,
+      });
+      await awardXP('LESSON_COMPLETE', milestone.xp);
+      await checkAndAwardBadges();
+    },
+  });
 
   // Get all page IDs for fetching highlights
   const pageIds = useMemo(() => pages?.map(p => p.id) || [], [pages]);
@@ -200,11 +216,14 @@ export function TextbookViewer({ courseId, courseName }: TextbookViewerProps) {
    * Handle reading milestone XP awards.
    */
   const handleMilestoneReached = useCallback(
-    (type: 'chapter_complete' | 'halfway' | 'textbook_complete', xp: number) => {
+    async (type: 'chapter_complete' | 'halfway' | 'textbook_complete', xp: number) => {
       if (!user?.id) return;
-      awardXP.mutate({ userId: user.id, xpAmount: xp, action: `reading_${type}` });
+      // Award XP via the central gamification context (includes debouncing + notifications)
+      await awardXP(`reading_${type}` as any, xp);
+      // Check if any new badges were unlocked after XP award
+      await checkAndAwardBadges();
     },
-    [user?.id, awardXP]
+    [user?.id, awardXP, checkAndAwardBadges]
   );
 
   // Go to bookmarked page on load
@@ -529,9 +548,9 @@ export function TextbookViewer({ courseId, courseName }: TextbookViewerProps) {
                 <List className="h-4 w-4" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="bg-black/95 backdrop-blur-xl border-r border-primary/30">
+            <SheetContent side="left" className="bg-popover/95 backdrop-blur-xl border-r border-primary/30">
               <SheetHeader>
-                <SheetTitle className="font-display text-cyan-300">Table of Contents</SheetTitle>
+                <SheetTitle className="font-display text-secondary">Table of Contents</SheetTitle>
               </SheetHeader>
               <ScrollArea className="h-[calc(100vh-100px)] mt-4">
                 <div className="space-y-2">
@@ -544,7 +563,7 @@ export function TextbookViewer({ courseId, courseName }: TextbookViewerProps) {
                     >
                       <span className="font-medium text-foreground">{chapter.title}</span>
                       {chapter.is_preview && (
-                        <span className="ml-2 text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded border border-green-500/30">
+                        <span className="ml-2 text-xs bg-success/20 text-success px-2 py-0.5 rounded border border-success/30">
                           Preview
                         </span>
                       )}
@@ -562,9 +581,9 @@ export function TextbookViewer({ courseId, courseName }: TextbookViewerProps) {
                 <Search className="h-4 w-4" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="bg-black/95 backdrop-blur-xl border-l border-primary/30">
+            <SheetContent side="right" className="bg-popover/95 backdrop-blur-xl border-l border-primary/30">
               <SheetHeader>
-                <SheetTitle className="font-display text-cyan-300">Search Textbook</SheetTitle>
+                <SheetTitle className="font-display text-secondary">Search Textbook</SheetTitle>
               </SheetHeader>
               <div className="mt-4 space-y-4">
                 <div className="flex gap-2">
@@ -573,7 +592,7 @@ export function TextbookViewer({ courseId, courseName }: TextbookViewerProps) {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                    className="bg-black/30 border-primary/30 focus:border-primary"
+                    className="bg-input border-primary/30 focus:border-primary"
                   />
                   <Button onClick={handleSearch} variant="neon" size="icon">
                     <Search className="h-4 w-4" />
@@ -588,7 +607,7 @@ export function TextbookViewer({ courseId, courseName }: TextbookViewerProps) {
                         whileHover={{ x: 4 }}
                         className="block w-full text-left p-3 rounded-lg hover:bg-primary/20 transition-all border border-transparent hover:border-primary/30"
                       >
-                        <span className="text-sm font-medium text-cyan-300">{result.chapter.title}</span>
+                        <span className="text-sm font-medium text-secondary">{result.chapter.title}</span>
                         <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
                           {result.content.substring(0, 150)}...
                         </p>
@@ -651,7 +670,10 @@ export function TextbookViewer({ courseId, courseName }: TextbookViewerProps) {
             </TooltipContent>
           </Tooltip>
           
-          <span className="text-sm text-cyan-300">
+          {/* Reading Timer */}
+          <ReadingTimer formattedTime={formattedTime} elapsedSeconds={elapsedSeconds} />
+
+          <span className="text-sm text-secondary">
             Page <span className="text-primary font-bold">{currentPage + 1}</span> of {pages.length}
           </span>
         </div>

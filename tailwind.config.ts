@@ -92,6 +92,7 @@ export default {
       fontFamily: {
         sans: ["Inter", "system-ui", "sans-serif"],
         display: ["Orbitron", "Space Grotesk", "Inter", "system-ui", "sans-serif"],
+        heading: ["Rajdhani", "Orbitron", "system-ui", "sans-serif"],
         mono: ["JetBrains Mono", "Fira Code", "monospace"],
       },
       keyframes: {

@@ -30,6 +30,8 @@ import { NeonSpinner } from '@/components/ui/neon-spinner';
 import { Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { NotepadWidget } from '@/components/notepad/NotepadWidget';
+import { NebulaBackground } from '@/components/landing/NebulaBackground';
+import { StarField } from '@/components/landing/StarField';
 
 export function AppLayout() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -60,13 +62,17 @@ export function AppLayout() {
       <div className="min-h-screen flex w-full cyber-bg">
         {/* Background grid overlay (purely decorative) */}
         <div className="cyber-grid fixed inset-0 pointer-events-none" />
+
+        {/* Nebula ambient clouds + star field */}
+        <NebulaBackground />
+        <StarField count={20} />
         
         {/* Sidebar navigation — see AppSidebar.tsx for menu items */}
         <AppSidebar />
         
         <div className="flex-1 flex flex-col relative min-w-0">
-          {/* Mobile-only top bar with hamburger menu trigger */}
-          <header className="sticky top-0 z-40 h-14 border-b border-primary/20 bg-background/80 backdrop-blur-xl flex items-center px-4 md:hidden">
+          {/* Mobile-only top bar — matches cyberpunk header-glass */}
+          <header className="sticky top-0 z-[80] h-14 mobile-header-glass flex items-center px-4 md:hidden">
             <SidebarTrigger />
           </header>
           

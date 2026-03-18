@@ -47,6 +47,8 @@ import { SkipLink } from "@/components/layout/SkipLink";
 import { PublicLayout } from "@/components/layout/PublicLayout";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { AdminLayout } from "@/components/layout/AdminLayout";
+import { PurchaseGuard } from "@/components/layout/PurchaseGuard";
+import { RouteErrorBoundary } from "@/components/layout/RouteErrorBoundary";
 
 // ──────────────────────────────────────────────
 // LAZY-LOADED PAGES — Each page is loaded on-demand
@@ -83,6 +85,16 @@ const VerifyCertificate = lazy(() => import("./pages/VerifyCertificate"));
 const Leaderboard = lazy(() => import("./pages/Leaderboard"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const FinalExam = lazy(() => import("./pages/FinalExam"));
+const FinalEssay = lazy(() => import("./pages/FinalEssay"));
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const TermsOfService = lazy(() => import("./pages/TermsOfService"));
+const RefundPolicy = lazy(() => import("./pages/RefundPolicy"));
+const HelpCenter = lazy(() => import("./pages/HelpCenter"));
+const AboutPage = lazy(() => import("./pages/About"));
+const ContactPage = lazy(() => import("./pages/Contact"));
+const NotificationsPage = lazy(() => import("./pages/Notifications"));
+const TranscriptPage = lazy(() => import("./pages/Transcript"));
+const StudentGrades = lazy(() => import("./pages/StudentGrades"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 /**
@@ -101,6 +113,12 @@ const queryClient = new QueryClient({
     queries: {
       staleTime: 5 * 60 * 1000,
       retry: 1,
+    },
+    mutations: {
+      onError: (error) => {
+        // Global error handler — logs all mutation failures
+        console.error('[QueryClient] Mutation error:', error);
+      },
     },
   },
 });
@@ -146,17 +164,23 @@ const App = () => (
                     Wrapped in PublicLayout (header + footer).
                     ═══════════════════════════════════════════ */}
               <Route element={<PublicLayout />}>
-                <Route path="/" element={<Index />} />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/courses" element={<Courses />} />
-                <Route path="/courses/:courseId" element={<CourseDetail />} />
+                <Route path="/" element={<RouteErrorBoundary><Index /></RouteErrorBoundary>} />
+                <Route path="/auth" element={<RouteErrorBoundary><Auth /></RouteErrorBoundary>} />
+                <Route path="/courses" element={<RouteErrorBoundary><Courses /></RouteErrorBoundary>} />
+                <Route path="/courses/:courseId" element={<RouteErrorBoundary><CourseDetail /></RouteErrorBoundary>} />
+                <Route path="/privacy" element={<RouteErrorBoundary><PrivacyPolicy /></RouteErrorBoundary>} />
+                <Route path="/terms" element={<RouteErrorBoundary><TermsOfService /></RouteErrorBoundary>} />
+                <Route path="/refund" element={<RouteErrorBoundary><RefundPolicy /></RouteErrorBoundary>} />
+                <Route path="/help" element={<RouteErrorBoundary><HelpCenter /></RouteErrorBoundary>} />
+                <Route path="/about" element={<RouteErrorBoundary><AboutPage /></RouteErrorBoundary>} />
+                <Route path="/contact" element={<RouteErrorBoundary><ContactPage /></RouteErrorBoundary>} />
               </Route>
 
               {/* Public Certificate Verification — standalone page, no layout */}
-              <Route path="/verify/:verificationCode" element={<VerifyCertificate />} />
+              <Route path="/verify/:verificationCode" element={<RouteErrorBoundary><VerifyCertificate /></RouteErrorBoundary>} />
 
               {/* Password Reset — public standalone page, user arrives via email link */}
-              <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/reset-password" element={<RouteErrorBoundary><ResetPassword /></RouteErrorBoundary>} />
 
               {/* ═══════════════════════════════════════════
                   PROTECTED ROUTES — Require authentication.
@@ -164,40 +188,37 @@ const App = () => (
                   if user is not logged in. Includes sidebar.
                   ═══════════════════════════════════════════ */}
               <Route element={<AppLayout />}>
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/settings" element={<Settings />} />
+                <Route path="/dashboard" element={<RouteErrorBoundary><Dashboard /></RouteErrorBoundary>} />
+                <Route path="/profile" element={<RouteErrorBoundary><Profile /></RouteErrorBoundary>} />
+                <Route path="/settings" element={<RouteErrorBoundary><Settings /></RouteErrorBoundary>} />
 
-                {/* ─── ADMIN ROUTES ───────────────────────
-                    AdminLayout checks for admin role.
-                    Non-admins are redirected to /dashboard.
-                    ──────────────────────────────────────── */}
+                {/* ─── ADMIN ROUTES ─────────────────────── */}
                 <Route path="/admin" element={<AdminLayout />}>
-                  <Route index element={<AdminDashboard />} />
-                  <Route path="analytics" element={<AdminAnalytics />} />
-                  <Route path="courses/:courseId/lessons/:lessonId" element={<AdminLessonDetail />} />
-                  <Route path="content-generator" element={<ContentGenerator />} />
-                  <Route path="ai-settings" element={<AISettings />} />
-                  <Route path="gradebook" element={<Gradebook />} />
-                  <Route path="exam-essay" element={<AdminExamEssay />} />
+                  <Route index element={<RouteErrorBoundary><AdminDashboard /></RouteErrorBoundary>} />
+                  <Route path="analytics" element={<RouteErrorBoundary><AdminAnalytics /></RouteErrorBoundary>} />
+                  <Route path="courses/:courseId/lessons/:lessonId" element={<RouteErrorBoundary><AdminLessonDetail /></RouteErrorBoundary>} />
+                  <Route path="content-generator" element={<RouteErrorBoundary><ContentGenerator /></RouteErrorBoundary>} />
+                  <Route path="ai-settings" element={<RouteErrorBoundary><AISettings /></RouteErrorBoundary>} />
+                  <Route path="gradebook" element={<RouteErrorBoundary><Gradebook /></RouteErrorBoundary>} />
+                  <Route path="exam-essay" element={<RouteErrorBoundary><AdminExamEssay /></RouteErrorBoundary>} />
                 </Route>
                 
                 {/* ─── STUDENT LEARNING ROUTES ────────────
-                    These require purchase verification
-                    (handled at the page level, not route level).
-                    
-                    PRODUCTION TODO: Consider adding a PurchaseGuard
-                    layout component to handle access control at the
-                    route level instead of duplicating in each page.
+                    Wrapped in PurchaseGuard for route-level
+                    access control instead of per-page checks.
                     ──────────────────────────────────────── */}
-                <Route path="/courses/:courseId/lessons/:lessonId" element={<LessonViewer />} />
-                <Route path="/courses/:courseId/project" element={<CourseProject />} />
-                <Route path="/courses/:courseId/discussions" element={<CourseDiscussions />} />
-                <Route path="/courses/:courseId/discussions/:discussionId" element={<DiscussionDetail />} />
-                <Route path="/courses/:courseId/textbook" element={<Textbook />} />
-                <Route path="/courses/:courseId/final-exam" element={<FinalExam />} />
-                <Route path="/certificates" element={<Certificates />} />
-                <Route path="/leaderboard" element={<Leaderboard />} />
+                <Route path="/courses/:courseId/lessons/:lessonId" element={<RouteErrorBoundary><LessonViewer /></RouteErrorBoundary>} />
+                <Route path="/courses/:courseId/project" element={<RouteErrorBoundary><CourseProject /></RouteErrorBoundary>} />
+                <Route path="/courses/:courseId/discussions" element={<RouteErrorBoundary><CourseDiscussions /></RouteErrorBoundary>} />
+                <Route path="/courses/:courseId/discussions/:discussionId" element={<RouteErrorBoundary><DiscussionDetail /></RouteErrorBoundary>} />
+                <Route path="/courses/:courseId/textbook" element={<RouteErrorBoundary><Textbook /></RouteErrorBoundary>} />
+                <Route path="/courses/:courseId/final-exam" element={<RouteErrorBoundary><FinalExam /></RouteErrorBoundary>} />
+                <Route path="/courses/:courseId/final-essay" element={<RouteErrorBoundary><FinalEssay /></RouteErrorBoundary>} />
+                <Route path="/certificates" element={<RouteErrorBoundary><Certificates /></RouteErrorBoundary>} />
+                <Route path="/leaderboard" element={<RouteErrorBoundary><Leaderboard /></RouteErrorBoundary>} />
+                <Route path="/notifications" element={<RouteErrorBoundary><NotificationsPage /></RouteErrorBoundary>} />
+                <Route path="/transcript" element={<RouteErrorBoundary><TranscriptPage /></RouteErrorBoundary>} />
+                <Route path="/grades" element={<RouteErrorBoundary><StudentGrades /></RouteErrorBoundary>} />
               </Route>
 
                 {/* 404 catch-all — shows friendly "not found" page */}

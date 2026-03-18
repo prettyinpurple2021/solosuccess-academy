@@ -1,21 +1,32 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 import { checkRateLimit, rateLimitResponse } from "../_shared/rateLimit.ts";
+import { getCorsHeaders, corsResponse } from "../_shared/cors.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
-
-// Rate limit: 20 requests per hour per admin
-const RATE_LIMIT_CONFIG = {
+// Rate limits are split by generation type so long-running admin bulk tools
+// can use a larger bucket without weakening limits for everything else.
+const DEFAULT_RATE_LIMIT_CONFIG = {
   endpoint: "generate-content",
   maxRequests: 20,
   windowMinutes: 60,
 };
 
+function getRateLimitConfig(type: GenerateRequest["type"]) {
+  // Practice labs are generated in large admin batches (up to 78 lessons),
+  // so they need their own higher per-hour allowance.
+  if (type === "practice_lab") {
+    return {
+      endpoint: "generate-content:practice_lab",
+      maxRequests: 120,
+      windowMinutes: 60,
+    };
+  }
+
+  return DEFAULT_RATE_LIMIT_CONFIG;
+}
+
 interface GenerateRequest {
-  type: "course_outline" | "lesson_content" | "quiz" | "worksheet" | "activity" | "exam" | "textbook_chapter" | "textbook_page" | "bulk_curriculum" | "lesson_enrichment" | "final_exam_mixed" | "final_essay" | "grade_essay";
+  type: "course_outline" | "lesson_content" | "quiz" | "worksheet" | "activity" | "exam" | "textbook_chapter" | "textbook_page" | "bulk_curriculum" | "lesson_enrichment" | "final_exam_mixed" | "final_essay" | "grade_essay" | "practice_lab";
   context: {
     courseTitle?: string;
     courseDescription?: string;
@@ -377,12 +388,33 @@ Create essay topics that require students to synthesize course concepts and appl
   grade_essay: `You are an expert essay grader for SoloSuccess Academy.
 Grade the student's essay fairly and constructively based on the provided rubric.
 Be encouraging but honest. Provide specific examples from the essay in your feedback.
-Return your assessment as valid JSON matching the requested format.`
+Return your assessment as valid JSON matching the requested format.`,
+
+  practice_lab: `You are an expert hands-on learning designer for SoloSuccess Academy.
+Create a practical, skill-building exercise that makes students PRACTICE the skill being taught — not just answer questions.
+
+The exercise should require the student to CREATE something tangible:
+- Write real business copy (not hypothetical)
+- Build an actual spreadsheet, plan, or document
+- Design a real strategy they can use in their business
+- Draft real communications, pitches, or proposals
+
+Generate in JSON format:
+{
+  "title": "Practice Lab: [Skill Being Practiced]",
+  "instructions": "Detailed step-by-step instructions for the hands-on exercise. Include specific guidance on what tools to use, what format to follow, and tips for doing it well. Use markdown formatting with bullet points and numbered steps.",
+  "deliverable_description": "Exactly what the student should submit — be specific about format, length, and content requirements. Example: 'Submit your completed 1-page brand positioning statement including your target audience, unique value proposition, and 3 key differentiators.'",
+  "estimated_minutes": 15,
+  "difficulty": "beginner|intermediate|advanced"
+}
+
+Make the exercise directly applicable to building a real solo business. The student should walk away with something they can actually USE.`,
 };
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return corsResponse(req);
   }
 
   try {
@@ -428,12 +460,6 @@ serve(async (req) => {
       );
     }
 
-    // Check rate limit
-    const rateLimitResult = await checkRateLimit(userId, RATE_LIMIT_CONFIG);
-    if (!rateLimitResult.allowed) {
-      return rateLimitResponse(rateLimitResult, corsHeaders);
-    }
-
     const { type, context, customPrompt }: GenerateRequest = await req.json();
 
     if (!type || !systemPrompts[type]) {
@@ -441,6 +467,13 @@ serve(async (req) => {
         JSON.stringify({ error: "Invalid content type" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
+    }
+
+    // Apply a rate-limit bucket that matches the specific generation workload.
+    const rateLimitConfig = getRateLimitConfig(type);
+    const rateLimitResult = await checkRateLimit(userId, rateLimitConfig);
+    if (!rateLimitResult.allowed) {
+      return rateLimitResponse(rateLimitResult, corsHeaders);
     }
 
     // Check if document content is provided and prepend it
@@ -571,6 +604,16 @@ Include a detailed grading rubric.`;
         case "grade_essay":
           // grade_essay uses customPrompt exclusively (set by the client)
           break;
+
+        case "practice_lab":
+          userPrompt = `Create a hands-on practice lab exercise for:
+Course: ${context.courseTitle || "Solo Business"}
+Lesson: ${context.lessonTitle || "Lesson"}
+Lesson Type: ${context.lessonType || "text"}
+
+The exercise must require the student to CREATE something tangible and directly applicable to their solo business.
+Return ONLY valid JSON matching the format specified in the system prompt.`;
+          break;
       }
     } else if (context.documentContent) {
       // If custom prompt is provided but also has document, prepend document
@@ -595,7 +638,7 @@ Include a detailed grading rubric.`;
           { role: "user", content: userPrompt },
         ],
         temperature: 0.7,
-        max_tokens: 4000,
+        max_tokens: 16000,
       }),
     });
 
@@ -626,7 +669,7 @@ Include a detailed grading rubric.`;
 
     // Try to parse JSON from the response for structured content types
     let parsedContent = generatedContent;
-    const jsonContentTypes = ["course_outline", "quiz", "worksheet", "activity", "exam", "textbook_chapter", "textbook_page", "bulk_curriculum", "lesson_enrichment", "final_exam_mixed", "final_essay", "grade_essay"];
+    const jsonContentTypes = ["course_outline", "quiz", "worksheet", "activity", "exam", "textbook_chapter", "textbook_page", "bulk_curriculum", "lesson_enrichment", "final_exam_mixed", "final_essay", "grade_essay", "practice_lab"];
     if (jsonContentTypes.includes(type)) {
       try {
         // Extract JSON from markdown code blocks if present
@@ -634,8 +677,17 @@ Include a detailed grading rubric.`;
         const jsonString = jsonMatch ? jsonMatch[1] : generatedContent;
         parsedContent = JSON.parse(jsonString.trim());
       } catch {
-        // If parsing fails, return raw content
-        console.log("Could not parse JSON, returning raw content");
+        // Fallback: try to find a JSON object in the raw text
+        try {
+          const objMatch = generatedContent.match(/\{[\s\S]*"[^"]+"\s*:[\s\S]*\}/);
+          if (objMatch) {
+            parsedContent = JSON.parse(objMatch[0]);
+          } else {
+            console.log("Could not parse JSON, returning raw content");
+          }
+        } catch {
+          console.log("Could not parse JSON even with fallback, returning raw content");
+        }
       }
     }
 

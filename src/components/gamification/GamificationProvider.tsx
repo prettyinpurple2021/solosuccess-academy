@@ -1,32 +1,27 @@
 /**
  * @file GamificationProvider.tsx — Central Gamification Context
  *
- * PURPOSE: Wraps the app in a React Context that provides two key functions:
- *   1. awardXP(action, bonusXP?) — awards XP and shows animated notification
+ * Wraps the app in a React Context that provides:
+ *   1. awardXP(action, bonusXP?) — awards XP atomically via DB function
  *   2. checkAndAwardBadges() — evaluates badge criteria and shows unlock toasts
  *
- * HOW IT WORKS:
- * - Reads user's gamification state (total_xp, streak) via useUserGamification
- * - Reads achievement stats via useUserAchievements (lesson count, etc.)
- * - awardXP() calls the mutation, then triggers a floating "+XP" notification
- * - checkAndAwardBadges() compares stats against badge criteria, awards new ones
+ * XP VALUES:
+ * - Loaded from the `xp_config` database table (admin-tunable)
+ * - Falls back to hardcoded defaults while loading
  *
- * LEVEL SYSTEM: Level = floor(totalXP / 500) + 1 (every 500 XP = 1 level)
+ * LEVEL SYSTEM: Level = floor(totalXP / 500) + 1
  *
- * USAGE: Components call `const { awardXP } = useGamification()` to award XP
- * after lesson completion, quiz pass, discussion post, etc.
- *
- * PRODUCTION TODO:
- * - Debounce rapid XP awards (e.g., clicking complete multiple times)
- * - Add sound effects for level-ups and badge unlocks
- * - Consider moving badge checking to a backend trigger for reliability
+ * DEBOUNCING:
+ * - Rapid XP awards within 2 seconds are coalesced into a single call
+ *   to prevent double-awarding from fast clicks
  */
-import { createContext, useContext, ReactNode, useCallback } from 'react';
+import { createContext, useContext, ReactNode, useCallback, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { 
   useAwardXP, 
   useCheckBadges, 
   useUserGamification,
+  useXPConfig,
   XP_VALUES,
   AchievementBadge,
 } from '@/hooks/useGamification';
@@ -43,13 +38,20 @@ interface GamificationContextType {
 
 const GamificationContext = createContext<GamificationContextType | null>(null);
 
+/** Debounce window: ignore duplicate awards within 2 seconds */
+const DEBOUNCE_MS = 2000;
+
 export function GamificationProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const { data: gamification } = useUserGamification(user?.id);
   const { data: achievements } = useProfileAchievements(user?.id);
+  const { data: xpConfig } = useXPConfig();
   const awardXPMutation = useAwardXP();
   const checkBadgesMutation = useCheckBadges();
   const { showXP, showBadge, NotificationContainer } = useXPNotification();
+
+  // Debounce tracking: stores last award time per action
+  const lastAwardRef = useRef<Record<string, number>>({});
 
   const totalXP = gamification?.total_xp || 0;
   const currentStreak = gamification?.current_streak || 0;
@@ -58,7 +60,15 @@ export function GamificationProvider({ children }: { children: ReactNode }) {
   const awardXP = useCallback(async (action: keyof typeof XP_VALUES, bonusXP = 0) => {
     if (!user?.id) return;
 
-    const xpAmount = XP_VALUES[action] + bonusXP;
+    // Debounce: skip if same action was awarded within 2 seconds
+    const now = Date.now();
+    const lastTime = lastAwardRef.current[action] || 0;
+    if (now - lastTime < DEBOUNCE_MS) return;
+    lastAwardRef.current[action] = now;
+
+    // Use DB-configured XP values when available, fall back to defaults
+    const configuredXP = xpConfig?.[action] ?? XP_VALUES[action];
+    const xpAmount = configuredXP + bonusXP;
 
     try {
       await awardXPMutation.mutateAsync({
@@ -71,7 +81,7 @@ export function GamificationProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error('Failed to award XP:', error);
     }
-  }, [user?.id, awardXPMutation, showXP]);
+  }, [user?.id, xpConfig, awardXPMutation, showXP]);
 
   const checkAndAwardBadges = useCallback(async () => {
     if (!user?.id || !achievements || !gamification) return [];
@@ -81,17 +91,17 @@ export function GamificationProvider({ children }: { children: ReactNode }) {
         userId: user.id,
         stats: {
           lessonsCompleted: achievements.lessonsCompleted,
-          coursesCompleted: achievements.coursesPurchased, // Using purchased as proxy
+          coursesCompleted: achievements.coursesPurchased,
           streakDays: gamification.current_streak,
           totalXp: gamification.total_xp,
           discussionsStarted: achievements.discussionsStarted,
           commentsPosted: achievements.commentsPosted,
           projectsSubmitted: achievements.projectsSubmitted,
           projectsWithFeedback: achievements.projectsWithFeedback,
+          chaptersRead: achievements.chaptersRead,
         },
       });
 
-      // Show notifications for each new badge
       for (const badge of newBadges) {
         setTimeout(() => showBadge(badge), 500);
       }

@@ -17,7 +17,8 @@ export default function CourseDiscussions() {
 
   const { data: course, isLoading: courseLoading } = useCourse(courseId);
   const { data: hasPurchased, isLoading: purchaseLoading } = useHasPurchasedCourse(user?.id, courseId);
-  const { data: discussions, isLoading: discussionsLoading } = useCourseDiscussions(courseId);
+  const { data: discussionData, isLoading: discussionsLoading } = useCourseDiscussions(courseId);
+  const discussions = discussionData?.discussions || [];
 
   const isLoading = authLoading || courseLoading || purchaseLoading;
 

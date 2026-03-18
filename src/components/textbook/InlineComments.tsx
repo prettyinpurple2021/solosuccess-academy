@@ -191,8 +191,8 @@ function CommentThread({ pageId, paragraphIndex, onClose }: {
       {/* Header */}
       <div className="flex items-center justify-between p-3 border-b border-primary/20 bg-primary/5">
         <div className="flex items-center gap-2">
-          <MessageCircle className="h-4 w-4 text-cyan-400" />
-          <span className="text-sm font-display font-semibold text-cyan-300">Discussion</span>
+          <MessageCircle className="h-4 w-4 text-secondary" />
+          <span className="text-sm font-display font-semibold text-secondary">Discussion</span>
           <span className="text-xs text-muted-foreground">¶{paragraphIndex + 1}</span>
         </div>
         <Button variant="ghost" size="icon" onClick={onClose} className="h-7 w-7 hover:bg-destructive/20">

@@ -53,6 +53,33 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_api_keys: {
+        Row: {
+          api_key_encrypted: string
+          created_at: string
+          id: string
+          is_enabled: boolean
+          provider_id: string
+          updated_at: string
+        }
+        Insert: {
+          api_key_encrypted: string
+          created_at?: string
+          id?: string
+          is_enabled?: boolean
+          provider_id: string
+          updated_at?: string
+        }
+        Update: {
+          api_key_encrypted?: string
+          created_at?: string
+          id?: string
+          is_enabled?: boolean
+          provider_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       ai_chat_messages: {
         Row: {
           content: string
@@ -158,6 +185,9 @@ export type Database = {
           created_at: string
           id: string
           issued_at: string
+          revocation_reason: string | null
+          revoked_at: string | null
+          revoked_by: string | null
           student_name: string
           user_id: string
           verification_code: string
@@ -168,6 +198,9 @@ export type Database = {
           created_at?: string
           id?: string
           issued_at?: string
+          revocation_reason?: string | null
+          revoked_at?: string | null
+          revoked_by?: string | null
           student_name: string
           user_id: string
           verification_code: string
@@ -178,6 +211,9 @@ export type Database = {
           created_at?: string
           id?: string
           issued_at?: string
+          revocation_reason?: string | null
+          revoked_at?: string | null
+          revoked_by?: string | null
           student_name?: string
           user_id?: string
           verification_code?: string
@@ -191,6 +227,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      contact_submissions: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          message: string
+          name: string
+          source: string
+          subject: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          message: string
+          name: string
+          source?: string
+          subject?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          message?: string
+          name?: string
+          source?: string
+          subject?: string | null
+        }
+        Relationships: []
       }
       continue_later: {
         Row: {
@@ -368,6 +434,7 @@ export type Database = {
       }
       courses: {
         Row: {
+          cover_image_url: string | null
           created_at: string
           description: string | null
           discussion_question: string | null
@@ -385,6 +452,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          cover_image_url?: string | null
           created_at?: string
           description?: string | null
           discussion_question?: string | null
@@ -402,6 +470,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          cover_image_url?: string | null
           created_at?: string
           description?: string | null
           discussion_question?: string | null
@@ -465,6 +534,35 @@ export type Database = {
           },
         ]
       }
+      discussion_votes: {
+        Row: {
+          created_at: string
+          discussion_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          discussion_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          discussion_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "discussion_votes_discussion_id_fkey"
+            columns: ["discussion_id"]
+            isOneToOne: false
+            referencedRelation: "discussions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       discussions: {
         Row: {
           content: string
@@ -511,6 +609,8 @@ export type Database = {
           activity_weight: number
           course_id: string | null
           created_at: string
+          essay_weight: number
+          exam_weight: number
           id: string
           quiz_weight: number
           updated_at: string
@@ -520,6 +620,8 @@ export type Database = {
           activity_weight?: number
           course_id?: string | null
           created_at?: string
+          essay_weight?: number
+          exam_weight?: number
           id?: string
           quiz_weight?: number
           updated_at?: string
@@ -529,6 +631,8 @@ export type Database = {
           activity_weight?: number
           course_id?: string | null
           created_at?: string
+          essay_weight?: number
+          exam_weight?: number
           id?: string
           quiz_weight?: number
           updated_at?: string
@@ -636,6 +740,150 @@ export type Database = {
         }
         Relationships: []
       }
+      portfolio_entries: {
+        Row: {
+          connective_narrative: string
+          course_id: string
+          created_at: string
+          deliverable_content: string
+          executive_summary: string
+          id: string
+          order_number: number
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          connective_narrative?: string
+          course_id: string
+          created_at?: string
+          deliverable_content?: string
+          executive_summary?: string
+          id?: string
+          order_number?: number
+          title?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          connective_narrative?: string
+          course_id?: string
+          created_at?: string
+          deliverable_content?: string
+          executive_summary?: string
+          id?: string
+          order_number?: number
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portfolio_entries_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      practice_labs: {
+        Row: {
+          created_at: string
+          deliverable_description: string
+          difficulty: string
+          estimated_minutes: number | null
+          id: string
+          instructions: string
+          lesson_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          deliverable_description: string
+          difficulty?: string
+          estimated_minutes?: number | null
+          id?: string
+          instructions: string
+          lesson_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          deliverable_description?: string
+          difficulty?: string
+          estimated_minutes?: number | null
+          id?: string
+          instructions?: string
+          lesson_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "practice_labs_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: true
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      practice_submissions: {
+        Row: {
+          ai_feedback: string | null
+          ai_feedback_at: string | null
+          created_at: string
+          file_urls: string[] | null
+          id: string
+          practice_lab_id: string
+          score: number | null
+          status: string
+          submission_content: string
+          submitted_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ai_feedback?: string | null
+          ai_feedback_at?: string | null
+          created_at?: string
+          file_urls?: string[] | null
+          id?: string
+          practice_lab_id: string
+          score?: number | null
+          status?: string
+          submission_content?: string
+          submitted_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ai_feedback?: string | null
+          ai_feedback_at?: string | null
+          created_at?: string
+          file_urls?: string[] | null
+          id?: string
+          practice_lab_id?: string
+          score?: number | null
+          status?: string
+          submission_content?: string
+          submitted_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "practice_submissions_practice_lab_id_fkey"
+            columns: ["practice_lab_id"]
+            isOneToOne: false
+            referencedRelation: "practice_labs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -672,6 +920,177 @@ export type Database = {
         }
         Relationships: []
       }
+      project_milestone_submissions: {
+        Row: {
+          ai_feedback: string | null
+          ai_feedback_at: string | null
+          created_at: string
+          file_urls: string[] | null
+          id: string
+          milestone_id: string
+          status: string
+          submission_content: string
+          submitted_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ai_feedback?: string | null
+          ai_feedback_at?: string | null
+          created_at?: string
+          file_urls?: string[] | null
+          id?: string
+          milestone_id: string
+          status?: string
+          submission_content?: string
+          submitted_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ai_feedback?: string | null
+          ai_feedback_at?: string | null
+          created_at?: string
+          file_urls?: string[] | null
+          id?: string
+          milestone_id?: string
+          status?: string
+          submission_content?: string
+          submitted_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_milestone_submissions_milestone_id_fkey"
+            columns: ["milestone_id"]
+            isOneToOne: false
+            referencedRelation: "project_milestones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_milestones: {
+        Row: {
+          course_id: string
+          created_at: string
+          deliverable_prompt: string
+          description: string
+          id: string
+          order_number: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          course_id: string
+          created_at?: string
+          deliverable_prompt?: string
+          description?: string
+          id?: string
+          order_number: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          course_id?: string
+          created_at?: string
+          deliverable_prompt?: string
+          description?: string
+          id?: string
+          order_number?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_milestones_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_rubric_categories: {
+        Row: {
+          course_id: string
+          created_at: string
+          description: string
+          id: string
+          max_points: number
+          name: string
+          order_number: number
+        }
+        Insert: {
+          course_id: string
+          created_at?: string
+          description?: string
+          id?: string
+          max_points?: number
+          name: string
+          order_number?: number
+        }
+        Update: {
+          course_id?: string
+          created_at?: string
+          description?: string
+          id?: string
+          max_points?: number
+          name?: string
+          order_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_rubric_categories_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_rubric_scores: {
+        Row: {
+          category_id: string
+          created_at: string
+          feedback: string | null
+          id: string
+          score: number
+          submission_id: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          feedback?: string | null
+          id?: string
+          score?: number
+          submission_id: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          feedback?: string | null
+          id?: string
+          score?: number
+          submission_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_rubric_scores_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "project_rubric_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_rubric_scores_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "project_milestone_submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       purchases: {
         Row: {
           amount_cents: number
@@ -703,6 +1122,44 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "purchases_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reading_sessions: {
+        Row: {
+          course_id: string
+          created_at: string
+          duration_seconds: number
+          ended_at: string | null
+          id: string
+          started_at: string
+          user_id: string
+        }
+        Insert: {
+          course_id: string
+          created_at?: string
+          duration_seconds?: number
+          ended_at?: string | null
+          id?: string
+          started_at?: string
+          user_id: string
+        }
+        Update: {
+          course_id?: string
+          created_at?: string
+          duration_seconds?: number
+          ended_at?: string | null
+          id?: string
+          started_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reading_sessions_course_id_fkey"
             columns: ["course_id"]
             isOneToOne: false
             referencedRelation: "courses"
@@ -1207,6 +1664,7 @@ export type Database = {
           id: string
           lesson_id: string
           notes: string | null
+          quiz_attempts: number
           quiz_score: number | null
           updated_at: string
           user_id: string
@@ -1224,6 +1682,7 @@ export type Database = {
           id?: string
           lesson_id: string
           notes?: string | null
+          quiz_attempts?: number
           quiz_score?: number | null
           updated_at?: string
           user_id: string
@@ -1241,6 +1700,7 @@ export type Database = {
           id?: string
           lesson_id?: string
           notes?: string | null
+          quiz_attempts?: number
           quiz_score?: number | null
           updated_at?: string
           user_id?: string
@@ -1364,6 +1824,33 @@ export type Database = {
           },
         ]
       }
+      xp_config: {
+        Row: {
+          action_key: string
+          created_at: string
+          id: string
+          label: string
+          updated_at: string
+          xp_amount: number
+        }
+        Insert: {
+          action_key: string
+          created_at?: string
+          id?: string
+          label?: string
+          updated_at?: string
+          xp_amount?: number
+        }
+        Update: {
+          action_key?: string
+          created_at?: string
+          id?: string
+          label?: string
+          updated_at?: string
+          xp_amount?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       leaderboard_view: {
@@ -1396,6 +1883,28 @@ export type Database = {
       }
     }
     Functions: {
+      award_xp: {
+        Args: { _action?: string; _user_id: string; _xp_amount: number }
+        Returns: Json
+      }
+      check_textbook_quiz_answer: {
+        Args: { _page_id: string; _selected_answer: number }
+        Returns: Json
+      }
+      get_exam_for_student: { Args: { _course_id: string }; Returns: Json }
+      get_overall_progress: { Args: { _user_id: string }; Returns: Json }
+      get_textbook_pages_for_student: {
+        Args: { _course_id: string }
+        Returns: Json
+      }
+      grade_and_submit_exam: {
+        Args: { _answers: Json; _exam_id: string }
+        Returns: Json
+      }
+      has_completed_course: {
+        Args: { _course_id: string; _user_id: string }
+        Returns: boolean
+      }
       has_purchased_course: {
         Args: { _course_id: string; _user_id: string }
         Returns: boolean

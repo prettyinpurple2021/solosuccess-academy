@@ -14,7 +14,8 @@
  *  - Final results screen with full review
  *  - Retake support
  */
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
+import { toast } from '@/hooks/use-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -32,11 +33,16 @@ import {
 import type { QuizData, QuizQuestion } from '@/lib/courseData';
 
 /* ── Props ──────────────────────────────────────────────────────────────── */
+/** Maximum number of quiz attempts allowed */
+const MAX_QUIZ_ATTEMPTS = 3;
+
 interface QuizPlayerProps {
   /** Structured quiz data from the lesson */
   quizData: QuizData;
   /** Previous quiz score from user_progress (null = never attempted) */
   initialScore?: number | null;
+  /** Number of attempts already used (0-3) */
+  attemptCount?: number;
   /** Callback fired with the final percentage when the quiz is finished */
   onComplete: (score: number) => void;
 }
@@ -207,16 +213,21 @@ function ResultsView({
   answers,
   score,
   passingScore,
+  attemptsUsed,
   onRetake,
 }: {
   questions: QuizQuestion[];
   answers: number[];
   score: number;
   passingScore: number;
+  /** Total attempts used (including this one) */
+  attemptsUsed: number;
   onRetake: () => void;
 }) {
   const passed = score >= passingScore;
   const correctCount = questions.filter((q, i) => answers[i] === q.correctAnswer).length;
+  const retriesLeft = MAX_QUIZ_ATTEMPTS - attemptsUsed;
+  const canRetake = retriesLeft > 0;
 
   return (
     <motion.div
@@ -249,13 +260,22 @@ function ResultsView({
         <p className="text-muted-foreground text-sm">
           {correctCount}/{questions.length} correct · Passing score: {passingScore}%
         </p>
+        {/* Attempt counter */}
+        <Badge variant="outline" className="mt-2 border-muted-foreground/30 font-mono text-xs">
+          Attempt {attemptsUsed}/{MAX_QUIZ_ATTEMPTS}
+        </Badge>
         <Progress
           value={score}
           className={`mt-4 h-2 ${passed ? '[&>div]:bg-success' : '[&>div]:bg-destructive'}`}
         />
-        {!passed && (
+        {!passed && canRetake && (
           <p className="text-sm text-muted-foreground mt-3">
-            You need {passingScore}% to pass. Review below and try again!
+            You need {passingScore}% to pass. You have {retriesLeft} retake{retriesLeft !== 1 ? 's' : ''} remaining.
+          </p>
+        )}
+        {!passed && !canRetake && (
+          <p className="text-sm text-destructive mt-3">
+            No retakes remaining. Your best score has been saved.
           </p>
         )}
       </div>
@@ -313,17 +333,23 @@ function ResultsView({
         })}
       </div>
 
-      {/* Retake */}
-      <Button variant="outline" onClick={onRetake} className="w-full gap-2">
-        <RotateCcw className="h-4 w-4" />
-        Retake Quiz
-      </Button>
+      {/* Retake — only if attempts remain */}
+      {canRetake ? (
+        <Button variant="outline" onClick={onRetake} className="w-full gap-2">
+          <RotateCcw className="h-4 w-4" />
+          Retake Quiz ({retriesLeft} retake{retriesLeft !== 1 ? 's' : ''} left)
+        </Button>
+      ) : (
+        <div className="text-center text-sm text-muted-foreground py-3 border border-muted/30 rounded-lg">
+          All {MAX_QUIZ_ATTEMPTS} attempts used — your best score is saved
+        </div>
+      )}
     </motion.div>
   );
 }
 
 /* ── Main QuizPlayer ────────────────────────────────────────────────────── */
-export function QuizPlayer({ quizData, initialScore, onComplete }: QuizPlayerProps) {
+export function QuizPlayer({ quizData, initialScore, attemptCount = 0, onComplete }: QuizPlayerProps) {
   const { questions, passingScore } = quizData;
 
   // Track each answer in order (index = question index, value = selected option)
@@ -331,6 +357,22 @@ export function QuizPlayer({ quizData, initialScore, onComplete }: QuizPlayerPro
   const [currentIndex, setCurrentIndex] = useState(0);
   const [finished, setFinished] = useState(false);
   const [score, setScore] = useState<number | null>(initialScore ?? null);
+  /** How many attempts the student has used (incremented locally after each submit) */
+  const [attemptsUsed, setAttemptsUsed] = useState(attemptCount);
+
+  // If student already used all attempts, show their previous score immediately
+  const maxedOut = attemptsUsed >= MAX_QUIZ_ATTEMPTS && !finished;
+
+  // Show a toast when the student just used their final attempt
+  useEffect(() => {
+    if (finished && attemptsUsed >= MAX_QUIZ_ATTEMPTS) {
+      toast({
+        title: '🚫 No Retakes Remaining',
+        description: `You've used all ${MAX_QUIZ_ATTEMPTS} attempts. Your best score has been saved.`,
+        variant: 'destructive',
+      });
+    }
+  }, [finished, attemptsUsed]);
 
   /** Called when the student locks in an answer for the current question */
   const handleAnswer = useCallback(
@@ -350,6 +392,7 @@ export function QuizPlayer({ quizData, initialScore, onComplete }: QuizPlayerPro
         const pct = Math.round((correct / questions.length) * 100);
         setScore(pct);
         setFinished(true);
+        setAttemptsUsed((prev) => prev + 1);
         onComplete(pct);
       }
     },
@@ -367,6 +410,33 @@ export function QuizPlayer({ quizData, initialScore, onComplete }: QuizPlayerPro
   // Progress percentage through the quiz
   const progressPct = Math.round((answers.length / questions.length) * 100);
 
+  /* ── Max attempts reached — show locked state ────────────────────────── */
+  if (maxedOut) {
+    return (
+      <div className="space-y-4 text-center py-8">
+        <div className="h-16 w-16 rounded-full flex items-center justify-center mx-auto bg-muted/30">
+          <AlertCircle className="h-8 w-8 text-muted-foreground" />
+        </div>
+        <h2 className="text-xl font-display font-bold">No Retakes Remaining</h2>
+        <p className="text-muted-foreground text-sm">
+          You've used all {MAX_QUIZ_ATTEMPTS} attempts for this quiz.
+        </p>
+        {initialScore !== null && initialScore !== undefined && (
+          <Badge
+            variant="outline"
+            className={`font-mono text-lg px-4 py-2 ${
+              initialScore >= passingScore
+                ? 'border-success/30 text-success'
+                : 'border-destructive/30 text-destructive'
+            }`}
+          >
+            Best Score: {initialScore}%
+          </Badge>
+        )}
+      </div>
+    );
+  }
+
   /* ── Results view ─────────────────────────────────────────────────────── */
   if (finished && score !== null) {
     return (
@@ -375,6 +445,7 @@ export function QuizPlayer({ quizData, initialScore, onComplete }: QuizPlayerPro
         answers={answers}
         score={score}
         passingScore={passingScore}
+        attemptsUsed={attemptsUsed}
         onRetake={handleRetake}
       />
     );
@@ -392,6 +463,10 @@ export function QuizPlayer({ quizData, initialScore, onComplete }: QuizPlayerPro
         <Badge variant="outline" className="border-primary/30 font-mono">
           Passing: {passingScore}%
         </Badge>
+        {/* Attempts remaining badge */}
+        <Badge variant="outline" className="border-accent/30 font-mono">
+          Attempt {attemptsUsed + 1}/{MAX_QUIZ_ATTEMPTS}
+        </Badge>
         {initialScore !== null && initialScore !== undefined && (
           <Badge
             variant="outline"
@@ -401,7 +476,7 @@ export function QuizPlayer({ quizData, initialScore, onComplete }: QuizPlayerPro
                 : 'border-destructive/30 text-destructive'
             }`}
           >
-            Previous: {initialScore}%
+            Best: {initialScore}%
           </Badge>
         )}
       </div>

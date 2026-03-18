@@ -1,10 +1,14 @@
 /**
  * FinalExamPlayer – Student-facing component for taking a final exam.
  *
+ * SECURITY: Questions are fetched WITHOUT answer keys. Grading happens
+ * server-side via the `grade_and_submit_exam` RPC. Correct answers are
+ * only shown in the review screen using data returned from the grading response.
+ *
  * Features:
  * - Step-by-step question navigation with progress bar
  * - MCQ, True/False, and Short Answer question support
- * - Instant grading upon submission
+ * - Server-side grading upon submission
  * - Results review with correct/incorrect indicators
  * - Retake ability
  */
@@ -27,8 +31,8 @@ import {
   AlertTriangle,
 } from 'lucide-react';
 import type { FinalExam, ExamQuestion } from '@/hooks/useFinalExam';
-import type { ExamAnswers, ExamAttempt } from '@/hooks/useExamAttempt';
-import { useSubmitExamAttempt, gradeExam } from '@/hooks/useExamAttempt';
+import type { ExamAnswers, ExamAttempt, GradingResult } from '@/hooks/useExamAttempt';
+import { useSubmitExamAttempt } from '@/hooks/useExamAttempt';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface FinalExamPlayerProps {
@@ -55,6 +59,11 @@ export function FinalExamPlayer({ exam, userId, previousAttempt, onBack }: Final
   const [submittedPassed, setSubmittedPassed] = useState<boolean | null>(
     previousAttempt?.passed ?? null
   );
+  /**
+   * Questions WITH correct answers — only populated after server-side grading.
+   * Used for the review screen. During the exam, `exam.questions` (without answers) is used.
+   */
+  const [reviewQuestions, setReviewQuestions] = useState<ExamQuestion[] | null>(null);
 
   const submitMutation = useSubmitExamAttempt();
   const questions = exam.questions;
@@ -77,17 +86,16 @@ export function FinalExamPlayer({ exam, userId, previousAttempt, onBack }: Final
     }));
   };
 
-  /** Submit the exam */
+  /** Submit the exam — grading happens server-side */
   const handleSubmit = async () => {
-    const result = await submitMutation.mutateAsync({
+    const result: GradingResult = await submitMutation.mutateAsync({
       examId: exam.id,
       userId,
-      questions,
       answers,
-      passingScore: exam.passingScore,
     });
     setSubmittedScore(result.score);
     setSubmittedPassed(result.passed);
+    setReviewQuestions(result.questions);
     setState('review');
   };
 
@@ -97,6 +105,7 @@ export function FinalExamPlayer({ exam, userId, previousAttempt, onBack }: Final
     setCurrentIndex(0);
     setSubmittedScore(null);
     setSubmittedPassed(null);
+    setReviewQuestions(null);
     setState('taking');
   };
 
@@ -168,6 +177,9 @@ export function FinalExamPlayer({ exam, userId, previousAttempt, onBack }: Final
 
   // ─── REVIEW SCREEN ─────────────────────────────
   if (state === 'review') {
+    // Use review questions (with answers) if available, otherwise fall back
+    const displayQuestions = reviewQuestions || questions;
+
     return (
       <div className="max-w-3xl mx-auto space-y-6">
         {/* Score Banner */}
@@ -204,7 +216,7 @@ export function FinalExamPlayer({ exam, userId, previousAttempt, onBack }: Final
 
         {/* Question-by-question review */}
         <h3 className="text-lg font-semibold neon-text">Answer Review</h3>
-        {questions.map((q, idx) => {
+        {displayQuestions.map((q, idx) => {
           const ans = answers[q.id];
           const isCorrect = getIsCorrect(q, ans);
 
@@ -443,7 +455,7 @@ export function FinalExamPlayer({ exam, userId, previousAttempt, onBack }: Final
   );
 }
 
-/** Helper to check if a single answer is correct */
+/** Helper to check if a single answer is correct (used in review) */
 function getIsCorrect(q: ExamQuestion, ans?: ExamAnswers[string]): boolean {
   if (!ans) return false;
   switch (q.type) {

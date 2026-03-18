@@ -22,6 +22,8 @@ import { WorksheetViewer } from './WorksheetViewer';
 import { AssignmentSubmission } from './AssignmentSubmission';
 import { ActivityStepPlayer } from './ActivityStepPlayer';
 import { WorksheetPlayer } from './WorksheetPlayer';
+import { PracticeLabPlayer } from './PracticeLabPlayer';
+import { usePracticeLab } from '@/hooks/usePracticeLabs';
 
 interface LessonContentProps {
   /** The lesson to render */
@@ -30,6 +32,8 @@ interface LessonContentProps {
   savedNotes?: string | null;
   /** The student's previous quiz score (null if never attempted) */
   quizScore?: number | null;
+  /** Number of quiz attempts already used (0-3) */
+  quizAttempts?: number;
   /** The student's previous activity score (null if never attempted) */
   activityScore?: number | null;
   /** Called when a quiz is submitted with the resulting score (0-100) */
@@ -44,6 +48,8 @@ interface LessonContentProps {
   existingNotes?: string | null;
   /** Current user ID — passed to interactive players for persistence */
   userId?: string;
+  /** Course ID — needed for practice lab file uploads */
+  courseId?: string;
 }
 
 // Sanitize and format content to prevent XSS attacks
@@ -53,9 +59,9 @@ const sanitizeAndFormat = (content: string): string => {
     .replace(/\n/g, '<br/>')
     .replace(/^/, '<p class="mb-4">')
     .replace(/$/, '</p>')
-    .replace(/\*\*(.*?)\*\*/g, '<strong class="text-cyan-300">$1</strong>')
+    .replace(/\*\*(.*?)\*\*/g, '<strong class="text-secondary">$1</strong>')
     .replace(/\*(.*?)\*/g, '<em class="text-primary/80">$1</em>')
-    .replace(/`(.*?)`/g, '<code class="bg-primary/20 px-1.5 py-0.5 rounded text-sm text-cyan-300 border border-primary/30">$1</code>');
+    .replace(/`(.*?)`/g, '<code class="bg-primary/20 px-1.5 py-0.5 rounded text-sm text-secondary border border-primary/30">$1</code>');
 
   return DOMPurify.sanitize(formatted, {
     ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'code', 'h1', 'h2', 'h3', 'ul', 'ol', 'li'],
@@ -67,13 +73,18 @@ export function LessonContent({
   lesson,
   savedNotes,
   quizScore,
+  quizAttempts,
   activityScore,
   onQuizSubmit,
   onActivityProgress,
   onSaveNotes,
   isCompleted = false,
   existingNotes = null,
+  userId,
+  courseId,
 }: LessonContentProps) {
+  /** Fetch practice lab for this lesson (if one exists) */
+  const { data: practiceLab } = usePracticeLab(lesson.id);
   /** Returns the icon for the lesson type badge */
   const getTypeIcon = () => {
     switch (lesson.type) {
@@ -182,6 +193,7 @@ export function LessonContent({
           <QuizPlayer
             quizData={lesson.quiz_data}
             initialScore={quizScore}
+            attemptCount={quizAttempts ?? 0}
             onComplete={onQuizSubmit ?? (() => {})}
           />
         </div>
@@ -255,6 +267,18 @@ export function LessonContent({
             <FileText className="h-8 w-8 text-primary" />
           </div>
           <p className="text-muted-foreground">Lesson content coming soon</p>
+        </div>
+      )}
+
+      {/* ── Practice Lab ─────────────────────────────────────────────────── */}
+      {/* Shown for ANY lesson type that has a practice lab attached */}
+      {practiceLab && userId && courseId && (
+        <div className="mt-8 pt-8 border-t border-accent/20">
+          <PracticeLabPlayer
+            lab={practiceLab}
+            userId={userId}
+            courseId={courseId}
+          />
         </div>
       )}
     </div>

@@ -91,7 +91,7 @@ export function useTextbookChapters(courseId: string | undefined) {
   });
 }
 
-// Fetch pages for a chapter
+// Fetch pages for a chapter (used by admin — includes correctAnswer)
 export function useTextbookPages(chapterId: string | undefined) {
   return useQuery({
     queryKey: ['textbook-pages', chapterId],
@@ -114,13 +114,14 @@ export function useTextbookPages(chapterId: string | undefined) {
   });
 }
 
-// Fetch all pages for a course (for the book view)
+// Fetch all pages for a course (student view — correctAnswer stripped server-side)
 export function useAllTextbookPages(courseId: string | undefined) {
   return useQuery({
     queryKey: ['textbook-all-pages', courseId],
     queryFn: async (): Promise<(TextbookPage & { chapter: TextbookChapter })[]> => {
       if (!courseId) return [];
 
+      // Fetch chapters normally (no sensitive data)
       const { data: chapters, error: chaptersError } = await supabase
         .from('textbook_chapters')
         .select('*')
@@ -130,17 +131,16 @@ export function useAllTextbookPages(courseId: string | undefined) {
       if (chaptersError) throw chaptersError;
       if (!chapters?.length) return [];
 
-      const chapterIds = chapters.map(c => c.id);
-      const { data: pages, error: pagesError } = await supabase
-        .from('textbook_pages')
-        .select('*')
-        .in('chapter_id', chapterIds)
-        .order('page_number');
+      // Use the secure RPC that strips correctAnswer from embedded_quiz
+      const { data: pagesJson, error: pagesError } = await supabase
+        .rpc('get_textbook_pages_for_student', { _course_id: courseId });
 
       if (pagesError) throw pagesError;
 
-      // Combine pages with chapter info and sort
-      const pagesWithChapters = (pages || []).map(page => ({
+      const pages = (pagesJson as unknown as TextbookPage[]) || [];
+
+      // Combine pages with chapter info
+      const pagesWithChapters = pages.map(page => ({
         ...page,
         embedded_quiz: page.embedded_quiz as unknown as EmbeddedQuiz | null,
         chapter: chapters.find(c => c.id === page.chapter_id)!,
@@ -155,6 +155,24 @@ export function useAllTextbookPages(courseId: string | undefined) {
       });
     },
     enabled: !!courseId,
+  });
+}
+
+// Check a textbook quiz answer server-side
+export function useCheckTextbookQuizAnswer() {
+  return useMutation({
+    mutationFn: async ({ pageId, selectedAnswer }: { pageId: string; selectedAnswer: number }) => {
+      const { data, error } = await supabase
+        .rpc('check_textbook_quiz_answer', {
+          _page_id: pageId,
+          _selected_answer: selectedAnswer,
+        });
+
+      if (error) throw error;
+      const result = data as unknown as { correct: boolean; correctAnswer: number; explanation: string | null; error?: string };
+      if (result.error) throw new Error(result.error);
+      return result;
+    },
   });
 }
 
@@ -351,11 +369,16 @@ export function useTextbookSearch(courseId: string | undefined, query: string) {
 
       if (pagesError) throw pagesError;
 
-      return (pages || []).map(page => ({
-        ...page,
-        embedded_quiz: page.embedded_quiz as unknown as EmbeddedQuiz | null,
-        chapter: chapters.find(c => c.id === page.chapter_id)!,
-      }));
+      return (pages || []).map(page => {
+        // Strip correctAnswer from embedded_quiz for security
+        const quiz = page.embedded_quiz as unknown as EmbeddedQuiz | null;
+        const safeQuiz = quiz ? { question: quiz.question, options: quiz.options, explanation: quiz.explanation } as EmbeddedQuiz : null;
+        return {
+          ...page,
+          embedded_quiz: safeQuiz,
+          chapter: chapters.find(c => c.id === page.chapter_id)!,
+        };
+      });
     },
     enabled: !!courseId && query.trim().length >= 2,
   });

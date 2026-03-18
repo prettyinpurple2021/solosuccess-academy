@@ -184,10 +184,10 @@ export function LearningObjectives({ chapterId, chapterTitle, chapterContent }: 
         className="w-full flex items-center justify-between p-3 hover:bg-primary/5 transition-colors"
       >
         <div className="flex items-center gap-2">
-          <Target className="h-4 w-4 text-cyan-400" />
-          <span className="text-sm font-display font-semibold text-cyan-300">Learning Objectives</span>
+          <Target className="h-4 w-4 text-secondary" />
+          <span className="text-sm font-display font-semibold text-secondary">Learning Objectives</span>
           {completionPercent === 100 && (
-            <Trophy className="h-4 w-4 text-yellow-400" />
+            <Trophy className="h-4 w-4 text-accent" />
           )}
         </div>
         <div className="flex items-center gap-3">

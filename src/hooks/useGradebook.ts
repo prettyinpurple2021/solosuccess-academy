@@ -42,17 +42,22 @@ export function calculateCombinedGrade(
   quizScore: number, quizCount: number,
   activityScore: number, activityCount: number,
   worksheetScore: number, worksheetCount: number,
-  weights?: { quizWeight: number; activityWeight: number; worksheetWeight: number },
+  weights?: { quizWeight: number; activityWeight: number; worksheetWeight: number; examWeight?: number; essayWeight?: number },
+  examScore?: number, examCount?: number,
+  essayScore?: number, essayCount?: number,
 ): { percentage: number; letter: string } {
-  const w = weights || { quizWeight: 50, activityWeight: 30, worksheetWeight: 20 };
+  const w = weights || { quizWeight: 50, activityWeight: 30, worksheetWeight: 20, examWeight: 0, essayWeight: 0 };
   const components: { score: number; weight: number }[] = [];
   if (quizCount > 0) components.push({ score: quizScore, weight: w.quizWeight });
   if (activityCount > 0) components.push({ score: activityScore, weight: w.activityWeight });
   if (worksheetCount > 0) components.push({ score: worksheetScore, weight: w.worksheetWeight });
+  if ((examCount ?? 0) > 0) components.push({ score: examScore ?? 0, weight: w.examWeight ?? 0 });
+  if ((essayCount ?? 0) > 0) components.push({ score: essayScore ?? 0, weight: w.essayWeight ?? 0 });
 
   if (components.length === 0) return { percentage: 0, letter: '—' };
 
   const totalWeight = components.reduce((acc, c) => acc + c.weight, 0);
+  if (totalWeight === 0) return { percentage: 0, letter: '—' };
   const weighted = components.reduce((acc, c) => acc + (c.score * c.weight / totalWeight), 0);
   const pct = Math.round(weighted);
 
@@ -86,6 +91,10 @@ export interface StudentProgress {
   activityCount: number;
   totalWorksheetScore: number;
   worksheetCount: number;
+  totalExamScore: number;
+  examCount: number;
+  totalEssayScore: number;
+  essayCount: number;
   combinedGrade: { percentage: number; letter: string };
 }
 
@@ -98,6 +107,8 @@ export interface CourseProgress {
   quizScores: QuizScore[];
   activityScores: ActivityScore[];
   worksheetScores: WorksheetScore[];
+  examScore: number | null;
+  essayScore: number | null;
   projectStatus: 'draft' | 'submitted' | 'reviewed' | null;
   projectSubmittedAt: string | null;
 }
@@ -156,6 +167,38 @@ export function useGradebook() {
         .in('user_id', userIds);
 
       if (projectsError) throw projectsError;
+
+      // Fetch exam attempts (best score per user per exam)
+      const { data: examAttempts, error: examError } = await supabase
+        .from('student_exam_attempts')
+        .select('user_id, exam_id, score, passed')
+        .in('user_id', userIds)
+        .not('score', 'is', null);
+
+      if (examError) throw examError;
+
+      // Fetch final exams to map exam_id -> course_id
+      const { data: finalExams, error: feError } = await supabase
+        .from('course_final_exams')
+        .select('id, course_id');
+
+      if (feError) throw feError;
+
+      // Fetch essay submissions with AI scores
+      const { data: essaySubs, error: essaySubError } = await supabase
+        .from('student_essay_submissions')
+        .select('user_id, essay_id, ai_score')
+        .in('user_id', userIds)
+        .not('ai_score', 'is', null);
+
+      if (essaySubError) throw essaySubError;
+
+      // Fetch essays to map essay_id -> course_id
+      const { data: courseEssays, error: ceError } = await supabase
+        .from('course_essays')
+        .select('id, course_id');
+
+      if (ceError) throw ceError;
 
       // Build the gradebook data
       const studentData: StudentProgress[] = userIds.map(userId => {
@@ -221,12 +264,10 @@ export function useGradebook() {
             })
             .map(p => {
               const lesson = courseLessons.find(l => l.id === p.lesson_id);
-              // Parse worksheet_answers to calculate completion
               const answers = p.worksheet_answers as Record<string, any> | null;
               let answeredCount = 0;
               let totalCount = 0;
               if (answers && typeof answers === 'object') {
-                // worksheet_answers is keyed by worksheet/exercise index
                 const values = Object.values(answers);
                 totalCount = values.length;
                 answeredCount = values.filter(v => 
@@ -247,6 +288,24 @@ export function useGradebook() {
               };
             });
 
+          // Get best exam score for this course
+          const courseExam = finalExams?.find(e => e.course_id === purchase.course_id);
+          const userExamAttempts = courseExam
+            ? (examAttempts?.filter(a => a.user_id === userId && a.exam_id === courseExam.id) || [])
+            : [];
+          const bestExamScore = userExamAttempts.length > 0
+            ? Math.max(...userExamAttempts.map(a => a.score ?? 0))
+            : null;
+
+          // Get best essay score for this course
+          const courseEssay = courseEssays?.find(e => e.course_id === purchase.course_id);
+          const userEssaySubs = courseEssay
+            ? (essaySubs?.filter(s => s.user_id === userId && s.essay_id === courseEssay.id) || [])
+            : [];
+          const bestEssayScore = userEssaySubs.length > 0
+            ? Math.max(...userEssaySubs.map(s => s.ai_score ?? 0))
+            : null;
+
           const project = userProjects.find(p => p.course_id === purchase.course_id);
 
           return {
@@ -260,6 +319,8 @@ export function useGradebook() {
             quizScores,
             activityScores,
             worksheetScores,
+            examScore: bestExamScore,
+            essayScore: bestEssayScore,
             projectStatus: project?.status || null,
             projectSubmittedAt: project?.submitted_at || null,
           };
@@ -281,11 +342,23 @@ export function useGradebook() {
           ? Math.round(allWorksheetScores.reduce((acc, w) => acc + w.completionPercent, 0) / allWorksheetScores.length)
           : 0;
 
+        // Exam: average best scores across courses
+        const examScores = courseProgressList.filter(c => c.examScore !== null).map(c => c.examScore!);
+        const avgExamScore = examScores.length > 0
+          ? Math.round(examScores.reduce((a, b) => a + b, 0) / examScores.length)
+          : 0;
+
+        // Essay: average best scores across courses
+        const essayScoresArr = courseProgressList.filter(c => c.essayScore !== null).map(c => c.essayScore!);
+        const avgEssayScore = essayScoresArr.length > 0
+          ? Math.round(essayScoresArr.reduce((a, b) => a + b, 0) / essayScoresArr.length)
+          : 0;
+
         return {
           userId,
           displayName: profile?.display_name || 'Unknown Student',
           avatarUrl: profile?.avatar_url || null,
-          email: null, // We don't expose email for privacy
+          email: null,
           courses: courseProgressList,
           overallProgress: totalLessons > 0 ? Math.round((totalCompleted / totalLessons) * 100) : 0,
           totalQuizScore: avgQuizScore,
@@ -294,10 +367,17 @@ export function useGradebook() {
           activityCount: allActivityScores.length,
           totalWorksheetScore: avgWorksheetScore,
           worksheetCount: allWorksheetScores.length,
+          totalExamScore: avgExamScore,
+          examCount: examScores.length,
+          totalEssayScore: avgEssayScore,
+          essayCount: essayScoresArr.length,
           combinedGrade: calculateCombinedGrade(
             avgQuizScore, allQuizScores.length,
             avgActivityScore, allActivityScores.length,
             avgWorksheetScore, allWorksheetScores.length,
+            undefined,
+            avgExamScore, examScores.length,
+            avgEssayScore, essayScoresArr.length,
           ),
         };
       });

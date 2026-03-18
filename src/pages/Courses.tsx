@@ -1,21 +1,10 @@
 /**
  * @file Courses.tsx — Course Catalog Page (Public)
  * 
- * Displays all published courses grouped by curriculum phase:
- * - Phase 1: Initialization (Identity & Intel)
- * - Phase 2: Orchestration (Building the Machine)
- * - Phase 3: Launch Sequence (Sales & Future)
- * 
- * For authenticated users, shows purchase status and progress.
- * For unauthenticated users, shows "View Details" button.
- * 
- * Uses QueryStateGuard for loading/error state handling.
- * 
- * PRODUCTION TODO:
- * - Add search/filter functionality
- * - Add course preview/trailer support
- * - Consider pagination if course count grows significantly
+ * Displays all published courses grouped by curriculum phase.
+ * Includes search by title and filter by phase.
  */
+import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -24,11 +13,14 @@ import { Progress } from '@/components/ui/progress';
 import { useCourses } from '@/hooks/useCourses';
 import { useAuth } from '@/hooks/useAuth';
 import { phaseMetadata, formatPrice, getPhaseClasses, type CoursePhase } from '@/lib/courseData';
-import { ArrowRight, BookOpen, CheckCircle2, Lock, ShoppingCart, Terminal, Zap } from 'lucide-react';
+import { ArrowRight, BookOpen, CheckCircle2, Lock, Search, ShoppingCart, Terminal, Zap } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 import { getCourseThumbnail } from '@/lib/courseThumbnails';
 import { NeonSpinner } from '@/components/ui/neon-spinner';
 import { PageMeta } from '@/components/layout/PageMeta';
 import { QueryStateGuard } from '@/components/ui/query-state-guard';
+import { ErrorView } from '@/components/ui/error-view';
+import { CoursesSkeleton } from '@/components/skeletons/CoursesSkeleton';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -94,13 +86,35 @@ export default function Courses() {
 
   const purchasedCourseIds = new Set(purchases || []);
 
-  // Group courses by phase
-  const coursesByPhase = courses?.reduce((acc, course) => {
-    const phase = course.phase as CoursePhase;
-    if (!acc[phase]) acc[phase] = [];
-    acc[phase].push(course);
-    return acc;
-  }, {} as Record<CoursePhase, typeof courses>);
+  // Search & filter state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activePhase, setActivePhase] = useState<CoursePhase | 'all'>('all');
+
+  // Filter courses by search query and phase, then group by phase
+  const filteredCoursesByPhase = useMemo(() => {
+    if (!courses) return {} as Record<CoursePhase, typeof courses>;
+
+    const q = searchQuery.toLowerCase().trim();
+    const filtered = courses.filter(course => {
+      // Phase filter
+      if (activePhase !== 'all' && course.phase !== activePhase) return false;
+      // Search filter
+      if (q && !course.title.toLowerCase().includes(q) && !course.description?.toLowerCase().includes(q)) return false;
+      return true;
+    });
+
+    return filtered.reduce((acc, course) => {
+      const phase = course.phase as CoursePhase;
+      if (!acc[phase]) acc[phase] = [];
+      acc[phase].push(course);
+      return acc;
+    }, {} as Record<CoursePhase, typeof courses>);
+  }, [courses, searchQuery, activePhase]);
+
+  // Phases to render (respect filter)
+  const phasesToShow = activePhase === 'all'
+    ? (['initialization', 'orchestration', 'launch'] as CoursePhase[])
+    : [activePhase];
 
   return (
     <section className="py-12">
@@ -124,19 +138,65 @@ export default function Courses() {
             </p>
           </div>
 
-          <QueryStateGuard
-            isLoading={isLoading}
-            isError={isError}
-            error={error}
-            refetch={refetch}
-            loadingMessage="Loading courses..."
-            backTo="/courses"
-            backLabel="Back to courses"
-          >
-            <div className="space-y-20">
+          {/* Search & Filter Bar */}
+          <div className="flex flex-col sm:flex-row gap-4 mb-12">
+            {/* Search input */}
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search courses..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 bg-card/60 border-primary/20 focus:border-primary/50 font-mono"
+              />
+            </div>
+
+            {/* Phase filter buttons */}
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant={activePhase === 'all' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setActivePhase('all')}
+                className={activePhase === 'all' ? '' : 'border-primary/20 hover:bg-primary/10'}
+              >
+                All Phases
+              </Button>
               {(['initialization', 'orchestration', 'launch'] as CoursePhase[]).map((phase) => {
                 const meta = phaseMetadata[phase];
-                const phaseCourses = coursesByPhase?.[phase] || [];
+                return (
+                  <Button
+                    key={phase}
+                    variant={activePhase === phase ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setActivePhase(phase)}
+                    className={activePhase === phase ? '' : `border-primary/20 hover:bg-primary/10`}
+                  >
+                    <span className="mr-1.5">{meta.icon}</span>
+                    {meta.label}
+                  </Button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Skeleton loader while courses load */}
+          {isLoading ? (
+            <CoursesSkeleton />
+          ) : isError ? (
+            <ErrorView
+              message={error?.message}
+              onRetry={refetch}
+              backTo="/courses"
+              backLabel="Back to courses"
+            />
+          ) : (
+            <div className="space-y-20">
+              {phasesToShow.map((phase) => {
+                const meta = phaseMetadata[phase];
+                const phaseCourses = filteredCoursesByPhase?.[phase] || [];
+
+                // Skip phases with no matching courses
+                if (phaseCourses.length === 0) return null;
 
                 return (
                   <section key={phase}>
@@ -251,12 +311,26 @@ export default function Courses() {
                           </Card>
                         );
                       })}
+                    </div>
+                  </section>
+                );
+              })}
+
+              {/* No results message */}
+              {Object.values(filteredCoursesByPhase).every(arr => !arr || arr.length === 0) && (
+                <div className="text-center py-16">
+                  <Search className="h-12 w-12 mx-auto mb-4 text-muted-foreground/40" />
+                  <h3 className="text-xl font-display font-medium mb-2">No courses found</h3>
+                  <p className="text-muted-foreground font-mono text-sm mb-4">
+                    Try a different search term or clear your filters.
+                  </p>
+                  <Button variant="outline" onClick={() => { setSearchQuery(''); setActivePhase('all'); }} className="border-primary/20">
+                    Clear Filters
+                  </Button>
                 </div>
-              </section>
-            );
-          })}
+              )}
             </div>
-          </QueryStateGuard>
+          )}
       </div>
     </section>
   );

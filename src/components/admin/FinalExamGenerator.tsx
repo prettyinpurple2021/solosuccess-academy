@@ -26,7 +26,7 @@ import {
 } from '@/components/ui/accordion';
 import { NeonSpinner } from '@/components/ui/neon-spinner';
 import { FileText, Sparkles, CheckCircle, XCircle, HelpCircle } from 'lucide-react';
-import { useFinalExam, useGenerateFinalExam, type ExamQuestion } from '@/hooks/useFinalExam';
+import { useFinalExamAdmin, useGenerateFinalExam, type ExamQuestion } from '@/hooks/useFinalExam';
 
 interface FinalExamGeneratorProps {
   courses: { id: string; title: string; description: string | null }[];
@@ -35,7 +35,7 @@ interface FinalExamGeneratorProps {
 export function FinalExamGenerator({ courses }: FinalExamGeneratorProps) {
   const [selectedCourseId, setSelectedCourseId] = useState<string>('');
   const [questionCount, setQuestionCount] = useState(15);
-  const { data: existingExam, isLoading: examLoading } = useFinalExam(selectedCourseId || undefined);
+  const { data: existingExam, isLoading: examLoading } = useFinalExamAdmin(selectedCourseId || undefined);
   const generateExam = useGenerateFinalExam();
 
   const selectedCourse = courses.find(c => c.id === selectedCourseId);

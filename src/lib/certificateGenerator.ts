@@ -236,7 +236,7 @@ export function generateCertificatePDF(data: CertificateData): jsPDF {
   doc.setFontSize(7);
   doc.setTextColor(theme.textColor);
   doc.setFont('helvetica', 'normal');
-  doc.text('verify at: solosuccess.academy/verify', width - 70, footerY + 11, { align: 'left' });
+  doc.text('verify at: solosuccessacademy.cloud/verify', width - 70, footerY + 11, { align: 'left' });
   
   return doc;
 }

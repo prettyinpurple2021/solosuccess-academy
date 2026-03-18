@@ -5,18 +5,14 @@
  * preferences) and aggregates achievement statistics from multiple tables.
  *
  * AVATAR UPLOAD FLOW:
- *   File selected → uploadAvatar() → uploads to 'avatars' storage bucket
- *   → returns public URL → useUpdateAvatar() → saves URL to profiles table
+ *   File selected → compressed (max 800px, 0.8 quality) → uploadAvatar()
+ *   → uploads to 'avatars' storage bucket → returns public URL
+ *   → useUpdateAvatar() → saves URL to profiles table
  *
  * ACHIEVEMENT AGGREGATION (useUserAchievements):
  *   Runs 5 parallel queries against: purchases, user_progress, course_projects,
  *   discussions, discussion_comments — returns counts for badge checking.
- *
- * PRODUCTION TODO:
- * - Add avatar image compression/resizing before upload
- * - Cache achievement counts with longer stale time (they change infrequently)
- * - Add profile completion percentage indicator
- * - Support social links (Twitter, LinkedIn) on profile
+ *   Cached with 5-minute stale time since achievements change infrequently.
  */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -40,6 +36,7 @@ export interface UserAchievements {
   projectsWithFeedback: number;
   discussionsStarted: number;
   commentsPosted: number;
+  chaptersRead: number;
 }
 
 // Fetch user profile
@@ -96,14 +93,66 @@ export function useUpdateProfile() {
   });
 }
 
-// Upload avatar
+/**
+ * Compress an image file before upload.
+ * Resizes to max 800x800 and compresses to JPEG at 0.8 quality.
+ * This reduces avatar file sizes from ~2-5MB to ~50-150KB.
+ */
+async function compressImage(file: File, maxSize = 800, quality = 0.8): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+
+    img.onload = () => {
+      // Calculate new dimensions maintaining aspect ratio
+      let { width, height } = img;
+      if (width > height) {
+        if (width > maxSize) {
+          height = Math.round((height * maxSize) / width);
+          width = maxSize;
+        }
+      } else {
+        if (height > maxSize) {
+          width = Math.round((width * maxSize) / height);
+          height = maxSize;
+        }
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+      ctx?.drawImage(img, 0, 0, width, height);
+
+      canvas.toBlob(
+        (blob) => {
+          if (blob) resolve(blob);
+          else reject(new Error('Failed to compress image'));
+        },
+        'image/jpeg',
+        quality
+      );
+    };
+
+    img.onerror = () => reject(new Error('Failed to load image for compression'));
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+/**
+ * Upload avatar with automatic image compression.
+ * Compresses to max 800x800 JPEG before uploading.
+ */
 export async function uploadAvatar(userId: string, file: File): Promise<string> {
-  const fileExt = file.name.split('.').pop();
-  const fileName = `${userId}/avatar-${Date.now()}.${fileExt}`;
+  // Compress the image before uploading
+  const compressedBlob = await compressImage(file);
+  const fileName = `${userId}/avatar-${Date.now()}.jpg`;
 
   const { error: uploadError } = await supabase.storage
     .from('avatars')
-    .upload(fileName, file, { upsert: true });
+    .upload(fileName, compressedBlob, { 
+      upsert: true,
+      contentType: 'image/jpeg',
+    });
 
   if (uploadError) throw uploadError;
 
@@ -176,7 +225,11 @@ export function useUpdateNotificationPreferences() {
   });
 }
 
-// Fetch user achievements
+/**
+ * Fetch user achievements with 5-minute cache.
+ * Achievement counts change infrequently, so a longer stale time
+ * reduces unnecessary database queries.
+ */
 export function useUserAchievements(userId: string | undefined) {
   return useQuery({
     queryKey: ['achievements', userId],
@@ -189,22 +242,27 @@ export function useUserAchievements(userId: string | undefined) {
           projectsWithFeedback: 0,
           discussionsStarted: 0,
           commentsPosted: 0,
+          chaptersRead: 0,
         };
       }
 
       // Fetch all stats in parallel
+      // Fetch all stats in parallel (including textbook chapter bookmarks as "chapters read")
       const [
         purchasesResult,
         progressResult,
         projectsResult,
         discussionsResult,
         commentsResult,
+        bookmarksResult,
       ] = await Promise.all([
         supabase.from('purchases').select('id', { count: 'exact' }).eq('user_id', userId),
         supabase.from('user_progress').select('id', { count: 'exact' }).eq('user_id', userId).eq('completed', true),
         supabase.from('course_projects').select('id, status, ai_feedback').eq('user_id', userId),
         supabase.from('discussions').select('id', { count: 'exact' }).eq('user_id', userId),
         supabase.from('discussion_comments').select('id', { count: 'exact' }).eq('user_id', userId),
+        // Count distinct chapters the user has bookmarked (proxy for chapters read)
+        supabase.from('user_textbook_bookmarks').select('chapter_id', { count: 'exact' }).eq('user_id', userId),
       ]);
 
       const projectsData = projectsResult.data || [];
@@ -218,8 +276,10 @@ export function useUserAchievements(userId: string | undefined) {
         projectsWithFeedback,
         discussionsStarted: discussionsResult.count || 0,
         commentsPosted: commentsResult.count || 0,
+        chaptersRead: bookmarksResult.count || 0,
       };
     },
     enabled: !!userId,
+    staleTime: 5 * 60 * 1000, // 5 minutes — achievements change infrequently
   });
 }

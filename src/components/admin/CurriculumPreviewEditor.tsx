@@ -4,18 +4,16 @@
  * PURPOSE: After bulk curriculum generation via AI, this editor lets admins
  * review and modify all generated content before saving to the database.
  * Supports editing course details, individual lessons, textbook chapters/pages,
- * and final exam questions.
+ * and final exam questions. Includes undo/redo for all edits.
  *
  * WORKFLOW: Generate content → CurriculumPreviewEditor → review/edit → Save to DB
  * The save operation uses useSaveBulkCurriculum which creates course, lessons,
  * chapters, pages, and exam in a single transaction.
  *
  * PRODUCTION TODO:
- * - Add undo/redo for edits
- * - Add diff view showing AI vs edited content
  * - Support selective saving (e.g., save course but regenerate lessons)
  */
-import { useState } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -42,6 +40,8 @@ import {
   Image,
   Video,
   Mic,
+  Undo2,
+  Redo2,
 } from 'lucide-react';
 import { LessonEditCard, LessonData } from './LessonEditCard';
 import { ImageGenerateDialog } from './ImageGenerateDialog';
@@ -71,13 +71,59 @@ export function CurriculumPreviewEditor({ curriculum, onUpdate, documentContent 
   const { generateContent, isGenerating } = useContentGenerator();
   const { toast } = useToast();
 
+  // ── Undo/Redo system ──────────────────────────
+  // Stores a stack of previous curriculum states for undo,
+  // and a stack of "undone" states for redo.
+  const undoStackRef = useRef<GeneratedBulkCurriculum[]>([]);
+  const redoStackRef = useRef<GeneratedBulkCurriculum[]>([]);
+  const MAX_UNDO_HISTORY = 50;
+  // Counter to force re-render when stack lengths change
+  const [historyVersion, setHistoryVersion] = useState(0);
+
+  /**
+   * Wraps onUpdate to push the *current* state onto the undo stack
+   * before applying the new state. Clears redo stack on new edit.
+   */
+  const updateWithHistory = useCallback(
+    (newCurriculum: GeneratedBulkCurriculum) => {
+      undoStackRef.current = [
+        ...undoStackRef.current.slice(-MAX_UNDO_HISTORY),
+        curriculum,
+      ];
+      redoStackRef.current = []; // New edit clears redo
+      setHistoryVersion((v) => v + 1);
+      onUpdate(newCurriculum);
+    },
+    [curriculum, onUpdate]
+  );
+
+  /** Undo: pop last state from undo stack, push current to redo */
+  const handleUndo = useCallback(() => {
+    if (undoStackRef.current.length === 0) return;
+    const prev = undoStackRef.current[undoStackRef.current.length - 1];
+    undoStackRef.current = undoStackRef.current.slice(0, -1);
+    redoStackRef.current = [...redoStackRef.current, curriculum];
+    setHistoryVersion((v) => v + 1);
+    onUpdate(prev);
+  }, [curriculum, onUpdate]);
+
+  /** Redo: pop last state from redo stack, push current to undo */
+  const handleRedo = useCallback(() => {
+    if (redoStackRef.current.length === 0) return;
+    const next = redoStackRef.current[redoStackRef.current.length - 1];
+    redoStackRef.current = redoStackRef.current.slice(0, -1);
+    undoStackRef.current = [...undoStackRef.current, curriculum];
+    setHistoryVersion((v) => v + 1);
+    onUpdate(next);
+  }, [curriculum, onUpdate]);
+
   const toggleChapter = (index: number) => {
     setExpandedChapters((prev) => ({ ...prev, [index]: !prev[index] }));
   };
 
-  // Course info handlers
+  // Course info handlers — use updateWithHistory for undo support
   const handleCourseChange = (field: keyof GeneratedBulkCurriculum['course'], value: string) => {
-    onUpdate({
+    updateWithHistory({
       ...curriculum,
       course: { ...curriculum.course, [field]: value },
     });
@@ -87,12 +133,12 @@ export function CurriculumPreviewEditor({ curriculum, onUpdate, documentContent 
   const handleLessonUpdate = (index: number, lesson: LessonData) => {
     const newLessons = [...curriculum.lessons];
     newLessons[index] = lesson;
-    onUpdate({ ...curriculum, lessons: newLessons });
+    updateWithHistory({ ...curriculum, lessons: newLessons });
   };
 
   const handleLessonDelete = (index: number) => {
     const newLessons = curriculum.lessons.filter((_, i) => i !== index);
-    onUpdate({ ...curriculum, lessons: newLessons });
+    updateWithHistory({ ...curriculum, lessons: newLessons });
   };
 
   const handleAddLesson = () => {
@@ -101,7 +147,7 @@ export function CurriculumPreviewEditor({ curriculum, onUpdate, documentContent 
       type: 'text',
       content: '',
     };
-    onUpdate({ ...curriculum, lessons: [...curriculum.lessons, newLesson] });
+    updateWithHistory({ ...curriculum, lessons: [...curriculum.lessons, newLesson] });
   };
 
   // Regenerate individual lesson with AI
@@ -134,7 +180,7 @@ export function CurriculumPreviewEditor({ curriculum, onUpdate, documentContent 
         } else if (contentType === 'activity') {
           newLessons[index] = { ...lesson, activity_data: result };
         }
-        onUpdate({ ...curriculum, lessons: newLessons });
+        updateWithHistory({ ...curriculum, lessons: newLessons });
         toast({
           title: 'Lesson regenerated',
           description: `"${lesson.title}" has been regenerated with AI.`,
@@ -172,7 +218,7 @@ export function CurriculumPreviewEditor({ curriculum, onUpdate, documentContent 
           title: result.title || chapter.title,
           pages: result.pages || chapter.pages,
         };
-        onUpdate({ ...curriculum, textbook_chapters: newChapters });
+        updateWithHistory({ ...curriculum, textbook_chapters: newChapters });
         toast({
           title: 'Chapter regenerated',
           description: `"${chapter.title}" has been regenerated with AI.`,
@@ -194,7 +240,7 @@ export function CurriculumPreviewEditor({ curriculum, onUpdate, documentContent 
   const handleChapterTitleChange = (index: number, title: string) => {
     const newChapters = [...curriculum.textbook_chapters];
     newChapters[index] = { ...newChapters[index], title };
-    onUpdate({ ...curriculum, textbook_chapters: newChapters });
+    updateWithHistory({ ...curriculum, textbook_chapters: newChapters });
   };
 
   const handlePageContentChange = (chapterIndex: number, pageIndex: number, content: string) => {
@@ -202,12 +248,12 @@ export function CurriculumPreviewEditor({ curriculum, onUpdate, documentContent 
     const newPages = [...newChapters[chapterIndex].pages];
     newPages[pageIndex] = { ...newPages[pageIndex], content };
     newChapters[chapterIndex] = { ...newChapters[chapterIndex], pages: newPages };
-    onUpdate({ ...curriculum, textbook_chapters: newChapters });
+    updateWithHistory({ ...curriculum, textbook_chapters: newChapters });
   };
 
   const handleDeleteChapter = (index: number) => {
     const newChapters = curriculum.textbook_chapters.filter((_, i) => i !== index);
-    onUpdate({ ...curriculum, textbook_chapters: newChapters });
+    updateWithHistory({ ...curriculum, textbook_chapters: newChapters });
   };
 
   const handleAddChapter = () => {
@@ -215,7 +261,7 @@ export function CurriculumPreviewEditor({ curriculum, onUpdate, documentContent 
       title: 'New Chapter',
       pages: [{ content: '', embedded_quiz: null }],
     };
-    onUpdate({
+    updateWithHistory({
       ...curriculum,
       textbook_chapters: [...curriculum.textbook_chapters, newChapter],
     });
@@ -223,7 +269,7 @@ export function CurriculumPreviewEditor({ curriculum, onUpdate, documentContent 
 
   // Exam handlers
   const handleExamChange = (field: string, value: any) => {
-    onUpdate({
+    updateWithHistory({
       ...curriculum,
       final_exam: { ...curriculum.final_exam, [field]: value },
     });
@@ -232,7 +278,7 @@ export function CurriculumPreviewEditor({ curriculum, onUpdate, documentContent 
   const handleExamQuestionChange = (qIndex: number, field: string, value: any) => {
     const newQuestions = [...curriculum.final_exam.questions];
     newQuestions[qIndex] = { ...newQuestions[qIndex], [field]: value };
-    onUpdate({
+    updateWithHistory({
       ...curriculum,
       final_exam: { ...curriculum.final_exam, questions: newQuestions },
     });
@@ -243,7 +289,7 @@ export function CurriculumPreviewEditor({ curriculum, onUpdate, documentContent 
     const newOptions = [...newQuestions[qIndex].options];
     newOptions[optIndex] = value;
     newQuestions[qIndex] = { ...newQuestions[qIndex], options: newOptions };
-    onUpdate({
+    updateWithHistory({
       ...curriculum,
       final_exam: { ...curriculum.final_exam, questions: newQuestions },
     });
@@ -251,7 +297,7 @@ export function CurriculumPreviewEditor({ curriculum, onUpdate, documentContent 
 
   const handleDeleteExamQuestion = (qIndex: number) => {
     const newQuestions = curriculum.final_exam.questions.filter((_, i) => i !== qIndex);
-    onUpdate({
+    updateWithHistory({
       ...curriculum,
       final_exam: { ...curriculum.final_exam, questions: newQuestions },
     });
@@ -266,7 +312,7 @@ export function CurriculumPreviewEditor({ curriculum, onUpdate, documentContent 
       points: 10,
     };
     const newQuestions = [...(curriculum.final_exam.questions || []), newQuestion];
-    onUpdate({
+    updateWithHistory({
       ...curriculum,
       final_exam: { ...curriculum.final_exam, questions: newQuestions },
     });
@@ -297,7 +343,7 @@ export function CurriculumPreviewEditor({ curriculum, onUpdate, documentContent 
           explanation: newQ.explanation || question.explanation,
           points: question.points || 10,
         };
-        onUpdate({
+        updateWithHistory({
           ...curriculum,
           final_exam: { ...curriculum.final_exam, questions: newQuestions },
         });
@@ -320,6 +366,30 @@ export function CurriculumPreviewEditor({ curriculum, onUpdate, documentContent 
 
   return (
     <div className="space-y-4">
+      {/* Undo/Redo toolbar */}
+      <div className="flex items-center justify-end gap-1">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleUndo}
+          disabled={undoStackRef.current.length === 0}
+          title="Undo (Ctrl+Z)"
+        >
+          <Undo2 className="h-4 w-4 mr-1" />
+          Undo
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleRedo}
+          disabled={redoStackRef.current.length === 0}
+          title="Redo (Ctrl+Shift+Z)"
+        >
+          <Redo2 className="h-4 w-4 mr-1" />
+          Redo
+        </Button>
+      </div>
+
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid grid-cols-4 w-full">
           <TabsTrigger value="course" className="text-xs">

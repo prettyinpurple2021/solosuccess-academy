@@ -16,7 +16,8 @@ import {
   GripVertical,
   Clock,
   Eye,
-  EyeOff
+  EyeOff,
+  Copy
 } from 'lucide-react';
 
 interface SortableLessonItemProps {
@@ -24,9 +25,11 @@ interface SortableLessonItemProps {
   index: number;
   onEdit: (lesson: Lesson) => void;
   onDelete: (lesson: Lesson) => void;
+  onDuplicate?: (lesson: Lesson) => void;
   onTogglePublish: (lesson: Lesson) => void;
   isUpdating: boolean;
   isDeleting: boolean;
+  isDuplicating?: boolean;
 }
 
 const typeIcons: Record<string, React.ReactNode> = {
@@ -50,9 +53,11 @@ export function SortableLessonItem({
   index, 
   onEdit, 
   onDelete, 
+  onDuplicate,
   onTogglePublish,
   isUpdating,
-  isDeleting 
+  isDeleting,
+  isDuplicating,
 }: SortableLessonItemProps) {
   const navigate = useNavigate();
   const {
@@ -137,6 +142,17 @@ export function SortableLessonItem({
                 <Eye className="h-4 w-4" />
               )}
             </Button>
+            {onDuplicate && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => onDuplicate(lesson)}
+                disabled={isDuplicating}
+                title="Duplicate lesson"
+              >
+                <Copy className="h-4 w-4" />
+              </Button>
+            )}
             <Button
               variant="ghost"
               size="icon"

@@ -47,3 +47,15 @@ verify_jwt = false
 
 [functions.bulk-generate-supplemental]
 verify_jwt = false
+
+[functions.submit-contact]
+verify_jwt = false
+
+[functions.manage-api-keys]
+verify_jwt = false
+
+[functions.bulk-generate-assessments]
+verify_jwt = false
+
+[functions.milestone-feedback]
+verify_jwt = false

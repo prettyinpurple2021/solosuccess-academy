@@ -1,54 +1,37 @@
 /**
  * @file useProgress.ts — Student Progress Tracking Hooks
  * 
- * Manages lesson completion, quiz scores, notes, and overall progress
- * calculations across all purchased courses.
+ * Manages lesson completion, quiz scores, notes, and overall progress.
  * 
- * HOOKS IN THIS FILE:
- * - useUserProgress(userId)                → All progress records for a user
- * - useCourseProgress(userId, courseId)     → Progress for a specific course
- * - useMarkLessonComplete()                → Mutation to mark lesson done/undone
- * - useUpdateLessonNotes()                 → Mutation to save lesson notes
- * - useOverallProgress(userId)             → Aggregated stats across all courses
- * 
- * DATABASE TABLE: `user_progress`
- * Each row = one user's progress on one lesson. Uses a composite
- * unique constraint on (user_id, lesson_id) so upsert works correctly.
- * 
- * PRODUCTION TODO:
- * - Add optimistic updates to useMarkLessonComplete for instant UI feedback
- * - Consider batch-fetching progress with courses in a single query
- * - Add quiz_score tracking integration with the quiz component
- * - The admin fields (admin_notes, admin_override_score, graded_at, graded_by)
- *   exist in the DB but aren't used in this hook — add if needed
+ * HOOKS:
+ * - useUserProgress(userId)            → All progress records for a user
+ * - useCourseProgress(userId, courseId) → Progress for a specific course
+ * - useMarkLessonComplete()            → Mark lesson done/undone
+ * - useSubmitQuizScore()               → Submit quiz score + auto-complete
+ * - useUpdateLessonNotes()             → Save lesson notes
+ * - useSubmitActivityScore()           → Save activity completion score
+ * - useOverallProgress(userId)         → Aggregated stats (uses DB function)
  */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
-/**
- * Shape of a user's progress on a single lesson.
- * Maps to the `user_progress` database table.
- */
+/** Shape of a user's progress on a single lesson. */
 export interface UserProgress {
   id: string;
   user_id: string;
-  lesson_id: string;           // FK → lessons.id
-  completed: boolean;           // Whether the student finished this lesson
-  completed_at: string | null;  // ISO timestamp of when they completed it
-  quiz_score: number | null;    // 0-100 score if this is a quiz lesson
-  activity_score: number | null; // 0-100 percentage of activity steps completed
-  notes: string | null;         // Student's personal notes for this lesson
+  lesson_id: string;
+  completed: boolean;
+  completed_at: string | null;
+  quiz_score: number | null;
+  /** Number of quiz attempts taken (max 3 allowed) */
+  quiz_attempts: number;
+  activity_score: number | null;
+  notes: string | null;
   created_at: string;
   updated_at: string;
 }
 
-/**
- * Fetch ALL progress records for a user (across all courses).
- * Used on the Dashboard for overall progress calculations.
- * 
- * NOTE: If a student has 100+ purchased lessons, this returns all of them.
- * For very active users, consider pagination or limiting to recent progress.
- */
+/** Fetch ALL progress records for a user (across all courses). */
 export function useUserProgress(userId: string | undefined) {
   return useQuery({
     queryKey: ['user-progress', userId],
@@ -69,15 +52,7 @@ export function useUserProgress(userId: string | undefined) {
 
 /**
  * Fetch progress for a SPECIFIC course.
- * 
- * This does a two-step query:
- * 1. Get all lesson IDs for the course
- * 2. Get progress records matching those lesson IDs
- * 
- * Returns both the raw progress data and computed counts.
- * 
- * PRODUCTION TODO: Consider using a database function to do this
- * in a single query for better performance.
+ * Two-step query: get lesson IDs, then get progress for those lessons.
  */
 export function useCourseProgress(userId: string | undefined, courseId: string | undefined) {
   return useQuery({
@@ -85,7 +60,6 @@ export function useCourseProgress(userId: string | undefined, courseId: string |
     queryFn: async () => {
       if (!userId || !courseId) return { progress: [], lessonCount: 0, completedCount: 0 };
 
-      // Step 1: Get all lesson IDs for this course
       const { data: lessons, error: lessonsError } = await supabase
         .from('lessons')
         .select('id')
@@ -94,12 +68,10 @@ export function useCourseProgress(userId: string | undefined, courseId: string |
       if (lessonsError) throw lessonsError;
 
       const lessonIds = lessons?.map((l) => l.id) || [];
-
       if (lessonIds.length === 0) {
         return { progress: [], lessonCount: 0, completedCount: 0 };
       }
 
-      // Step 2: Get progress for those lessons
       const { data: progress, error: progressError } = await supabase
         .from('user_progress')
         .select('*')
@@ -120,15 +92,7 @@ export function useCourseProgress(userId: string | undefined, courseId: string |
   });
 }
 
-/**
- * Mutation: Mark a lesson as complete or incomplete.
- * 
- * Uses UPSERT with `onConflict: 'user_id,lesson_id'` so it creates
- * a new progress record if one doesn't exist, or updates the existing one.
- * 
- * After success, invalidates both user-progress and course-progress queries
- * so the UI updates everywhere that shows progress.
- */
+/** Mutation: Mark a lesson as complete or incomplete (upsert). */
 export function useMarkLessonComplete() {
   const queryClient = useQueryClient();
 
@@ -151,9 +115,7 @@ export function useMarkLessonComplete() {
             completed,
             completed_at: completed ? new Date().toISOString() : null,
           },
-          {
-            onConflict: 'user_id,lesson_id',  // Composite unique constraint
-          }
+          { onConflict: 'user_id,lesson_id' }
         )
         .select()
         .single();
@@ -162,19 +124,16 @@ export function useMarkLessonComplete() {
       return data;
     },
     onSuccess: (_, variables) => {
-      // Invalidate all progress-related caches so UI reflects the change
       queryClient.invalidateQueries({ queryKey: ['user-progress', variables.userId] });
       queryClient.invalidateQueries({ queryKey: ['course-progress', variables.userId] });
+      queryClient.invalidateQueries({ queryKey: ['overall-progress', variables.userId] });
     },
   });
 }
 
 /**
- * Mutation: Submit a quiz score for a lesson.
- *
- * Upserts the user_progress row with the quiz score.
- * If the score meets or exceeds passingScore, the lesson is also
- * marked as completed automatically.
+ * Mutation: Submit a quiz score. Keeps the BEST score across retakes.
+ * Auto-completes the lesson if the score meets the passing threshold.
  */
 export function useSubmitQuizScore() {
   const queryClient = useQueryClient();
@@ -188,19 +147,40 @@ export function useSubmitQuizScore() {
     }: {
       userId: string;
       lessonId: string;
-      score: number;         // 0-100 percentage
-      passingScore: number;  // Minimum % required to pass
+      score: number;
+      passingScore: number;
     }) => {
-      const passed = score >= passingScore;
+      // Fetch existing progress to compare scores and check attempt count
+      const { data: existing } = await supabase
+        .from('user_progress')
+        .select('quiz_score, completed, quiz_attempts')
+        .eq('user_id', userId)
+        .eq('lesson_id', lessonId)
+        .maybeSingle();
+
+      const currentAttempts = (existing as any)?.quiz_attempts ?? 0;
+
+      // Enforce 3-attempt limit — throw so the UI can catch it
+      if (currentAttempts >= 3) {
+        throw new Error('MAX_ATTEMPTS_REACHED');
+      }
+
+      // Keep the best score: only update if new score is higher
+      const bestScore = Math.max(score, existing?.quiz_score ?? 0);
+      const passed = bestScore >= passingScore;
+      const alreadyCompleted = existing?.completed === true;
+
       const { data, error } = await supabase
         .from('user_progress')
         .upsert(
           {
             user_id: userId,
             lesson_id: lessonId,
-            quiz_score: score,
-            completed: passed,
-            completed_at: passed ? new Date().toISOString() : null,
+            quiz_score: bestScore,
+            quiz_attempts: currentAttempts + 1,
+            // Never un-complete a lesson that was already completed
+            completed: passed || alreadyCompleted,
+            completed_at: (passed || alreadyCompleted) ? new Date().toISOString() : null,
           },
           { onConflict: 'user_id,lesson_id' }
         )
@@ -213,14 +193,12 @@ export function useSubmitQuizScore() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['user-progress', variables.userId] });
       queryClient.invalidateQueries({ queryKey: ['course-progress', variables.userId] });
+      queryClient.invalidateQueries({ queryKey: ['overall-progress', variables.userId] });
     },
   });
 }
 
-/**
- * Mutation: Save personal notes for a lesson.
- * Uses the same UPSERT pattern as lesson completion.
- */
+/** Mutation: Save personal notes for a lesson. */
 export function useUpdateLessonNotes() {
   const queryClient = useQueryClient();
 
@@ -237,14 +215,8 @@ export function useUpdateLessonNotes() {
       const { data, error } = await supabase
         .from('user_progress')
         .upsert(
-          {
-            user_id: userId,
-            lesson_id: lessonId,
-            notes,
-          },
-          {
-            onConflict: 'user_id,lesson_id',
-          }
+          { user_id: userId, lesson_id: lessonId, notes },
+          { onConflict: 'user_id,lesson_id' }
         )
         .select()
         .single();
@@ -258,10 +230,7 @@ export function useUpdateLessonNotes() {
   });
 }
 
-/**
- * Mutation: Save activity completion score (0-100 percentage).
- * Called when a student completes steps in an activity lesson.
- */
+/** Mutation: Save activity completion score (0-100). */
 export function useSubmitActivityScore() {
   const queryClient = useQueryClient();
 
@@ -273,7 +242,7 @@ export function useSubmitActivityScore() {
     }: {
       userId: string;
       lessonId: string;
-      score: number; // 0-100 percentage of steps completed
+      score: number;
     }) => {
       const isComplete = score === 100;
       const { data, error } = await supabase
@@ -297,24 +266,14 @@ export function useSubmitActivityScore() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['user-progress', variables.userId] });
       queryClient.invalidateQueries({ queryKey: ['course-progress', variables.userId] });
+      queryClient.invalidateQueries({ queryKey: ['overall-progress', variables.userId] });
     },
   });
 }
 
 /**
  * Fetch aggregated progress across ALL purchased courses.
- * 
- * Used on the Dashboard to show "Overall: 45% complete (18/40 lessons)".
- * 
- * This performs 3 sequential queries:
- * 1. Get purchased course IDs
- * 2. Get all lesson IDs for those courses
- * 3. Get completion status for those lessons
- * 
- * Then it computes per-course breakdowns and overall totals.
- * 
- * PRODUCTION TODO: Move this to a database function for better performance.
- * Three round-trips to the DB is slow — a single SQL query could do this.
+ * Uses the `get_overall_progress` DB function for a single round-trip.
  */
 export function useOverallProgress(userId: string | undefined) {
   return useQuery({
@@ -322,71 +281,22 @@ export function useOverallProgress(userId: string | undefined) {
     queryFn: async () => {
       if (!userId) return { totalLessons: 0, completedLessons: 0, courseProgress: [] };
 
-      // Step 1: Get user's purchased course IDs
-      const { data: purchases, error: purchasesError } = await supabase
-        .from('purchases')
-        .select('course_id')
-        .eq('user_id', userId);
-
-      if (purchasesError) throw purchasesError;
-
-      const purchasedCourseIds = purchases?.map(p => p.course_id) || [];
-
-      if (purchasedCourseIds.length === 0) {
-        return { totalLessons: 0, completedLessons: 0, courseProgress: [] };
-      }
-
-      // Step 2: Get all lessons for purchased courses
-      const { data: lessons, error: lessonsError } = await supabase
-        .from('lessons')
-        .select('id, course_id')
-        .in('course_id', purchasedCourseIds);
-
-      if (lessonsError) throw lessonsError;
-
-      const lessonIds = lessons?.map(l => l.id) || [];
-
-      if (lessonIds.length === 0) {
-        return { totalLessons: 0, completedLessons: 0, courseProgress: [] };
-      }
-
-      // Step 3: Get completion records
-      const { data: progress, error: progressError } = await supabase
-        .from('user_progress')
-        .select('lesson_id, completed')
-        .eq('user_id', userId)
-        .in('lesson_id', lessonIds);
-
-      if (progressError) throw progressError;
-
-      // Build a set of completed lesson IDs for fast lookup
-      const completedSet = new Set(
-        progress?.filter(p => p.completed).map(p => p.lesson_id) || []
-      );
-
-      // Calculate per-course progress breakdown
-      const courseProgressMap = new Map<string, { total: number; completed: number }>();
-      lessons?.forEach(lesson => {
-        const existing = courseProgressMap.get(lesson.course_id) || { total: 0, completed: 0 };
-        existing.total += 1;
-        if (completedSet.has(lesson.id)) {
-          existing.completed += 1;
-        }
-        courseProgressMap.set(lesson.course_id, existing);
+      const { data, error } = await supabase.rpc('get_overall_progress', {
+        _user_id: userId,
       });
 
-      const courseProgress = Array.from(courseProgressMap.entries()).map(([courseId, data]) => ({
-        courseId,
-        total: data.total,
-        completed: data.completed,
-        percentage: data.total > 0 ? Math.round((data.completed / data.total) * 100) : 0,
-      }));
+      if (error) throw error;
+
+      // The DB function returns a jsonb object
+      const result = data as any;
+      const totalLessons = result?.totalLessons || 0;
+      const completedLessons = result?.completedLessons || 0;
 
       return {
-        totalLessons: lessonIds.length,
-        completedLessons: completedSet.size,
-        percentage: lessonIds.length > 0 ? Math.round((completedSet.size / lessonIds.length) * 100) : 0,
-        courseProgress,
+        totalLessons,
+        completedLessons,
+        percentage: totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0,
+        courseProgress: result?.courseProgress || [],
       };
     },
     enabled: !!userId,

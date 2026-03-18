@@ -30,11 +30,13 @@ import {
 } from '@dnd-kit/sortable';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { useAdminLessons, useDeleteLesson, useUpdateLesson, useReorderLessons, Lesson } from '@/hooks/useAdmin';
+import { useAdminLessons, useDeleteLesson, useUpdateLesson, useReorderLessons, useBulkPublishLessons, useDuplicateLesson, Lesson } from '@/hooks/useAdmin';
+import { supabase } from '@/integrations/supabase/client';
+import { useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { LessonEditor } from './LessonEditor';
 import { SortableLessonItem } from './SortableLessonItem';
-import { Plus, FileText } from 'lucide-react';
+import { Plus, FileText, Eye, EyeOff } from 'lucide-react';
 import { NeonSpinner } from '@/components/ui/neon-spinner';
 
 interface LessonListProps {
@@ -44,10 +46,15 @@ interface LessonListProps {
 export function LessonList({ courseId }: LessonListProps) {
   const [editingLesson, setEditingLesson] = useState<Lesson | null>(null);
   const [isCreating, setIsCreating] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const { data: lessons, isLoading } = useAdminLessons(courseId);
   const deleteLesson = useDeleteLesson();
   const updateLesson = useUpdateLesson();
   const reorderLessons = useReorderLessons();
+  const duplicateLesson = useDuplicateLesson();
+  
+  const bulkPublish = useBulkPublishLessons();
+  const queryClient = useQueryClient();
   const { toast } = useToast();
 
   const sensors = useSensors(
@@ -121,6 +128,71 @@ export function LessonList({ courseId }: LessonListProps) {
     }
   };
 
+  // Duplicate a lesson
+  const handleDuplicate = async (lesson: Lesson) => {
+    try {
+      await duplicateLesson.mutateAsync({ lesson, courseId });
+      toast({ title: `"${lesson.title}" duplicated!` });
+    } catch (error: any) {
+      toast({ title: 'Failed to duplicate', description: error.message, variant: 'destructive' });
+    }
+  };
+
+  // Bulk delete selected lessons — single DB call using .in() for atomicity
+  const handleBulkDelete = async () => {
+    if (selectedIds.size === 0) return;
+    const count = selectedIds.size;
+    if (!confirm(`Delete ${count} selected lesson(s)? This cannot be undone.`)) return;
+
+    try {
+      const { error } = await supabase
+        .from('lessons')
+        .delete()
+        .in('id', Array.from(selectedIds));
+
+      if (error) throw error;
+
+      setSelectedIds(new Set());
+      queryClient.invalidateQueries({ queryKey: ['admin-lessons', courseId] });
+      toast({ title: `${count} lesson(s) deleted` });
+    } catch (error: any) {
+      toast({ title: 'Failed to delete', description: error.message, variant: 'destructive' });
+    }
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (!lessons) return;
+    if (selectedIds.size === lessons.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(lessons.map(l => l.id)));
+    }
+  };
+
+  /** Bulk publish/unpublish all lessons */
+  const handleBulkPublish = async (isPublished: boolean) => {
+    if (!lessons?.length) return;
+    try {
+      await bulkPublish.mutateAsync({
+        courseId,
+        lessonIds: lessons.map(l => l.id),
+        isPublished,
+      });
+      toast({ title: isPublished ? 'All lessons published!' : 'All lessons unpublished' });
+    } catch (error: any) {
+      toast({ title: 'Failed to update', description: error.message, variant: 'destructive' });
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -133,13 +205,26 @@ export function LessonList({ courseId }: LessonListProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <h3 className="text-lg font-semibold">Lessons ({lessons?.length || 0})</h3>
         {!isCreating && !editingLesson && (
-          <Button onClick={() => setIsCreating(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Add Lesson
-          </Button>
+          <div className="flex items-center gap-2">
+            {/* Bulk actions */}
+            {(lessons?.length ?? 0) > 0 && (
+              <>
+                <Button variant="outline" size="sm" onClick={() => handleBulkPublish(true)} disabled={bulkPublish.isPending}>
+                  <Eye className="mr-1 h-3 w-3" /> Publish All
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => handleBulkPublish(false)} disabled={bulkPublish.isPending}>
+                  <EyeOff className="mr-1 h-3 w-3" /> Unpublish All
+                </Button>
+              </>
+            )}
+            <Button onClick={() => setIsCreating(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Add Lesson
+            </Button>
+          </div>
         )}
       </div>
 
@@ -189,9 +274,11 @@ export function LessonList({ courseId }: LessonListProps) {
                       index={index}
                       onEdit={setEditingLesson}
                       onDelete={handleDelete}
+                      onDuplicate={handleDuplicate}
                       onTogglePublish={toggleLessonPublish}
                       isUpdating={updateLesson.isPending}
                       isDeleting={deleteLesson.isPending}
+                      isDuplicating={duplicateLesson.isPending}
                     />
                   ))}
                 </div>

@@ -1,6 +1,10 @@
 /**
  * useExamAttempt – Hooks for managing a student's final exam attempt.
- * Handles fetching previous attempts, creating new ones, and submitting answers.
+ * Handles fetching previous attempts and submitting answers.
+ *
+ * SECURITY: Grading is performed server-side via the `grade_and_submit_exam`
+ * RPC function. Correct answers are never sent to the client during the exam;
+ * they are only returned in the grading response for the review screen.
  */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -24,6 +28,16 @@ export interface ExamAttempt {
   passed: boolean | null;
   submittedAt: string | null;
   createdAt: string;
+}
+
+/** Result returned from server-side grading. */
+export interface GradingResult {
+  attemptId: string;
+  score: number;
+  passed: boolean;
+  /** Questions WITH correct answer fields populated (for review). */
+  questions: ExamQuestion[];
+  answers: ExamAnswers;
 }
 
 /** Fetch the latest attempt for a given exam (if one exists). */
@@ -60,50 +74,10 @@ export function useLatestExamAttempt(examId: string | undefined, userId: string 
   });
 }
 
-/** Grade answers against the exam questions and return a score (0-100). */
-export function gradeExam(questions: ExamQuestion[], answers: ExamAnswers): number {
-  if (!questions.length) return 0;
-
-  let totalPoints = 0;
-  let earnedPoints = 0;
-
-  for (const q of questions) {
-    totalPoints += q.points;
-    const ans = answers[q.id];
-    if (!ans) continue;
-
-    switch (q.type) {
-      case 'mcq':
-        if (ans.selectedIndex === q.correctIndex) earnedPoints += q.points;
-        break;
-      case 'true_false':
-        // correctIndex 0 = True, 1 = False  OR use correctBoolean
-        if (q.correctBoolean !== undefined) {
-          const studentBool = ans.selectedIndex === 0; // 0 = True
-          if (studentBool === q.correctBoolean) earnedPoints += q.points;
-        } else if (ans.selectedIndex === q.correctIndex) {
-          earnedPoints += q.points;
-        }
-        break;
-      case 'short_answer':
-        // Simple keyword match (case-insensitive)
-        if (q.correctAnswer && ans.textAnswer) {
-          const keywords = q.correctAnswer.toLowerCase().split(',').map(k => k.trim());
-          const studentText = ans.textAnswer.toLowerCase();
-          const matched = keywords.filter(k => studentText.includes(k));
-          // Award partial credit based on keyword matches
-          if (keywords.length > 0) {
-            earnedPoints += q.points * (matched.length / keywords.length);
-          }
-        }
-        break;
-    }
-  }
-
-  return totalPoints > 0 ? Math.round((earnedPoints / totalPoints) * 100) : 0;
-}
-
-/** Submit an exam attempt — grades it and saves the result. */
+/**
+ * Submit an exam attempt — grading happens server-side via RPC.
+ * Returns the score, pass status, and questions WITH correct answers for review.
+ */
 export function useSubmitExamAttempt() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -112,29 +86,23 @@ export function useSubmitExamAttempt() {
     mutationFn: async (params: {
       examId: string;
       userId: string;
-      questions: ExamQuestion[];
       answers: ExamAnswers;
-      passingScore: number;
-    }) => {
-      const score = gradeExam(params.questions, params.answers);
-      const passed = score >= params.passingScore;
-
-      // Upsert: create or update the attempt
-      const { data, error } = await supabase
-        .from('student_exam_attempts')
-        .insert({
-          exam_id: params.examId,
-          user_id: params.userId,
-          answers: params.answers as any,
-          score,
-          passed,
-          submitted_at: new Date().toISOString(),
-        })
-        .select()
-        .single();
+    }): Promise<GradingResult> => {
+      const { data, error } = await supabase.rpc('grade_and_submit_exam' as any, {
+        _exam_id: params.examId,
+        _answers: params.answers,
+      });
 
       if (error) throw error;
-      return { score, passed, attempt: data };
+
+      const result = data as any;
+      return {
+        attemptId: result.attemptId,
+        score: result.score,
+        passed: result.passed,
+        questions: result.questions as ExamQuestion[],
+        answers: result.answers as ExamAnswers,
+      };
     },
     onSuccess: (result, variables) => {
       queryClient.invalidateQueries({ queryKey: ['exam-attempt', variables.examId, variables.userId] });

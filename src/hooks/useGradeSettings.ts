@@ -16,6 +16,8 @@ export interface GradeWeights {
   quizWeight: number;
   activityWeight: number;
   worksheetWeight: number;
+  examWeight: number;
+  essayWeight: number;
 }
 
 /**
@@ -39,6 +41,8 @@ export function useGradeSettings() {
         quizWeight: row.quiz_weight,
         activityWeight: row.activity_weight,
         worksheetWeight: row.worksheet_weight,
+        examWeight: row.exam_weight ?? 0,
+        essayWeight: row.essay_weight ?? 0,
       }));
     },
   });
@@ -48,10 +52,9 @@ export function useGradeSettings() {
 export function getWeightsForCourse(
   allSettings: GradeWeights[] | undefined,
   courseId?: string
-): { quizWeight: number; activityWeight: number; worksheetWeight: number } {
-  if (!allSettings?.length) {
-    return { quizWeight: 50, activityWeight: 30, worksheetWeight: 20 };
-  }
+): { quizWeight: number; activityWeight: number; worksheetWeight: number; examWeight: number; essayWeight: number } {
+  const defaults = { quizWeight: 50, activityWeight: 30, worksheetWeight: 20, examWeight: 0, essayWeight: 0 };
+  if (!allSettings?.length) return defaults;
 
   // Check for per-course override first
   if (courseId) {
@@ -61,7 +64,7 @@ export function getWeightsForCourse(
 
   // Fallback to global (course_id IS NULL)
   const global = allSettings.find(s => s.courseId === null);
-  return global || { quizWeight: 50, activityWeight: 30, worksheetWeight: 20 };
+  return global || defaults;
 }
 
 /** Save or update grade weights (global or per-course). */
@@ -75,8 +78,10 @@ export function useUpdateGradeSettings() {
       quizWeight: number;
       activityWeight: number;
       worksheetWeight: number;
+      examWeight: number;
+      essayWeight: number;
     }) => {
-      const { courseId, quizWeight, activityWeight, worksheetWeight } = params;
+      const { courseId, quizWeight, activityWeight, worksheetWeight, examWeight, essayWeight } = params;
 
       // Upsert: insert if not exists, update if exists
       const { error } = await supabase
@@ -87,6 +92,8 @@ export function useUpdateGradeSettings() {
             quiz_weight: quizWeight,
             activity_weight: activityWeight,
             worksheet_weight: worksheetWeight,
+            exam_weight: examWeight,
+            essay_weight: essayWeight,
           } as any,
           { onConflict: 'course_id' }
         );

@@ -27,6 +27,7 @@ import {
   Download,
   Lock,
   MessageSquare,
+  PenLine,
   Play,
   ShoppingCart,
   Sparkles,
@@ -34,9 +35,9 @@ import {
   FileText,
   Video
 } from 'lucide-react';
-import { NeonSpinner } from '@/components/ui/neon-spinner';
 import { PageMeta } from '@/components/layout/PageMeta';
 import { ErrorView } from '@/components/ui/error-view';
+import { CourseDetailSkeleton } from '@/components/skeletons/CourseDetailSkeleton';
 
 export default function CourseDetail() {
   const { courseId } = useParams<{ courseId: string }>();
@@ -102,16 +103,7 @@ export default function CourseDetail() {
   };
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex flex-col cyber-bg">
-        <Header />
-        <main className="flex-1 flex items-center justify-center relative">
-          <div className="cyber-grid" />
-          <NeonSpinner size="lg" />
-        </main>
-        <Footer />
-      </div>
-    );
+    return <CourseDetailSkeleton />;
   }
 
   if (isError) {
@@ -375,10 +367,19 @@ export default function CourseDetail() {
                               <div className="flex items-center gap-2">
                                 <h3 className="font-medium truncate">{lesson.title}</h3>
                                 {lesson.type === 'video' && (
-                                  <Video className="h-4 w-4 text-secondary" />
+                                  <Badge variant="outline" className="text-[10px] border-secondary/30 text-secondary">Video</Badge>
                                 )}
                                 {lesson.type === 'quiz' && (
-                                  <Sparkles className="h-4 w-4 text-accent" />
+                                  <Badge variant="outline" className="text-[10px] border-accent/30 text-accent">Quiz</Badge>
+                                )}
+                                {lesson.type === 'activity' && (
+                                  <Badge variant="outline" className="text-[10px] border-primary/30 text-primary">Activity</Badge>
+                                )}
+                                {lesson.type === 'worksheet' && (
+                                  <Badge variant="outline" className="text-[10px] border-info/30 text-info">Worksheet</Badge>
+                                )}
+                                {lesson.type === 'assignment' && (
+                                  <Badge variant="outline" className="text-[10px] border-warning/30 text-warning">Assignment</Badge>
                                 )}
                               </div>
                               {lesson.duration_minutes && (
@@ -452,6 +453,29 @@ export default function CourseDetail() {
                         <Link to={`/courses/${course.id}/final-exam`}>
                           <FileText className="mr-2 h-4 w-4" />
                           Take Final Exam
+                        </Link>
+                      </Button>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Final Essay Card */}
+                {hasPurchased && (
+                  <Card className="glass-card border-primary/30 hover:border-primary/50 hover:shadow-[0_0_25px_hsl(var(--primary)/0.2)] transition-all duration-300">
+                    <CardHeader>
+                      <CardTitle className="text-lg flex items-center gap-2 font-display">
+                        <PenLine className="h-5 w-5 text-primary drop-shadow-[0_0_8px_hsl(var(--primary)/0.5)]" />
+                        Final Essay
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Write an essay on a prompt of your choice and receive AI-powered feedback with rubric scoring.
+                      </p>
+                      <Button variant="outline" className="w-full border-primary/30 hover:bg-primary/10 hover:border-primary/50 hover:shadow-[0_0_15px_hsl(var(--primary)/0.3)]" asChild>
+                        <Link to={`/courses/${course.id}/final-essay`}>
+                          <PenLine className="mr-2 h-4 w-4" />
+                          Write Essay
                         </Link>
                       </Button>
                     </CardContent>
@@ -540,9 +564,22 @@ export default function CourseDetail() {
                     </CardHeader>
                     <CardContent>
                       <p className="text-sm text-muted-foreground mb-4">
-                        Download your plug-and-play asset for this course.
+                        {course.plug_and_play_asset}
                       </p>
-                      <Button variant="outline" className="w-full border-primary/30 hover:bg-primary/10 hover:border-primary/50 hover:shadow-[0_0_15px_hsl(var(--primary)/0.3)]">
+                      <Button
+                        variant="outline"
+                        className="w-full border-primary/30 hover:bg-primary/10 hover:border-primary/50 hover:shadow-[0_0_15px_hsl(var(--primary)/0.3)]"
+                        onClick={() => {
+                          /* Build the public URL for the asset stored in the course-assets bucket.
+                             The file path convention is: course-assets/{courseId}/{plug_and_play_asset} */
+                          const { data } = supabase.storage
+                            .from('course-assets')
+                            .getPublicUrl(`${course.id}/${course.plug_and_play_asset}`);
+                          if (data?.publicUrl) {
+                            window.open(data.publicUrl, '_blank');
+                          }
+                        }}
+                      >
                         <Download className="mr-2 h-4 w-4" />
                         Download Asset
                       </Button>

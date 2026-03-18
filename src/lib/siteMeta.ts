@@ -14,7 +14,7 @@
  * PRODUCTION TODO:
  * - Set VITE_SITE_URL in your production .env for correct canonical URLs
  * - Add a public/og-image.png (1200×630px) for social media sharing
- * - Update TWITTER_HANDLE to your real Twitter/X handle
+ * - TWITTER_HANDLE is set to @solosuccessai
  */
 
 /** The name of the application — used in titles like "Page | SoloSuccess Academy" */
@@ -28,7 +28,7 @@ export const DEFAULT_DESCRIPTION =
   "Master entrepreneurship with 10 AI-powered courses designed for solo founders. From mindset to pitch, build your business one course at a time.";
 
 /** Twitter handle for Twitter Card meta tags */
-export const TWITTER_HANDLE = "@SoloSuccessAcad";
+export const TWITTER_HANDLE = "@solosuccessai";
 
 /**
  * Get the absolute base URL for the site.

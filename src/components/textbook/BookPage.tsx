@@ -4,13 +4,17 @@
  * PURPOSE: Renders one page of the textbook with markdown-like content,
  * highlighted text overlays, embedded quizzes, mini games, learning
  * objectives, inline comments, and TTS word highlighting.
+ *
+ * SECURITY: Quiz answers are checked server-side via the
+ * check_textbook_quiz_answer RPC. The correctAnswer is never sent
+ * to the client until after submission.
  */
 import React, { forwardRef, useState, useRef, useMemo } from 'react';
-import { TextbookPage, TextbookChapter, EmbeddedQuiz, TextbookHighlight } from '@/hooks/useTextbook';
+import { TextbookPage, TextbookChapter, EmbeddedQuiz, TextbookHighlight, useCheckTextbookQuizAnswer } from '@/hooks/useTextbook';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { CheckCircle, XCircle, Bookmark } from 'lucide-react';
+import { CheckCircle, XCircle, Bookmark, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MiniGame, type MiniGameData } from './MiniGame';
 import { LearningObjectives } from './LearningObjectives';
@@ -46,16 +50,28 @@ export const BookPage = forwardRef<HTMLDivElement, BookPageProps>(
   ({ page, pageIndex, totalPages, highlights = [], isBookmarked, miniGame, isChapterStart, chapterContent, speakingWordIndex, onBookmark, onTextSelect, onMiniGameComplete }, ref) => {
     const [quizAnswer, setQuizAnswer] = useState<number | null>(null);
     const [showResult, setShowResult] = useState(false);
+    /** Server-verified result: correct answer index + explanation */
+    const [quizResult, setQuizResult] = useState<{ correct: boolean; correctAnswer: number; explanation: string | null } | null>(null);
     const contentRef = useRef<HTMLDivElement>(null);
+    const checkAnswer = useCheckTextbookQuizAnswer();
 
     // Get comment counts for this page
     const { data: commentCounts = {} } = usePageCommentCounts(page.id);
 
-    const handleQuizSubmit = () => {
-      setShowResult(true);
+    /** Submit quiz answer to server for verification */
+    const handleQuizSubmit = async () => {
+      if (quizAnswer === null) return;
+      try {
+        const result = await checkAnswer.mutateAsync({ pageId: page.id, selectedAnswer: quizAnswer });
+        setQuizResult(result);
+        setShowResult(true);
+      } catch {
+        // Fallback: just show result without server verification
+        setShowResult(true);
+      }
     };
 
-    const isCorrect = page.embedded_quiz && quizAnswer === page.embedded_quiz.correctAnswer;
+    const isCorrect = quizResult?.correct ?? false;
 
     // Handle text selection
     const handleMouseUp = () => {
@@ -232,7 +248,7 @@ export const BookPage = forwardRef<HTMLDivElement, BookPageProps>(
         >
           {renderedContent}
 
-          {/* Embedded Quiz */}
+          {/* Embedded Quiz — answer checked server-side */}
           {page.embedded_quiz && (
             <div className="mt-6 p-4 bg-black/40 rounded-lg border border-primary/30 shadow-[0_0_20px_rgba(168,85,247,0.1)]">
               <h4 className="font-display font-semibold mb-3 text-cyan-300">Quick Check</h4>
@@ -248,18 +264,18 @@ export const BookPage = forwardRef<HTMLDivElement, BookPageProps>(
                     key={idx}
                     className={cn(
                       "flex items-center space-x-2 p-2 rounded border border-transparent transition-all",
-                      showResult && idx === page.embedded_quiz!.correctAnswer && "bg-green-500/20 border-green-500/30",
-                      showResult && quizAnswer === idx && idx !== page.embedded_quiz!.correctAnswer && "bg-red-500/20 border-red-500/30"
+                      showResult && quizResult && idx === quizResult.correctAnswer && "bg-green-500/20 border-green-500/30",
+                      showResult && quizResult && quizAnswer === idx && idx !== quizResult.correctAnswer && "bg-red-500/20 border-red-500/30"
                     )}
                   >
                     <RadioGroupItem value={idx.toString()} id={`option-${pageIndex}-${idx}`} />
                     <Label htmlFor={`option-${pageIndex}-${idx}`} className="flex-1 cursor-pointer">
                       {option}
                     </Label>
-                    {showResult && idx === page.embedded_quiz!.correctAnswer && (
+                    {showResult && quizResult && idx === quizResult.correctAnswer && (
                       <CheckCircle className="h-4 w-4 text-green-400" />
                     )}
-                    {showResult && quizAnswer === idx && idx !== page.embedded_quiz!.correctAnswer && (
+                    {showResult && quizResult && quizAnswer === idx && idx !== quizResult.correctAnswer && (
                       <XCircle className="h-4 w-4 text-red-400" />
                     )}
                   </div>
@@ -267,19 +283,29 @@ export const BookPage = forwardRef<HTMLDivElement, BookPageProps>(
               </RadioGroup>
 
               {!showResult && quizAnswer !== null && (
-                <Button onClick={handleQuizSubmit} className="mt-4" size="sm" variant="neon">
-                  Check Answer
+                <Button
+                  onClick={handleQuizSubmit}
+                  className="mt-4"
+                  size="sm"
+                  variant="neon"
+                  disabled={checkAnswer.isPending}
+                >
+                  {checkAnswer.isPending ? (
+                    <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Checking...</>
+                  ) : (
+                    'Check Answer'
+                  )}
                 </Button>
               )}
 
-              {showResult && page.embedded_quiz.explanation && (
+              {showResult && quizResult?.explanation && (
                 <p className={cn(
                   "mt-4 text-sm p-2 rounded border",
                   isCorrect 
                     ? "bg-green-500/10 text-green-300 border-green-500/30" 
                     : "bg-primary/10 text-primary border-primary/30"
                 )}>
-                  {page.embedded_quiz.explanation}
+                  {quizResult.explanation}
                 </p>
               )}
             </div>

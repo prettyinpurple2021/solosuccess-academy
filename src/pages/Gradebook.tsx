@@ -109,6 +109,14 @@ export default function Gradebook() {
       doc.text(`Average Worksheet Completion: ${student.totalWorksheetScore}%`, 20, y);
       y += 7;
     }
+    if (student.examCount > 0) {
+      doc.text(`Average Exam Score: ${student.totalExamScore}%`, 20, y);
+      y += 7;
+    }
+    if (student.essayCount > 0) {
+      doc.text(`Average Essay Score: ${student.totalEssayScore}%`, 20, y);
+      y += 7;
+    }
     if (student.combinedGrade.letter !== '—') {
       doc.setFont('helvetica', 'bold');
       doc.text(`Combined Grade: ${student.combinedGrade.letter} (${student.combinedGrade.percentage}%)`, 20, y);
@@ -362,9 +370,11 @@ export default function Gradebook() {
                      <TableHead className="text-muted-foreground">Student</TableHead>
                      <TableHead className="text-muted-foreground">Courses Enrolled</TableHead>
                      <TableHead className="text-muted-foreground">Overall Progress</TableHead>
-                      <TableHead className="text-muted-foreground">Avg Quiz Score</TableHead>
-                      <TableHead className="text-muted-foreground">Avg Activity Score</TableHead>
+                      <TableHead className="text-muted-foreground">Avg Quiz</TableHead>
+                      <TableHead className="text-muted-foreground">Avg Activity</TableHead>
                       <TableHead className="text-muted-foreground">Avg Worksheet</TableHead>
+                      <TableHead className="text-muted-foreground">Avg Exam</TableHead>
+                      <TableHead className="text-muted-foreground">Avg Essay</TableHead>
                       <TableHead className="text-muted-foreground">Combined Grade</TableHead>
                       <TableHead className="text-muted-foreground">Projects</TableHead>
                      <TableHead className="text-muted-foreground text-right">Actions</TableHead>
@@ -439,6 +449,30 @@ export default function Gradebook() {
                         )}
                       </TableCell>
                       <TableCell>
+                        {student.examCount > 0 ? (
+                          <span className={`font-medium ${
+                            student.totalExamScore >= 80 ? 'text-success' :
+                            student.totalExamScore >= 60 ? 'text-warning' : 'text-destructive'
+                          }`}>
+                            {student.totalExamScore}%
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {student.essayCount > 0 ? (
+                          <span className={`font-medium ${
+                            student.totalEssayScore >= 80 ? 'text-success' :
+                            student.totalEssayScore >= 60 ? 'text-warning' : 'text-destructive'
+                          }`}>
+                            {student.totalEssayScore}%
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
                         {student.combinedGrade.letter !== '—' ? (
                           <TooltipProvider>
                             <Tooltip>
@@ -453,7 +487,12 @@ export default function Gradebook() {
                               </TooltipTrigger>
                               <TooltipContent className="bg-background border-primary/30">
                                 <p className="text-sm">{student.combinedGrade.percentage}% weighted average</p>
-                                <p className="text-xs text-muted-foreground">Quiz {globalWeights.quizWeight}% · Activity {globalWeights.activityWeight}% · Worksheet {globalWeights.worksheetWeight}%</p>
+                                <p className="text-xs text-muted-foreground">
+                                  Q {globalWeights.quizWeight}% · A {globalWeights.activityWeight}% · W {globalWeights.worksheetWeight}%
+                                  {(globalWeights.examWeight > 0 || globalWeights.essayWeight > 0) && (
+                                    <> · E {globalWeights.examWeight}% · Es {globalWeights.essayWeight}%</>
+                                  )}
+                                </p>
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>

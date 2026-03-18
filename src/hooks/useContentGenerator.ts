@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
-export type ContentType = 'course_outline' | 'lesson_content' | 'quiz' | 'worksheet' | 'activity' | 'exam' | 'textbook_chapter' | 'textbook_page' | 'bulk_curriculum';
+export type ContentType = 'course_outline' | 'lesson_content' | 'quiz' | 'worksheet' | 'activity' | 'exam' | 'textbook_chapter' | 'textbook_page' | 'bulk_curriculum' | 'practice_lab';
 
 export interface GenerateContext {
   courseTitle?: string;

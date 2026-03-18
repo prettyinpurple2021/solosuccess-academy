@@ -23,6 +23,7 @@
  * - Consider server-side aggregation for stats to reduce client computation
  */
 import { Link } from 'react-router-dom';
+import { CourseJourneyMap } from '@/components/dashboard/CourseJourneyMap';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -31,6 +32,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useCourses } from '@/hooks/useCourses';
 import { useCertificateCount } from '@/hooks/useCertificates';
 import { useContinueLater } from '@/hooks/useContinueLater';
+import { useReadingStats, formatReadableTime } from '@/hooks/useReadingTime';
 import { phaseMetadata, formatPrice, getPhaseClasses, type CoursePhase } from '@/lib/courseData';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -49,12 +51,14 @@ import {
 } from 'lucide-react';
 import { PageMeta } from '@/components/layout/PageMeta';
 import { ErrorView } from '@/components/ui/error-view';
+import { DashboardSkeleton } from '@/components/skeletons/DashboardSkeleton';
 
 export default function Dashboard() {
   const { user, profile } = useAuth();
   const { data: courses } = useCourses();
   const { data: certificateCount } = useCertificateCount(user?.id);
   const { data: continueLater } = useContinueLater(user?.id);
+  const { data: readingStats } = useReadingStats(user?.id);
 
   // Fetch user purchases
   const { data: purchases, isError: purchasesError, error: purchasesErr, refetch: refetchPurchases } = useQuery({
@@ -78,7 +82,7 @@ export default function Dashboard() {
       if (!user?.id) return { progress: [], lessons: [] };
       
       const [lessonsResult, progressResult] = await Promise.all([
-        supabase.from('lessons').select('id, course_id'),
+        supabase.from('lessons').select('id, course_id, title, type, order_number'),
         supabase.from('user_progress').select('*').eq('user_id', user.id),
       ]);
 
@@ -105,20 +109,25 @@ export default function Dashboard() {
     ? Math.round((completedLessons / totalLessonsInPurchased) * 100) 
     : 0;
 
-  // Get course progress details
+  // Get course progress details — optimized with Map for O(n) instead of O(n²)
   const courseProgressMap = new Map<string, { total: number; completed: number }>();
+  
+  // Step 1: Build lesson-to-course lookup map
+  const lessonToCourseMap = new Map<string, string>();
   progressData?.lessons?.forEach(lesson => {
+    lessonToCourseMap.set(lesson.id, lesson.course_id);
     if (!courseProgressMap.has(lesson.course_id)) {
       courseProgressMap.set(lesson.course_id, { total: 0, completed: 0 });
     }
-    const current = courseProgressMap.get(lesson.course_id)!;
-    current.total++;
+    courseProgressMap.get(lesson.course_id)!.total++;
   });
+  
+  // Step 2: Count completed lessons using the lookup map (O(n))
   progressData?.progress?.forEach(p => {
     if (p.completed) {
-      const lesson = progressData.lessons?.find(l => l.id === p.lesson_id);
-      if (lesson) {
-        const current = courseProgressMap.get(lesson.course_id);
+      const courseId = lessonToCourseMap.get(p.lesson_id);
+      if (courseId) {
+        const current = courseProgressMap.get(courseId);
         if (current) current.completed++;
       }
     }
@@ -130,12 +139,24 @@ export default function Dashboard() {
     return progress && progress.completed < progress.total;
   });
 
+  // Determine loading state — show skeleton while primary data loads
+  const isLoading = !purchases && !purchasesError;
+
   const dataError = purchasesError || progressError;
   const dataErrorMessage = purchasesErr?.message ?? progressErr?.message;
   const refetchData = () => {
     refetchPurchases();
     refetchProgress();
   };
+
+  if (isLoading) {
+    return (
+      <>
+        <PageMeta title="Dashboard" path="/dashboard" noIndex />
+        <DashboardSkeleton />
+      </>
+    );
+  }
 
   if (dataError) {
     return (
@@ -173,7 +194,7 @@ export default function Dashboard() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-10">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-10">
           <Card className="glass-card glass-card-hover group">
             <CardContent className="pt-6">
               <div className="flex items-center gap-4">
@@ -230,6 +251,28 @@ export default function Dashboard() {
             </CardContent>
           </Card>
           <Link to="/certificates" className="hidden" />
+
+          {/* Reading Time Stats */}
+          <Card className="glass-card glass-card-hover group">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-4">
+                <div className="h-14 w-14 rounded-xl bg-primary/10 border border-primary/30 flex items-center justify-center group-hover:shadow-[0_0_20px_hsl(270_80%_60%/0.4)] transition-all">
+                  <Clock className="h-7 w-7 text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground font-mono">Reading Time</p>
+                  <p className="text-3xl font-display font-bold text-gradient">
+                    {readingStats ? formatReadableTime(readingStats.totalSeconds) : '0m'}
+                  </p>
+                  {readingStats && readingStats.todaySeconds > 0 && (
+                    <p className="text-xs text-muted-foreground font-mono mt-0.5">
+                      Today: {formatReadableTime(readingStats.todaySeconds)}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -310,7 +353,7 @@ export default function Dashboard() {
               </Card>
             )}
 
-            {/* Purchased Courses */}
+            {/* Purchased Courses — Journey Maps */}
             <div>
               <h2 className="text-xl font-display font-semibold mb-4 flex items-center gap-2">
                 <BookOpen className="h-5 w-5 text-primary" />
@@ -318,7 +361,7 @@ export default function Dashboard() {
               </h2>
               
               {purchases && purchases.length > 0 ? (
-                <div className="space-y-4">
+                <div className="space-y-6">
                   {purchases.map((purchase) => {
                     const course = purchase.courses as any;
                     const progress = courseProgressMap.get(purchase.course_id);
@@ -327,42 +370,67 @@ export default function Dashboard() {
                       : 0;
                     const phaseMeta = phaseMetadata[course?.phase as CoursePhase];
 
+                    // Build lesson nodes for the journey map
+                    const courseLessons = (progressData?.lessons || [])
+                      .filter((l: any) => l.course_id === purchase.course_id)
+                      .map((l: any) => ({
+                        id: l.id,
+                        title: l.title || `Lesson ${l.order_number || '?'}`,
+                        type: l.type || 'text',
+                        order_number: l.order_number || 0,
+                        completed: progressData?.progress?.some(
+                          (p: any) => p.lesson_id === l.id && p.completed
+                        ) || false,
+                      }));
+
                     return (
-                      <Card key={purchase.id} className="glass-card glass-card-hover">
-                        <CardContent className="p-5">
-                          <div className="flex items-start gap-4">
-                            <div className={`h-12 w-12 rounded-xl flex items-center justify-center flex-shrink-0 ${getPhaseClasses(course?.phase)} shadow-[0_0_15px_currentColor/0.3]`}>
-                              <span className="text-lg">{phaseMeta?.icon}</span>
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-1">
-                                <Badge variant="outline" className="text-xs border-primary/30">
-                                  Course {course?.order_number}
-                                </Badge>
-                                {progressPercent === 100 && (
-                                  <Badge className="bg-success/20 text-success border-success/30">
-                                    <CheckCircle2 className="h-3 w-3 mr-1" />
-                                    Complete
+                      <Card key={purchase.id} className="glass-card glass-card-hover overflow-hidden">
+                        <CardHeader className="pb-2">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <div className={`h-10 w-10 rounded-xl flex items-center justify-center flex-shrink-0 ${getPhaseClasses(course?.phase)} shadow-[0_0_15px_currentColor/0.3]`}>
+                                <span className="text-base">{phaseMeta?.icon}</span>
+                              </div>
+                              <div>
+                                <div className="flex items-center gap-2 mb-0.5">
+                                  <Badge variant="outline" className="text-xs border-primary/30">
+                                    Course {course?.order_number}
                                   </Badge>
-                                )}
-                              </div>
-                              <h3 className="font-display font-medium truncate">{course?.title}</h3>
-                              <div className="mt-3">
-                                <div className="flex justify-between text-xs mb-1.5">
-                                  <span className="text-muted-foreground font-mono">
-                                    {progress?.completed || 0}/{progress?.total || 0} lessons
-                                  </span>
-                                  <span className="font-display text-primary">{progressPercent}%</span>
+                                  {progressPercent === 100 && (
+                                    <Badge className="bg-success/20 text-success border-success/30">
+                                      <CheckCircle2 className="h-3 w-3 mr-1" />
+                                      Complete
+                                    </Badge>
+                                  )}
                                 </div>
-                                <Progress value={progressPercent} className="h-1.5" />
+                                <CardTitle className="text-base font-display">{course?.title}</CardTitle>
                               </div>
                             </div>
-                            <Button variant="outline" size="sm" asChild className="flex-shrink-0 border-primary/30 hover:bg-primary/10">
-                              <Link to={`/courses/${purchase.course_id}`}>
-                                <ArrowRight className="h-4 w-4" />
-                              </Link>
-                            </Button>
+                            <div className="flex items-center gap-3">
+                              <span className="text-sm font-mono text-primary">{progressPercent}%</span>
+                              <Button variant="outline" size="sm" asChild className="flex-shrink-0 border-primary/30 hover:bg-primary/10">
+                                <Link to={`/courses/${purchase.course_id}`}>
+                                  <ArrowRight className="h-4 w-4" />
+                                </Link>
+                              </Button>
+                            </div>
                           </div>
+                        </CardHeader>
+                        <CardContent className="pt-0">
+                          {courseLessons.length > 0 ? (
+                            <CourseJourneyMap
+                              courseId={purchase.course_id}
+                              courseTitle={course?.title || ''}
+                              lessons={courseLessons}
+                            />
+                          ) : (
+                            <div className="py-4">
+                              <Progress value={progressPercent} className="h-1.5" />
+                              <p className="text-xs text-muted-foreground font-mono mt-2">
+                                {progress?.completed || 0}/{progress?.total || 0} lessons
+                              </p>
+                            </div>
+                          )}
                         </CardContent>
                       </Card>
                     );
@@ -435,13 +503,25 @@ export default function Dashboard() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                <Button variant="outline" className="w-full justify-start" asChild>
+                <Button variant="outline" className="w-full justify-start border-primary/30 hover:bg-primary/10" asChild>
                   <Link to="/courses">
                     <BookOpen className="mr-2 h-4 w-4" />
                     Browse All Courses
                   </Link>
                 </Button>
-                <Button variant="outline" className="w-full justify-start" asChild>
+                <Button variant="outline" className="w-full justify-start border-primary/30 hover:bg-primary/10" asChild>
+                  <Link to="/leaderboard">
+                    <Trophy className="mr-2 h-4 w-4" />
+                    View Leaderboard
+                  </Link>
+                </Button>
+                <Button variant="outline" className="w-full justify-start border-primary/30 hover:bg-primary/10" asChild>
+                  <Link to="/certificates">
+                    <Sparkles className="mr-2 h-4 w-4" />
+                    Your Certificates
+                  </Link>
+                </Button>
+                <Button variant="outline" className="w-full justify-start border-primary/30 hover:bg-primary/10" asChild>
                   <Link to="/profile">
                     <Target className="mr-2 h-4 w-4" />
                     View Profile

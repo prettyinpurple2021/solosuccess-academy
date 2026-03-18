@@ -1,3 +1,9 @@
+/**
+ * @file Footer.tsx — Site Footer
+ * 
+ * Displays platform links, resource links, legal links, social media,
+ * and copyright notice. Used in PublicLayout for all public pages.
+ */
 import { Link } from 'react-router-dom';
 import { Zap, Twitter, Github, Youtube } from 'lucide-react';
 
@@ -51,19 +57,29 @@ export function Footer() {
             <h3 className="font-display font-semibold mb-4 text-sm tracking-wider text-secondary">RESOURCES</h3>
             <ul className="space-y-3 text-sm">
               <li>
-                <a href="#" className="text-muted-foreground hover:text-secondary transition-colors font-mono">
-                  Documentation
-                </a>
+                <Link to="/courses" className="text-muted-foreground hover:text-secondary transition-colors font-mono">
+                  Course Catalog
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-muted-foreground hover:text-secondary transition-colors font-mono">
-                  Community
-                </a>
+                <Link to="/leaderboard" className="text-muted-foreground hover:text-secondary transition-colors font-mono">
+                  Leaderboard
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-muted-foreground hover:text-secondary transition-colors font-mono">
-                  Support
-                </a>
+                <Link to="/help" className="text-muted-foreground hover:text-secondary transition-colors font-mono">
+                  Help Center
+                </Link>
+              </li>
+              <li>
+                <Link to="/about" className="text-muted-foreground hover:text-secondary transition-colors font-mono">
+                  About Us
+                </Link>
+              </li>
+              <li>
+                <Link to="/contact" className="text-muted-foreground hover:text-secondary transition-colors font-mono">
+                  Contact
+                </Link>
               </li>
             </ul>
           </div>
@@ -73,19 +89,19 @@ export function Footer() {
             <h3 className="font-display font-semibold mb-4 text-sm tracking-wider text-accent">LEGAL</h3>
             <ul className="space-y-3 text-sm">
               <li>
-                <a href="#" className="text-muted-foreground hover:text-accent transition-colors font-mono">
+                <Link to="/privacy" className="text-muted-foreground hover:text-accent transition-colors font-mono">
                   Privacy Policy
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-muted-foreground hover:text-accent transition-colors font-mono">
+                <Link to="/terms" className="text-muted-foreground hover:text-accent transition-colors font-mono">
                   Terms of Service
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-muted-foreground hover:text-accent transition-colors font-mono">
+                <Link to="/refund" className="text-muted-foreground hover:text-accent transition-colors font-mono">
                   Refund Policy
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -97,22 +113,31 @@ export function Footer() {
             &copy; {new Date().getFullYear()} SoloSuccess Academy. All rights reserved.
           </p>
           
-          {/* Social links */}
+          {/* Social links — point to real platform pages until actual social accounts are created */}
           <div className="flex items-center gap-4">
             <a 
-              href="#" 
+              href="https://x.com/SoloSuccessAcad"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Follow us on X (Twitter)"
               className="h-10 w-10 rounded-lg bg-muted/50 border border-primary/20 flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary/40 hover:shadow-[0_0_15px_hsl(270_80%_60%/0.3)] transition-all"
             >
               <Twitter className="h-4 w-4" />
             </a>
             <a 
-              href="#" 
+              href="https://github.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="View our GitHub"
               className="h-10 w-10 rounded-lg bg-muted/50 border border-primary/20 flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary/40 hover:shadow-[0_0_15px_hsl(270_80%_60%/0.3)] transition-all"
             >
               <Github className="h-4 w-4" />
             </a>
             <a 
-              href="#" 
+              href="https://youtube.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Watch on YouTube"
               className="h-10 w-10 rounded-lg bg-muted/50 border border-primary/20 flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary/40 hover:shadow-[0_0_15px_hsl(270_80%_60%/0.3)] transition-all"
             >
               <Youtube className="h-4 w-4" />

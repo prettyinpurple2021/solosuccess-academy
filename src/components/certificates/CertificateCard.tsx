@@ -17,8 +17,9 @@ import { Badge } from '@/components/ui/badge';
 import { Certificate } from '@/hooks/useCertificates';
 import { downloadCertificate } from '@/lib/certificateGenerator';
 import { getThemeByCourseTitle } from '@/lib/certificateThemes';
+import { getLinkedInCertUrl } from '@/lib/utils';
 import { format } from 'date-fns';
-import { Download, Share2, ExternalLink, Award } from 'lucide-react';
+import { Download, Share2, ExternalLink, Award, Linkedin } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface CertificateCardProps {
@@ -125,6 +126,27 @@ export function CertificateCard({ certificate, courseOrderNumber = 1 }: Certific
             onClick={handleShare}
           >
             <Share2 className="h-4 w-4" />
+          </Button>
+          {/* LinkedIn Add to Profile */}
+          <Button
+            variant="outline"
+            size="sm"
+            className="border-primary/30 hover:bg-primary/10"
+            asChild
+          >
+            <a
+              href={getLinkedInCertUrl({
+                name: `${certificate.course_title} — SoloSuccess Academy`,
+                organizationName: 'SoloSuccess Academy',
+                issueDate: certificate.issued_at,
+                certUrl: `${window.location.origin}/verify/${certificate.verification_code}`,
+              })}
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Add to LinkedIn"
+            >
+              <Linkedin className="h-4 w-4" />
+            </a>
           </Button>
           <Button 
             variant="outline" 

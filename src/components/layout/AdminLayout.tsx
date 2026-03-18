@@ -24,9 +24,14 @@ import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsAdmin } from "@/hooks/useAdmin";
 import { NeonSpinner } from "@/components/ui/neon-spinner";
+import { lazy, Suspense } from "react";
+
+// Lazy-load the Unauthorized page so it's not bundled for admin users
+const Unauthorized = lazy(() => import("@/pages/Unauthorized"));
 
 export function AdminLayout() {
   const { user, isLoading: authLoading } = useAuth();
+  // Admin check is cached with staleTime to avoid re-querying on every navigation
   const { data: isAdmin, isLoading: adminLoading } = useIsAdmin(user?.id);
 
   // Show loading while checking auth + admin status
@@ -38,9 +43,18 @@ export function AdminLayout() {
     );
   }
 
-  // Redirect non-admins to dashboard (silent redirect)
-  if (!user || !isAdmin) {
-    return <Navigate to="/dashboard" replace />;
+  // Redirect unauthenticated users to login
+  if (!user) {
+    return <Navigate to="/auth" replace />;
+  }
+
+  // Show Unauthorized page for non-admin users (instead of silent redirect)
+  if (!isAdmin) {
+    return (
+      <Suspense fallback={<div className="flex flex-1 items-center justify-center py-12"><NeonSpinner size="lg" /></div>}>
+        <Unauthorized />
+      </Suspense>
+    );
   }
 
   // Render admin child routes

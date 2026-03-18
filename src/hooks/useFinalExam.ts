@@ -1,6 +1,10 @@
 /**
  * useFinalExam – Hooks for generating, fetching, and managing
  * course final exams (mixed format: MCQ + short answer + true/false).
+ *
+ * SECURITY: Students fetch exams via the `get_exam_for_student` RPC,
+ * which strips correct-answer fields server-side. Direct table access
+ * is restricted to admins only.
  */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -12,10 +16,10 @@ export interface ExamQuestion {
   type: 'mcq' | 'short_answer' | 'true_false';
   question: string;
   options?: string[];       // MCQ + true/false
-  correctIndex?: number;    // MCQ
-  correctAnswer?: string;   // short_answer expected keywords
-  correctBoolean?: boolean; // true/false
-  explanation: string;
+  correctIndex?: number;    // MCQ — only available in review (from grading response)
+  correctAnswer?: string;   // short_answer — only available in review
+  correctBoolean?: boolean; // true/false — only available in review
+  explanation?: string;
   points: number;
 }
 
@@ -27,13 +31,48 @@ export interface FinalExam {
   passingScore: number;
   questionCount: number;
   questions: ExamQuestion[];
-  createdAt: string;
+  createdAt?: string;
 }
 
-/** Fetch the final exam for a given course (if it exists). */
+/**
+ * Fetch the final exam for a given course (student-safe).
+ * Uses the `get_exam_for_student` RPC which strips answer keys.
+ */
 export function useFinalExam(courseId: string | undefined) {
   return useQuery({
     queryKey: ['final-exam', courseId],
+    queryFn: async (): Promise<FinalExam | null> => {
+      if (!courseId) return null;
+
+      const { data, error } = await supabase.rpc('get_exam_for_student' as any, {
+        _course_id: courseId,
+      });
+
+      if (error) throw error;
+      if (!data) return null;
+
+      const row = data as any;
+      return {
+        id: row.id,
+        courseId: row.course_id,
+        title: row.title,
+        instructions: row.instructions,
+        passingScore: row.passing_score,
+        questionCount: row.question_count,
+        questions: (row.questions as ExamQuestion[]) || [],
+      };
+    },
+    enabled: !!courseId,
+  });
+}
+
+/**
+ * Fetch the final exam for admin editing (direct table access).
+ * Admins retain full access including answer keys via RLS.
+ */
+export function useFinalExamAdmin(courseId: string | undefined) {
+  return useQuery({
+    queryKey: ['final-exam-admin', courseId],
     queryFn: async (): Promise<FinalExam | null> => {
       if (!courseId) return null;
       const { data, error } = await supabase
@@ -110,6 +149,7 @@ export function useGenerateFinalExam() {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['final-exam', variables.courseId] });
+      queryClient.invalidateQueries({ queryKey: ['final-exam-admin', variables.courseId] });
       toast({ title: 'Final exam generated!', description: 'Review and edit the questions as needed.' });
     },
     onError: (error: any) => {

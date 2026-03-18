@@ -3,23 +3,19 @@
  *
  * PURPOSE: Displays all user highlights across the textbook, grouped by
  * "Notes" (highlights with attached notes) and "Highlights" (color-only).
- * Supports inline note editing, deletion, and click-to-navigate to the
- * highlighted page.
+ * Supports inline note editing, deletion, color changes, search/filter,
+ * export as markdown, and click-to-navigate to the highlighted page.
  *
  * DATA FLOW:
  *   highlights prop (from TextbookViewer) → rendered as HighlightCard components
- *   useUpdateHighlight → edit note text on a highlight
+ *   useUpdateHighlight → edit note text or color on a highlight
  *   useDeleteHighlight → remove a highlight entirely
- *
- * PRODUCTION TODO:
- * - Add export highlights as markdown/PDF
- * - Add search/filter within highlights
- * - Support highlight color changes after creation
  */
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { 
@@ -28,7 +24,10 @@ import {
   Edit2, 
   Check, 
   X,
-  StickyNote 
+  StickyNote,
+  Search,
+  Download,
+  Palette,
 } from 'lucide-react';
 import { TextbookHighlight, useUpdateHighlight, useDeleteHighlight } from '@/hooks/useTextbook';
 import { cn } from '@/lib/utils';
@@ -40,6 +39,8 @@ interface HighlightsPanelProps {
   onNavigateToPage: (pageId: string) => void;
 }
 
+const HIGHLIGHT_COLORS = ['yellow', 'green', 'blue', 'pink', 'purple'] as const;
+
 const COLOR_CLASSES: Record<string, string> = {
   yellow: 'bg-yellow-200 border-yellow-400',
   green: 'bg-green-200 border-green-400',
@@ -48,9 +49,19 @@ const COLOR_CLASSES: Record<string, string> = {
   purple: 'bg-purple-200 border-purple-400',
 };
 
+const COLOR_DOT_CLASSES: Record<string, string> = {
+  yellow: 'bg-yellow-400',
+  green: 'bg-green-400',
+  blue: 'bg-blue-400',
+  pink: 'bg-pink-400',
+  purple: 'bg-purple-400',
+};
+
 export function HighlightsPanel({ highlights, pageContents, onNavigateToPage }: HighlightsPanelProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editNote, setEditNote] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [changingColorId, setChangingColorId] = useState<string | null>(null);
   const updateHighlight = useUpdateHighlight();
   const deleteHighlight = useDeleteHighlight();
   const { toast } = useToast();
@@ -77,6 +88,24 @@ export function HighlightsPanel({ highlights, pageContents, onNavigateToPage }: 
     }
   };
 
+  /** Change the color of a highlight */
+  const handleChangeColor = async (highlightId: string, color: string) => {
+    try {
+      await updateHighlight.mutateAsync({
+        highlightId,
+        updates: { color },
+      });
+      setChangingColorId(null);
+      toast({ title: 'Color updated!' });
+    } catch (error: any) {
+      toast({
+        title: 'Failed to change color',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
+  };
+
   const handleDelete = async (highlightId: string) => {
     try {
       await deleteHighlight.mutateAsync(highlightId);
@@ -95,8 +124,52 @@ export function HighlightsPanel({ highlights, pageContents, onNavigateToPage }: 
     return content.substring(highlight.start_offset, highlight.end_offset) || '...';
   };
 
-  const highlightsWithNotes = highlights.filter(h => h.note);
-  const highlightsWithoutNotes = highlights.filter(h => !h.note);
+  /** Export all highlights and notes as a markdown file */
+  const handleExportMarkdown = () => {
+    const lines: string[] = ['# My Highlights & Notes\n'];
+    const withNotes = highlights.filter(h => h.note);
+    const withoutNotes = highlights.filter(h => !h.note);
+
+    if (withNotes.length > 0) {
+      lines.push('## Notes\n');
+      withNotes.forEach(h => {
+        lines.push(`> "${getHighlightedText(h)}"\n`);
+        lines.push(`**Note:** ${h.note}\n`);
+        lines.push('---\n');
+      });
+    }
+
+    if (withoutNotes.length > 0) {
+      lines.push('## Highlights\n');
+      withoutNotes.forEach(h => {
+        lines.push(`> "${getHighlightedText(h)}"\n`);
+        lines.push('---\n');
+      });
+    }
+
+    const blob = new Blob([lines.join('\n')], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'highlights-and-notes.md';
+    a.click();
+    URL.revokeObjectURL(url);
+    toast({ title: 'Highlights exported!' });
+  };
+
+  // Filter highlights by search query
+  const filteredHighlights = useMemo(() => {
+    if (!searchQuery.trim()) return highlights;
+    const q = searchQuery.toLowerCase();
+    return highlights.filter(h => {
+      const text = getHighlightedText(h).toLowerCase();
+      const note = (h.note || '').toLowerCase();
+      return text.includes(q) || note.includes(q);
+    });
+  }, [highlights, searchQuery, pageContents]);
+
+  const highlightsWithNotes = filteredHighlights.filter(h => h.note);
+  const highlightsWithoutNotes = filteredHighlights.filter(h => !h.note);
 
   return (
     <Sheet>
@@ -121,12 +194,41 @@ export function HighlightsPanel({ highlights, pageContents, onNavigateToPage }: 
           </SheetTitle>
         </SheetHeader>
         
-        <ScrollArea className="h-[calc(100vh-100px)] mt-4">
+        {/* Search and Export toolbar */}
+        {highlights.length > 0 && (
+          <div className="flex gap-2 mt-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+              <Input
+                placeholder="Search highlights..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-8 h-9 text-sm"
+              />
+            </div>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleExportMarkdown}
+              title="Export as Markdown"
+              className="h-9"
+            >
+              <Download className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+        )}
+
+        <ScrollArea className="h-[calc(100vh-140px)] mt-4">
           {highlights.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <Highlighter className="h-12 w-12 mx-auto mb-3 opacity-50" />
               <p>No highlights yet</p>
               <p className="text-sm mt-1">Select text in the textbook to highlight it</p>
+            </div>
+          ) : filteredHighlights.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <Search className="h-8 w-8 mx-auto mb-2 opacity-50" />
+              <p className="text-sm">No highlights match your search</p>
             </div>
           ) : (
             <div className="space-y-6">
@@ -151,6 +253,9 @@ export function HighlightsPanel({ highlights, pageContents, onNavigateToPage }: 
                         onCancelEdit={() => setEditingId(null)}
                         onDelete={() => handleDelete(highlight.id)}
                         onNavigate={() => onNavigateToPage(highlight.page_id)}
+                        isChangingColor={changingColorId === highlight.id}
+                        onToggleColorPicker={() => setChangingColorId(changingColorId === highlight.id ? null : highlight.id)}
+                        onChangeColor={(color) => handleChangeColor(highlight.id, color)}
                       />
                     ))}
                   </div>
@@ -178,6 +283,9 @@ export function HighlightsPanel({ highlights, pageContents, onNavigateToPage }: 
                         onCancelEdit={() => setEditingId(null)}
                         onDelete={() => handleDelete(highlight.id)}
                         onNavigate={() => onNavigateToPage(highlight.page_id)}
+                        isChangingColor={changingColorId === highlight.id}
+                        onToggleColorPicker={() => setChangingColorId(changingColorId === highlight.id ? null : highlight.id)}
+                        onChangeColor={(color) => handleChangeColor(highlight.id, color)}
                       />
                     ))}
                   </div>
@@ -202,6 +310,9 @@ interface HighlightCardProps {
   onCancelEdit: () => void;
   onDelete: () => void;
   onNavigate: () => void;
+  isChangingColor: boolean;
+  onToggleColorPicker: () => void;
+  onChangeColor: (color: string) => void;
 }
 
 function HighlightCard({
@@ -215,6 +326,9 @@ function HighlightCard({
   onCancelEdit,
   onDelete,
   onNavigate,
+  isChangingColor,
+  onToggleColorPicker,
+  onChangeColor,
 }: HighlightCardProps) {
   const colorClass = COLOR_CLASSES[highlight.color] || COLOR_CLASSES.yellow;
 
@@ -231,6 +345,24 @@ function HighlightCard({
       >
         <p className="text-sm font-medium line-clamp-2">"{text}"</p>
       </button>
+
+      {/* Color picker */}
+      {isChangingColor && (
+        <div className="flex gap-1.5 mt-2 p-2 bg-background/80 rounded-md">
+          {HIGHLIGHT_COLORS.map((color) => (
+            <button
+              key={color}
+              onClick={() => onChangeColor(color)}
+              className={cn(
+                "h-6 w-6 rounded-full border-2 transition-transform",
+                COLOR_DOT_CLASSES[color],
+                highlight.color === color ? "border-foreground scale-110" : "border-transparent hover:scale-110"
+              )}
+              title={color}
+            />
+          ))}
+        </div>
+      )}
 
       {isEditing ? (
         <div className="mt-2 space-y-2">
@@ -268,6 +400,15 @@ function HighlightCard({
               title="Edit note"
             >
               <Edit2 className="h-3 w-3" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              onClick={onToggleColorPicker}
+              title="Change color"
+            >
+              <Palette className="h-3 w-3" />
             </Button>
             <Button
               variant="ghost"

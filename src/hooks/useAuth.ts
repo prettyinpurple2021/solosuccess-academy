@@ -6,6 +6,7 @@
  * - User profile data from the `profiles` table
  * - Sign up, sign in, sign out, password reset
  * - Profile updates
+ * - Session timeout (auto-logout after 30 min inactivity)
  * 
  * HOW AUTH WORKS IN THIS APP:
  * 1. Supabase handles auth (email/password with email verification)
@@ -13,67 +14,62 @@
  * 3. This hook listens for auth state changes and fetches the profile
  * 4. Components use `useAuth()` to check `isAuthenticated` and get `user`
  * 
- * IMPORTANT PATTERNS:
- * - `onAuthStateChange` fires on login, logout, and token refresh
- * - `getSession()` is called once on mount to restore existing sessions
- * - Profile fetch uses setTimeout(0) to avoid race conditions with auth state
- * 
- * PRODUCTION TODO:
- * - Add OAuth providers (Google, GitHub) for social login
- * - Implement session timeout / forced logout for security
- * - Add rate limiting on the client side for auth attempts
- * - Consider using React Context instead of calling useAuth() in many places
- *   (currently each call creates its own state — wasteful)
+ * SESSION TIMEOUT:
+ * - After 30 minutes of no mouse/keyboard/touch activity, the user
+ *   is automatically signed out for security
+ * - A warning toast appears 1 minute before forced logout
+ * - Any user interaction resets the timer
  */
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
-/**
- * Shape of the authentication state.
- * `isLoading` is true during initial session check — used to show loading spinners.
- */
+/** Shape of the authentication state. */
 export interface AuthState {
-  user: User | null;          // Supabase auth user (contains email, id, metadata)
-  session: Session | null;    // Contains access_token, refresh_token
-  isLoading: boolean;         // True during initial auth check
-  isAuthenticated: boolean;   // Shorthand for !!session?.user
+  user: User | null;
+  session: Session | null;
+  isLoading: boolean;
+  isAuthenticated: boolean;
 }
 
-/**
- * User profile data from the `profiles` database table.
- * This is separate from the auth user — it stores display preferences.
- * 
- * NOTE: The DB also has `email_notifications`, `course_updates`, and
- * `discussion_replies` columns not reflected here. Consider adding them
- * if you need notification preferences in the UI.
- */
+/** User profile data from the `profiles` database table. */
 export interface Profile {
-  id: string;                 // Same as auth.users.id (1:1 relationship)
+  id: string;
   display_name: string | null;
-  avatar_url: string | null;  // URL in Supabase Storage 'avatars' bucket
+  avatar_url: string | null;
   bio: string | null;
   created_at: string;
   updated_at: string;
 }
 
+// ──────────────────────────────────────────────
+// SESSION TIMEOUT CONFIGURATION
+// ──────────────────────────────────────────────
+/** Timeout duration: 30 minutes of inactivity (in ms) */
+const SESSION_TIMEOUT_MS = 30 * 60 * 1000;
+
+/** Warning before timeout: show toast 1 minute before logout */
+const SESSION_WARNING_MS = SESSION_TIMEOUT_MS - 60 * 1000;
+
+/** Events that count as "user activity" and reset the timer */
+const ACTIVITY_EVENTS = ['mousedown', 'keydown', 'touchstart', 'scroll'] as const;
+
 export function useAuth() {
-  // Auth state: tracks whether user is logged in and loading status
   const [authState, setAuthState] = useState<AuthState>({
     user: null,
     session: null,
-    isLoading: true,        // Start as loading — will flip to false after session check
+    isLoading: true,
     isAuthenticated: false,
   });
   
-  // Profile state: user's display info from the profiles table
   const [profile, setProfile] = useState<Profile | null>(null);
 
-  /**
-   * Fetch the user's profile from the `profiles` table.
-   * Uses `maybeSingle()` instead of `single()` because the profile
-   * might not exist yet (e.g., if the DB trigger hasn't run yet).
-   */
+  // Refs for session timeout timers
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const warningRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hasWarnedRef = useRef(false);
+
+  /** Fetch user profile from the `profiles` table. */
   const fetchProfile = useCallback(async (userId: string) => {
     try {
       const { data, error } = await supabase
@@ -89,9 +85,68 @@ export function useAuth() {
     }
   }, []);
 
+  /** Force sign out (used by session timeout). */
+  const forceSignOut = useCallback(async () => {
+    try {
+      await supabase.auth.signOut();
+    } catch (error) {
+      console.error('Error during forced sign out:', error);
+    }
+  }, []);
+
+  /**
+   * Reset the inactivity timer.
+   * Called on every user interaction (mouse, keyboard, touch, scroll).
+   */
+  const resetInactivityTimer = useCallback(() => {
+    // Clear existing timers
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    if (warningRef.current) clearTimeout(warningRef.current);
+    hasWarnedRef.current = false;
+
+    // Only set timers if user is authenticated
+    if (!authState.isAuthenticated) return;
+
+    // Set warning timer (fires 1 min before logout)
+    warningRef.current = setTimeout(() => {
+      if (!hasWarnedRef.current) {
+        hasWarnedRef.current = true;
+        // Dispatch a custom event that the Toaster can pick up
+        window.dispatchEvent(new CustomEvent('session-timeout-warning'));
+      }
+    }, SESSION_WARNING_MS);
+
+    // Set logout timer
+    timeoutRef.current = setTimeout(() => {
+      forceSignOut();
+    }, SESSION_TIMEOUT_MS);
+  }, [authState.isAuthenticated, forceSignOut]);
+
+  // Set up activity listeners for session timeout
   useEffect(() => {
-    // ── Step 1: Subscribe to auth state changes ──
-    // This fires on login, logout, token refresh, and password recovery.
+    if (!authState.isAuthenticated) return;
+
+    // Start the inactivity timer
+    resetInactivityTimer();
+
+    // Listen for user activity
+    const handleActivity = () => resetInactivityTimer();
+    for (const event of ACTIVITY_EVENTS) {
+      window.addEventListener(event, handleActivity, { passive: true });
+    }
+
+    return () => {
+      // Clean up listeners and timers
+      for (const event of ACTIVITY_EVENTS) {
+        window.removeEventListener(event, handleActivity);
+      }
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      if (warningRef.current) clearTimeout(warningRef.current);
+    };
+  }, [authState.isAuthenticated, resetInactivityTimer]);
+
+  useEffect(() => {
+    // Subscribe to auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         setAuthState({
@@ -102,8 +157,6 @@ export function useAuth() {
         });
 
         if (session?.user) {
-          // setTimeout(0) avoids a Supabase race condition where
-          // the profile query might fire before the session is fully ready
           setTimeout(() => fetchProfile(session.user.id), 0);
         } else {
           setProfile(null);
@@ -111,9 +164,7 @@ export function useAuth() {
       }
     );
 
-    // ── Step 2: Check for existing session on mount ──
-    // If the user refreshed the page, their session is in localStorage.
-    // This restores it without requiring re-login.
+    // Check for existing session on mount
     supabase.auth.getSession().then(({ data: { session } }) => {
       setAuthState({
         user: session?.user ?? null,
@@ -127,32 +178,19 @@ export function useAuth() {
       }
     });
 
-    // Cleanup: unsubscribe from auth changes when component unmounts
     return () => {
       subscription.unsubscribe();
     };
   }, [fetchProfile]);
 
-  /**
-   * Create a new account with email and password.
-   * 
-   * @param email - User's email address
-   * @param password - Must meet Supabase password requirements
-   * @param displayName - Optional display name (stored in auth metadata)
-   * 
-   * NOTE: Email verification is required by default. The user will
-   * receive a confirmation email and must click the link before they
-   * can sign in. Set `emailRedirectTo` to your production URL.
-   */
+  /** Create a new account with email and password. */
   const signUp = async (email: string, password: string, displayName?: string) => {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         emailRedirectTo: window.location.origin,
-        data: {
-          display_name: displayName,  // Stored in auth.users.raw_user_meta_data
-        },
+        data: { display_name: displayName },
       },
     });
 
@@ -160,10 +198,7 @@ export function useAuth() {
     return data;
   };
 
-  /**
-   * Sign in with existing email and password.
-   * Throws an error if credentials are wrong or email is not verified.
-   */
+  /** Sign in with existing email and password. */
   const signIn = async (email: string, password: string) => {
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
@@ -174,19 +209,13 @@ export function useAuth() {
     return data;
   };
 
-  /** Sign out the current user. Clears session from localStorage. */
+  /** Sign out the current user. */
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
   };
 
-  /**
-   * Update the user's profile in the `profiles` table.
-   * Only updates the fields you pass in (partial update).
-   * 
-   * @param updates - Partial profile fields to update
-   * @returns The updated profile data
-   */
+  /** Update the user's profile in the `profiles` table. */
   const updateProfile = async (updates: Partial<Profile>) => {
     if (!authState.user) throw new Error('No user logged in');
 
@@ -202,13 +231,7 @@ export function useAuth() {
     return data;
   };
 
-  /**
-   * Send a password reset email.
-   * The user will receive a link that redirects to /reset-password.
-   * 
-   * PRODUCTION TODO: Create the /reset-password page to handle the
-   * password update flow (currently this route doesn't exist).
-   */
+  /** Send a password reset email. */
   const resetPassword = async (email: string) => {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/reset-password`,
@@ -218,13 +241,13 @@ export function useAuth() {
   };
 
   return {
-    ...authState,             // user, session, isLoading, isAuthenticated
-    profile,                  // User's display profile
-    signUp,                   // Create new account
-    signIn,                   // Login with email/password
-    signOut,                  // Logout
-    updateProfile,            // Update profile fields
-    resetPassword,            // Send password reset email
+    ...authState,
+    profile,
+    signUp,
+    signIn,
+    signOut,
+    updateProfile,
+    resetPassword,
     refetchProfile: () => authState.user && fetchProfile(authState.user.id),
   };
 }

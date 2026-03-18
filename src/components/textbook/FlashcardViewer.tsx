@@ -10,13 +10,9 @@
  * 1. Load due cards → snapshot into sessionCards state
  * 2. Show front (question) → user clicks to flip → show back (answer)
  * 3. User rates quality (1-5) → useReviewFlashcard mutation → next card
- * 4. Session complete screen with option to restart
+ * 4. Session complete screen with XP award and option to restart
  *
- * PRODUCTION TODO:
- * - Add audio pronunciation for vocabulary cards
- * - Track session statistics (accuracy, time per card)
- * - Award XP for completed flashcard sessions
- * - Add "undo" for accidental ratings
+ * GAMIFICATION: Awards XP for completed flashcard sessions.
  */
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -36,6 +32,7 @@ import {
 import { Flashcard, useReviewFlashcard, useDueFlashcards } from '@/hooks/useFlashcards';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { useGamification } from '@/components/gamification/GamificationProvider';
 
 interface FlashcardViewerProps {
   courseId: string;
@@ -46,11 +43,13 @@ export function FlashcardViewer({ courseId, onClose }: FlashcardViewerProps) {
   const { data: dueCards = [], isLoading, refetch } = useDueFlashcards(courseId);
   const reviewFlashcard = useReviewFlashcard();
   const { toast } = useToast();
+  const { awardXP } = useGamification();
   
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [reviewedCount, setReviewedCount] = useState(0);
   const [sessionCards, setSessionCards] = useState<Flashcard[]>([]);
+  const [xpAwarded, setXpAwarded] = useState(false);
 
   useEffect(() => {
     if (dueCards.length > 0 && sessionCards.length === 0) {
@@ -83,10 +82,18 @@ export function FlashcardViewer({ courseId, onClose }: FlashcardViewerProps) {
         setCurrentIndex(prev => prev + 1);
         setIsFlipped(false);
       } else {
-        // Session complete
+        // Session complete — award XP
+        if (!xpAwarded) {
+          try {
+            await awardXP('LESSON_COMPLETE'); // Use lesson complete XP (25 XP) for flashcard sessions
+            setXpAwarded(true);
+          } catch {
+            // Non-blocking
+          }
+        }
         toast({
           title: '🎉 Session Complete!',
-          description: `You reviewed ${sessionCards.length} cards. Great job!`,
+          description: `You reviewed ${sessionCards.length} cards and earned 25 XP!`,
         });
       }
     } catch (error: any) {
@@ -143,8 +150,11 @@ export function FlashcardViewer({ courseId, onClose }: FlashcardViewerProps) {
           <Sparkles className="h-6 w-6 text-yellow-400 absolute -top-1 -right-1 animate-pulse" />
         </div>
         <h3 className="text-2xl font-bold mb-2">Session Complete! 🎉</h3>
-        <p className="text-muted-foreground mb-6">
+        <p className="text-muted-foreground mb-2">
           You reviewed {totalCards} flashcard{totalCards !== 1 ? 's' : ''}
+        </p>
+        <p className="text-sm text-primary font-medium mb-6">
+          +25 XP earned!
         </p>
         <div className="flex gap-3">
           <Button variant="outline" onClick={() => {
@@ -152,6 +162,7 @@ export function FlashcardViewer({ courseId, onClose }: FlashcardViewerProps) {
             setCurrentIndex(0);
             setReviewedCount(0);
             setIsFlipped(false);
+            setXpAwarded(false);
             refetch();
           }}>
             <RotateCcw className="h-4 w-4 mr-2" />

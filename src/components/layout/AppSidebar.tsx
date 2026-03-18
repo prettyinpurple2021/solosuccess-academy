@@ -31,17 +31,26 @@ import {
   Award,
   Trophy,
   Sparkles,
-  FileText
+  FileText,
+  ScrollText,
+  HelpCircle,
+  Bell,
+  BarChart3,
+  Wand2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const mainNavItems = [
   { title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard },
   { title: 'My Courses', url: '/courses', icon: BookOpen },
+  { title: 'My Grades', url: '/grades', icon: GraduationCap },
   { title: 'Leaderboard', url: '/leaderboard', icon: Trophy },
   { title: 'Certificates', url: '/certificates', icon: Award },
+  { title: 'Transcript', url: '/transcript', icon: ScrollText },
+  { title: 'Notifications', url: '/notifications', icon: Bell },
   { title: 'Profile', url: '/profile', icon: User },
   { title: 'Settings', url: '/settings', icon: Settings },
+  { title: 'Help', url: '/help', icon: HelpCircle },
 ];
 
 export function AppSidebar() {
@@ -174,6 +183,36 @@ export function AppSidebar() {
                     >
                       <FileText className="h-5 w-5 flex-shrink-0 text-secondary drop-shadow-[0_0_6px_hsl(var(--secondary)/0.5)]" />
                       {!collapsed && <span className="font-medium">Exams & Essays</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink 
+                      to="/admin/analytics"
+                      className={cn(
+                        "flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-300",
+                        "hover:bg-primary/10 hover:text-primary",
+                        location.pathname === '/admin/analytics' && "bg-primary/20 text-primary shadow-[inset_0_0_20px_hsl(270_80%_60%/0.1)] border-l-2 border-primary"
+                      )}
+                    >
+                      <BarChart3 className="h-5 w-5 flex-shrink-0 text-info drop-shadow-[0_0_6px_hsl(var(--info)/0.5)]" />
+                      {!collapsed && <span className="font-medium">Analytics</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink 
+                      to="/admin/content-generator"
+                      className={cn(
+                        "flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-300",
+                        "hover:bg-primary/10 hover:text-primary",
+                        location.pathname === '/admin/content-generator' && "bg-primary/20 text-primary shadow-[inset_0_0_20px_hsl(270_80%_60%/0.1)] border-l-2 border-primary"
+                      )}
+                    >
+                      <Wand2 className="h-5 w-5 flex-shrink-0 text-secondary drop-shadow-[0_0_6px_hsl(var(--secondary)/0.5)]" />
+                      {!collapsed && <span className="font-medium">Content Generator</span>}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

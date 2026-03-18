@@ -1,208 +1,105 @@
 
-# Auto-Generated PDF Certificates Plan
 
-## Overview
-Implement a comprehensive certificate generation system that creates unique, professionally-designed PDF certificates when students complete courses. Each of the 10 courses will have a themed certificate design inspired by the reference images, with the student's name, course title, completion date, verification code, and instructor signature.
+## Comprehensive Project Review & Enhancement Plan
+
+### Summary of Findings
+
+After reviewing every page, component, hook, and edge function, the project is impressively complete. Here's what's working and what needs attention:
 
 ---
 
-## Architecture Summary
+### What's Fully Functional (No Changes Needed)
+- **Routing & Auth**: Dual-layout system, protected routes, admin RBAC, purchase guards
+- **Admin Dashboard**: Course CRUD, publish/unpublish, bulk generators (lessons, textbooks, supplemental, assessments), enricher, quick generate, asset uploads
+- **Admin Gradebook**: Full student table with quiz/activity/worksheet/exam/essay scores, grade overrides, PDF reports, weight management
+- **Admin Analytics**: Revenue charts, engagement metrics, course completions
+- **Admin Exam/Essay Generator**: Bulk generation, individual generators, progress tracking
+- **Student Lesson Viewer**: All 6 lesson types (text, video, quiz, activity, worksheet, assignment), AI tutor, keyboard nav, reading progress, continue-later, certificate generation on completion
+- **Student Course Detail**: Purchase flow, lesson list, sidebar cards for exam/essay/textbook/project/discussion/asset
+- **Student Dashboard**: Stats, continue learning, course list, roadmap
+- **Final Exam & Essay**: Full interactive players with grading and results
+- **Textbook Viewer**: Page-turning, highlights, bookmarks, flashcards, mini-games, TTS, comments
+- **Gamification**: XP, streaks, badges, leaderboard
+- **Profile, Settings, Certificates, Notifications, Help, Contact, About, Legal pages** — all functional
 
+---
+
+### Issues Found & Enhancements Needed
+
+#### 1. Transcript Grade Calculation is Broken (Critical)
+**File**: `src/pages/Transcript.tsx` (lines 52-58)
+The transcript currently uses a **dummy grade** based purely on lesson completion percentage. The comment even says `"We don't have lesson data here easily"` and the filter always returns `false`. It should use the same `calculateCombinedGrade` function from `useGradebook.ts` that the admin gradebook uses, pulling actual quiz, activity, worksheet, exam, and essay scores.
+
+**Fix**: Fetch lessons for each course, join with `user_progress` to get quiz/activity/worksheet scores, fetch exam attempts and essay submissions, then call `calculateCombinedGrade` for accurate letter grades and GPA.
+
+#### 2. Student-Facing Grades Page Missing
+Students can see their transcript with grades, but there's no dedicated **"My Grades"** page that gives them a detailed breakdown like the admin gradebook shows. Students should be able to see:
+- Per-course breakdown of quiz, activity, worksheet, exam, and essay scores
+- Combined grade with weight breakdown
+- What components are still missing/incomplete
+
+**Fix**: Create a new `src/pages/StudentGrades.tsx` page accessible via sidebar, showing the student's own detailed grade breakdown per course.
+
+#### 3. Sidebar Missing "Notifications" Link
+The `AppSidebar.tsx` nav items don't include a link to `/notifications` — students can only access notifications via the bell icon (if implemented in the header). Adding it to the sidebar improves discoverability.
+
+#### 4. Admin Sidebar Missing Analytics & Content Generator Links
+The admin sidebar section only shows: Admin Panel, Gradebook, Exams & Essays, AI Settings. Missing quick links to:
+- **Analytics** (`/admin/analytics`)
+- **Content Generator** (`/admin/content-generator`)
+
+These are accessible from the admin dashboard cards but not from the sidebar directly.
+
+#### 5. Course Detail Lesson Type Icons Incomplete
+`CourseDetail.tsx` (lines 369-374) only shows icons for `video` and `quiz` lesson types. Activity, worksheet, and assignment type badges should also be shown so students can scan what type of lesson each is before entering.
+
+#### 6. Dashboard "Your Roadmap" Not Showing Lesson Types
+The dashboard roadmap section (right sidebar) shows all 10 courses but doesn't indicate how many of each lesson type exists per course. Adding small type counts (e.g., "3 quizzes, 2 activities") would help students understand what to expect.
+
+---
+
+### Implementation Plan
+
+**Task 1: Fix Transcript Grade Calculation**
+- Fetch `lessons` table to map lesson_id → course_id
+- Fetch quiz/activity/worksheet scores from `user_progress` for the current user
+- Fetch exam attempts from `student_exam_attempts`
+- Fetch essay submissions from `student_essay_submissions`
+- Use `calculateCombinedGrade` with grade settings for accurate grades
+- Update GPA calculation to use real weighted grades
+
+**Task 2: Create Student Grades Page**
+- New page at `/grades` showing per-course detailed grade breakdowns
+- Columns: Quiz avg, Activity avg, Worksheet avg, Exam score, Essay score, Combined
+- Reuse grade calculation logic from `useGradebook.ts`
+- Add route to `App.tsx` and sidebar link to `AppSidebar.tsx`
+
+**Task 3: Enhance Sidebar Navigation**
+- Add "Notifications" with Bell icon to student nav items
+- Add "Analytics" and "Content Generator" to admin sidebar section
+
+**Task 4: Add Lesson Type Icons to Course Detail**
+- Show activity, worksheet, and assignment icons alongside video/quiz on the lesson list in `CourseDetail.tsx`
+
+**Task 5: Minor UX Polish**
+- Add lesson type counts to dashboard roadmap cards
+- Ensure all "coming soon" placeholders have consistent styling
+
+---
+
+### Technical Details
+
+**Transcript fix** requires a new custom hook (e.g., `useStudentGrades`) that fetches:
 ```text
-+-------------------+     +--------------------+     +-------------------+
-|  Course Complete  | --> |   Certificate DB   | --> |  PDF Generation   |
-|    Detection      |     |      Record        |     |    (jsPDF)        |
-+-------------------+     +--------------------+     +-------------------+
-         |                         |                         |
-         v                         v                         v
-   LessonViewer.tsx        certificates table          CertificateView
-   detects 100%            verification_code           downloads PDF
-   completion              issued_at                   with themed design
+1. lessons → SELECT id, course_id, type FROM lessons WHERE course_id IN (purchased courses)
+2. user_progress → existing query already available
+3. student_exam_attempts → JOIN with course_final_exams for course mapping
+4. student_essay_submissions → JOIN with course_essays for course mapping
+5. grade_settings → already available via useGradeSettings
 ```
+This hook aggregates data into the same shape expected by `calculateCombinedGrade`.
 
----
+**Student Grades page** reuses `calculateCombinedGrade` and `getWeightsForCourse` from existing hooks, keeping all grade logic centralized.
 
-## Database Schema
+**No database changes needed** — all required tables and data exist.
 
-### New Table: `certificates`
-
-| Column | Type | Description |
-|--------|------|-------------|
-| id | uuid | Primary key |
-| user_id | uuid | Reference to user |
-| course_id | uuid | Reference to completed course |
-| verification_code | text | Unique 12-character code (e.g., SSA-XXXX-XXXX) |
-| issued_at | timestamp | When certificate was generated |
-| student_name | text | Snapshot of student name at time of issue |
-| course_title | text | Snapshot of course title at time of issue |
-| created_at | timestamp | Record creation time |
-
-**RLS Policies:**
-- Users can SELECT their own certificates
-- INSERT allowed only when user has completed 100% of course lessons
-- No UPDATE/DELETE for data integrity
-
----
-
-## Certificate Design Themes
-
-Each course will have a unique visual theme based on the provided reference designs:
-
-| Course # | Course Title | Theme |
-|----------|--------------|-------|
-| 1 | The Solo Singularity | Vintage compass/navigation |
-| 2 | Signal in the Noise | Nautical/ocean exploration |
-| 3 | Neon Identity | Cyberpunk/neon circuit |
-| 4 | The Ghost Machine | Steampunk gears |
-| 5 | The Infinite Loop | Art deco/megaphone |
-| 6 | Digital Gravity | Organic/nature patterns |
-| 7 | Zero-Point Energy | Financial/vintage bank note |
-| 8 | The Neuro-Link | Art deco/golden geometric |
-| 9 | Future State | Modern strategic/timeline |
-| 10 | The Final Transmission | Theater/stage curtains |
-
----
-
-## Implementation Components
-
-### 1. Database Migration
-Create `certificates` table with:
-- Unique constraint on (user_id, course_id) - one cert per course per user
-- Verification code with unique constraint
-- RLS policies for security
-
-### 2. New Hook: `useCertificates.ts`
-- `useUserCertificates(userId)` - Fetch all user certificates
-- `useCourseCertificate(userId, courseId)` - Check if cert exists for specific course
-- `useGenerateCertificate()` - Create new certificate record
-- `useVerifyCertificate(code)` - Public verification lookup
-
-### 3. Certificate PDF Generator: `src/lib/certificateGenerator.ts`
-Using jsPDF library to create themed PDF certificates:
-- Course-specific color schemes and decorative elements
-- Student name prominently displayed
-- Course title and completion date
-- Verification code and QR placeholder area
-- "SoloSuccess Academy" branding
-- Instructor signature graphic
-
-### 4. Certificate Display Component: `src/components/certificates/CertificateCard.tsx`
-- Preview thumbnail of certificate
-- Download PDF button
-- Share/copy verification link
-- Issue date display
-
-### 5. Certificates Page: `src/pages/Certificates.tsx`
-- Grid display of all earned certificates
-- Empty state for users with no certificates
-- Filter by phase
-- Certificate count in Dashboard stats
-
-### 6. Integration Points
-
-**LessonViewer.tsx:**
-- When course completion is detected (100%), automatically generate certificate
-- Show celebratory modal with certificate preview
-- Add "View Certificate" button
-
-**CourseDetail.tsx:**
-- Show certificate badge/button if course is complete
-- "Download Certificate" CTA
-
-**Dashboard.tsx:**
-- Update Certificates stat counter to show actual count
-- Link to certificates page
-
-**Profile.tsx:**
-- Add certificates section showing earned certificates
-
-### 7. Public Verification Page: `src/pages/VerifyCertificate.tsx`
-- Route: `/verify/:verificationCode`
-- Displays certificate details publicly
-- Shows student name, course, and issue date
-- Confirms authenticity
-
----
-
-## Certificate PDF Layout Specification
-
-```text
-+------------------------------------------+
-|            [Decorative Border]           |
-|                                          |
-|          SoloSuccess Academy             |
-|                                          |
-|          [Course Title]                  |
-|        Certificate of Completion         |
-|                                          |
-|     This is to certify that              |
-|                                          |
-|         [STUDENT NAME]                   |
-|                                          |
-|   has successfully completed all         |
-|   requirements for the course            |
-|                                          |
-|   Issued: [Date]                         |
-|                                          |
-|   [Signature]        Verification:       |
-|   SoloSuccess Academy    SSA-XXXX-XXXX   |
-|                                          |
-+------------------------------------------+
-```
-
----
-
-## Technical Details
-
-### Dependencies
-- `jspdf` - PDF generation library (to be added)
-
-### Certificate Generation Flow
-1. User completes final lesson of course
-2. System detects 100% completion in LessonViewer
-3. Check if certificate already exists for this user+course
-4. If not, generate unique verification code (SSA-XXXX-XXXX format)
-5. Insert certificate record in database
-6. Show celebration modal with download option
-7. Award XP bonus for course completion (integrate with gamification)
-
-### Verification Code Format
-`SSA-XXXX-XXXX` where X = alphanumeric characters
-- Example: `SSA-4K7M-9NP2`
-- 8 random characters = ~2.8 trillion combinations
-
----
-
-## Files to Create
-
-| File | Purpose |
-|------|---------|
-| `supabase/migrations/xxx_certificates.sql` | Database schema |
-| `src/hooks/useCertificates.ts` | Data fetching hooks |
-| `src/lib/certificateGenerator.ts` | PDF generation logic |
-| `src/lib/certificateThemes.ts` | Course-specific design themes |
-| `src/components/certificates/CertificateCard.tsx` | Certificate display card |
-| `src/components/certificates/CertificateModal.tsx` | Celebration modal |
-| `src/pages/Certificates.tsx` | Certificates gallery page |
-| `src/pages/VerifyCertificate.tsx` | Public verification page |
-
-## Files to Modify
-
-| File | Changes |
-|------|---------|
-| `src/App.tsx` | Add certificate routes |
-| `src/pages/LessonViewer.tsx` | Trigger cert generation on completion |
-| `src/pages/CourseDetail.tsx` | Show certificate download if complete |
-| `src/pages/Dashboard.tsx` | Show actual certificate count |
-| `src/pages/Profile.tsx` | Add certificates section |
-| `src/components/layout/AppSidebar.tsx` | Add certificates nav link |
-| `package.json` | Add jspdf dependency |
-
----
-
-## Security Considerations
-
-1. **RLS Policy for INSERT**: Validate user has completed all lessons before allowing certificate creation
-2. **Immutable Records**: No UPDATE/DELETE policies - certificates are permanent
-3. **Verification Code**: Generated server-side style (in frontend but validated pattern)
-4. **Student Name Snapshot**: Store name at time of issue to prevent retroactive changes
