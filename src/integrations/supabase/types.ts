@@ -740,6 +740,53 @@ export type Database = {
         }
         Relationships: []
       }
+      portfolio_entries: {
+        Row: {
+          connective_narrative: string
+          course_id: string
+          created_at: string
+          deliverable_content: string
+          executive_summary: string
+          id: string
+          order_number: number
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          connective_narrative?: string
+          course_id: string
+          created_at?: string
+          deliverable_content?: string
+          executive_summary?: string
+          id?: string
+          order_number?: number
+          title?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          connective_narrative?: string
+          course_id?: string
+          created_at?: string
+          deliverable_content?: string
+          executive_summary?: string
+          id?: string
+          order_number?: number
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portfolio_entries_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       practice_labs: {
         Row: {
           created_at: string
