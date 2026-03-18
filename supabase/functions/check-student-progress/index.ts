@@ -42,27 +42,39 @@ serve(async (req: Request): Promise<Response> => {
   }
 
   try {
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
     // Create service-role client for data access (used after auth for admin APIs)
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+      serviceRoleKey!
     );
 
     // Authorization:
-    // - Allow internal cron/backend calls authenticated with the service-role key.
+    // - Allow internal cron/backend calls authenticated with CRON_JOB_SECRET.
     // - Allow manual invocations only for authenticated admin users.
     // This function reads all enrolled students and sends emails.
     const authHeader = req.headers.get("Authorization");
     const apiKeyHeader = req.headers.get("apikey");
+    const cronSecretHeader = req.headers.get("x-cron-secret");
     const bearerToken = authHeader?.startsWith("Bearer ")
       ? authHeader.replace("Bearer ", "")
       : null;
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-    const isInternalServiceCall =
-      !!serviceRoleKey &&
-      (bearerToken === serviceRoleKey || apiKeyHeader === serviceRoleKey);
+    const cronJobSecret = Deno.env.get("CRON_JOB_SECRET");
+    const isCronCall = !!cronJobSecret && cronSecretHeader === cronJobSecret;
 
-    if (!isInternalServiceCall) {
+    // Never accept service-role key as request auth material.
+    if (
+      !!serviceRoleKey &&
+      (bearerToken === serviceRoleKey || apiKeyHeader === serviceRoleKey)
+    ) {
+      return new Response(
+        JSON.stringify({ error: "Invalid credential type" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (!isCronCall) {
       if (!bearerToken) {
         return new Response(
           JSON.stringify({ error: "Unauthorized" }),
