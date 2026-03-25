@@ -9,7 +9,7 @@ import { Zap, Twitter, Github, Youtube } from 'lucide-react';
 
 export function Footer() {
   return (
-    <footer className="relative border-t border-primary/20 bg-background/50 backdrop-blur-xl">
+    <footer className="relative border-t border-primary/20 bg-background/95">
       {/* Gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-t from-primary/5 via-transparent to-transparent pointer-events-none" />
       

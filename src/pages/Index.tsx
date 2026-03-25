@@ -107,9 +107,9 @@ export default function Index() {
       <section className="relative overflow-hidden py-24 md:py-36 nebula-section">
         {/* Animated orb background effects */}
         <div className="absolute inset-0 -z-10">
-          <div className="absolute top-0 left-1/4 w-[600px] h-[600px] rounded-full blur-[150px] animate-orb-glow-primary" />
-          <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] rounded-full blur-[150px] animate-orb-glow-secondary" style={{ animationDelay: '1s' }} />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full blur-[200px] animate-orb-glow-accent" style={{ animationDelay: '2s' }} />
+          <div className="absolute top-0 left-1/4 w-[600px] h-[600px] rounded-full blur-[150px] animate-orb-glow-primary will-change-[opacity]" style={{ background: 'hsl(270 100% 70% / 0.15)' }} />
+          <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] rounded-full blur-[150px] animate-orb-glow-secondary will-change-[opacity]" style={{ animationDelay: '1s', background: 'hsl(185 100% 55% / 0.12)' }} />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full blur-[200px] animate-orb-glow-accent will-change-[opacity]" style={{ animationDelay: '2s', background: 'hsl(320 100% 65% / 0.12)' }} />
         </div>
 
         <div className="container relative">
