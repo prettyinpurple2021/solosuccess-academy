@@ -1,11 +1,8 @@
 /**
  * @file WorksheetViewer.tsx — Student-facing worksheet with response text areas
  *
- * Renders a structured worksheet (sections + prompts) and lets the student
- * type responses. Responses are serialised as JSON and saved via `onSave`.
- *
- * Caller is responsible for persisting the JSON string (e.g. to
- * user_progress.notes via useUpdateLessonNotes).
+ * Renders a structured worksheet (sections + prompts) with decorative gradient
+ * borders, section frames, and polished save controls.
  */
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
-import { Save, CheckCircle2 } from 'lucide-react';
+import { Save, CheckCircle2, FileQuestion, PenLine } from 'lucide-react';
 import type { WorksheetData } from '@/lib/courseData';
 
 interface WorksheetViewerProps {
@@ -54,40 +51,79 @@ export function WorksheetViewer({
     setSaved(true);
   };
 
+  // Count total prompts and answered prompts for progress display
+  const totalPrompts = worksheets.reduce(
+    (sum, ws) => sum + ws.sections.reduce((s, sec) => s + sec.prompts.length, 0),
+    0
+  );
+  const answeredPrompts = Object.values(responses).filter((v) => v.trim().length > 0).length;
+
   return (
     <div className="space-y-8">
+      {/* Worksheet header — HUD-framed */}
+      <div className="lesson-section-frame">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="h-8 w-8 rounded-full bg-accent/15 border border-accent/30 flex items-center justify-center shadow-[0_0_12px_hsl(var(--accent)/0.15)]">
+              <FileQuestion className="h-4 w-4 text-accent" />
+            </div>
+            <span className="text-sm font-medium text-muted-foreground">Worksheet</span>
+          </div>
+          <Badge variant="outline" className="font-mono text-xs border-primary/30 bg-primary/5">
+            {answeredPrompts}/{totalPrompts} answered
+          </Badge>
+        </div>
+      </div>
+
       {worksheets.map((ws) => (
         <div key={ws.id} className="space-y-6">
-          {/* Worksheet instructions */}
+          {/* Worksheet instructions — callout style */}
           {ws.instructions && (
-            <p className="text-muted-foreground leading-relaxed">{ws.instructions}</p>
+            <div className="bg-muted/30 border border-border/50 rounded-lg p-4 text-muted-foreground leading-relaxed text-sm">
+              <span className="font-semibold text-foreground/80 mr-1">📋 Instructions:</span>
+              {ws.instructions}
+            </div>
           )}
 
-          {/* Sections */}
-          {ws.sections.map((section) => (
-            <Card key={section.id} className="border-primary/20">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base font-semibold">
-                  {section.title}
-                </CardTitle>
+          {/* Sections — with gradient top border */}
+          {ws.sections.map((section, sIdx) => (
+            <Card key={section.id} className="worksheet-section-card border-border/50 overflow-hidden">
+              <CardHeader className="pb-3 pt-5">
+                <div className="flex items-center gap-3">
+                  <div className="activity-step-number">
+                    {sIdx + 1}
+                  </div>
+                  <CardTitle className="text-base font-semibold">
+                    {section.title}
+                  </CardTitle>
+                </div>
               </CardHeader>
               <CardContent className="space-y-5">
                 {section.prompts.map((prompt, pIdx) => {
-                  // Key uses section.id + index. Prompts are admin-authored and
-                  // rarely reordered, so index-based keys are stable in practice.
                   const key = `${section.id}-${pIdx}`;
+                  const hasResponse = (responses[key] ?? '').trim().length > 0;
                   return (
                     <div key={pIdx} className="space-y-2">
-                      <Label className="text-sm text-muted-foreground leading-snug">
-                        {pIdx + 1}. {prompt}
+                      <Label className="text-sm leading-snug flex items-start gap-2">
+                        <span className="text-primary font-mono font-bold text-xs mt-0.5">
+                          Q{pIdx + 1}
+                        </span>
+                        <span className="text-muted-foreground">{prompt}</span>
                       </Label>
-                      <Textarea
-                        value={responses[key] ?? ''}
-                        onChange={(e) => updateResponse(key, e.target.value)}
-                        placeholder="Write your response here…"
-                        rows={3}
-                        className="bg-background/50"
-                      />
+                      <div className="relative">
+                        <Textarea
+                          value={responses[key] ?? ''}
+                          onChange={(e) => updateResponse(key, e.target.value)}
+                          placeholder="Write your response here…"
+                          rows={3}
+                          className="bg-background/50 border-border/50 focus:border-primary/40 transition-colors"
+                        />
+                        {hasResponse && (
+                          <div className="absolute top-2 right-2">
+                            <PenLine className="h-3.5 w-3.5 text-primary/40" />
+                          </div>
+                        )}
+                      </div>
                     </div>
                   );
                 })}
@@ -97,14 +133,14 @@ export function WorksheetViewer({
         </div>
       ))}
 
-      {/* Save controls */}
-      <div className="flex items-center gap-3">
-        <Button variant="outline" onClick={handleSave} className="gap-2">
+      {/* Save controls — styled button with status */}
+      <div className="flex items-center gap-3 pt-2">
+        <Button variant="outline" onClick={handleSave} className="gap-2 border-primary/30 hover:border-primary/50 hover:bg-primary/5">
           <Save className="h-4 w-4" />
           Save Responses
         </Button>
         {saved && (
-          <Badge variant="outline" className="gap-1 border-success/30 text-success">
+          <Badge variant="outline" className="gap-1 border-success/30 text-success bg-success/5 animate-fade-in">
             <CheckCircle2 className="h-3 w-3" />
             Saved
           </Badge>
