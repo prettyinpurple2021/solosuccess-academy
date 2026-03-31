@@ -4,22 +4,19 @@
  * PURPOSE: Provides a button that triggers batch AI content generation for
  * all lessons with placeholder text. Processes 3 lessons at a time,
  * automatically continuing until all lessons have full content.
- *
- * HOW IT WORKS:
- * 1. Admin clicks "Bulk Generate All Content"
- * 2. Calls the bulk-generate-lessons edge function repeatedly
- * 3. Each call processes 3 lessons and returns how many remain
- * 4. Progress is shown with a progress bar and live results
- * 5. Stops when remaining === 0
+ * Includes a "Force Regenerate" option to re-generate ALL text lessons
+ * with rich markdown formatting.
  */
 import { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Sparkles, Loader2, CheckCircle, XCircle, Zap } from 'lucide-react';
+import { Sparkles, Loader2, CheckCircle, XCircle, Zap, RefreshCw } from 'lucide-react';
 
 interface LessonResult {
   id: string;
@@ -34,6 +31,8 @@ export function BulkGenerateButton() {
   const [results, setResults] = useState<LessonResult[]>([]);
   const [remaining, setRemaining] = useState<number | null>(null);
   const [totalProcessed, setTotalProcessed] = useState(0);
+  /** When true, regenerates ALL text/video/assignment lessons with rich markdown */
+  const [forceRegenerate, setForceRegenerate] = useState(false);
   const { toast } = useToast();
 
   /**
@@ -49,12 +48,17 @@ export function BulkGenerateButton() {
 
     let totalDone = 0;
     let consecutiveErrors = 0;
+    // Track processed lesson IDs for force mode (to avoid re-processing)
+    let processedIds: string[] = [];
 
     try {
       // Loop until all lessons are processed
       while (true) {
         const { data, error } = await supabase.functions.invoke('bulk-generate-lessons', {
-          body: {},
+          body: {
+            force: forceRegenerate,
+            processedIds,
+          },
         });
 
         if (error) {
@@ -75,7 +79,12 @@ export function BulkGenerateButton() {
 
         consecutiveErrors = 0; // Reset on success
 
-        const { processed, remaining: rem, results: batchResults } = data;
+        const { processed, remaining: rem, results: batchResults, processedIds: newProcessedIds } = data;
+
+        // Update tracked IDs for force mode
+        if (newProcessedIds) {
+          processedIds = newProcessedIds;
+        }
 
         // Update state with new results
         if (batchResults) {
@@ -107,7 +116,7 @@ export function BulkGenerateButton() {
     } finally {
       setIsRunning(false);
     }
-  }, [toast]);
+  }, [toast, forceRegenerate]);
 
   const successCount = results.filter(r => r.status === 'success').length;
   const errorCount = results.filter(r => r.status === 'error').length;
@@ -144,6 +153,11 @@ export function BulkGenerateButton() {
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Generating...
               </>
+            ) : forceRegenerate ? (
+              <>
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Regenerate All Content
+              </>
             ) : (
               <>
                 <Sparkles className="mr-2 h-4 w-4" />
@@ -151,6 +165,22 @@ export function BulkGenerateButton() {
               </>
             )}
           </Button>
+        </div>
+
+        {/* Force regenerate toggle */}
+        <div className="flex items-center gap-3 p-3 rounded-lg bg-warning/5 border border-warning/20">
+          <Switch
+            id="force-regen"
+            checked={forceRegenerate}
+            onCheckedChange={setForceRegenerate}
+            disabled={isRunning}
+          />
+          <Label htmlFor="force-regen" className="text-sm cursor-pointer flex-1">
+            <span className="font-medium text-warning">Force Regenerate</span>
+            <span className="text-muted-foreground ml-1">
+              — Re-generate ALL text lessons with rich markdown (headings, blockquotes, dividers)
+            </span>
+          </Label>
         </div>
 
         {/* Progress section — only visible during/after generation */}
