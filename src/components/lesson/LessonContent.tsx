@@ -52,19 +52,120 @@ interface LessonContentProps {
   courseId?: string;
 }
 
-// Sanitize and format content to prevent XSS attacks
+/**
+ * Converts Markdown-like content into rich HTML with semantic structure.
+ * Supports headings (##), lists, blockquotes (>), horizontal rules (---),
+ * bold, italic, inline code, and callout detection.
+ */
 const sanitizeAndFormat = (content: string): string => {
-  const formatted = content
-    .replace(/\n\n/g, '</p><p class="mb-4">')
-    .replace(/\n/g, '<br/>')
-    .replace(/^/, '<p class="mb-4">')
-    .replace(/$/, '</p>')
-    .replace(/\*\*(.*?)\*\*/g, '<strong class="text-secondary">$1</strong>')
-    .replace(/\*(.*?)\*/g, '<em class="text-primary/80">$1</em>')
-    .replace(/`(.*?)`/g, '<code class="bg-primary/20 px-1.5 py-0.5 rounded text-sm text-secondary border border-primary/30">$1</code>');
+  // Process line-by-line for block-level elements
+  const lines = content.split('\n');
+  let html = '';
+  let inList: 'ul' | 'ol' | null = null;
+  let inBlockquote = false;
 
-  return DOMPurify.sanitize(formatted, {
-    ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'code', 'h1', 'h2', 'h3', 'ul', 'ol', 'li'],
+  const closeList = () => {
+    if (inList) {
+      html += `</${inList}>`;
+      inList = null;
+    }
+  };
+  const closeBlockquote = () => {
+    if (inBlockquote) {
+      html += '</blockquote>';
+      inBlockquote = false;
+    }
+  };
+
+  /** Apply inline formatting to a line of text */
+  const inlineFmt = (text: string) =>
+    text
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      .replace(/`(.*?)`/g, '<code>$1</code>');
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const trimmed = line.trim();
+
+    // Blank line — close open blocks
+    if (!trimmed) {
+      closeList();
+      closeBlockquote();
+      continue;
+    }
+
+    // Horizontal rule
+    if (/^(-{3,}|_{3,}|\*{3,})$/.test(trimmed)) {
+      closeList();
+      closeBlockquote();
+      html += '<hr/>';
+      continue;
+    }
+
+    // Headings
+    const headingMatch = trimmed.match(/^(#{1,3})\s+(.+)$/);
+    if (headingMatch) {
+      closeList();
+      closeBlockquote();
+      const level = headingMatch[1].length;
+      html += `<h${level}>${inlineFmt(headingMatch[2])}</h${level}>`;
+      continue;
+    }
+
+    // Blockquote
+    if (trimmed.startsWith('>')) {
+      closeList();
+      if (!inBlockquote) {
+        inBlockquote = true;
+        html += '<blockquote>';
+      }
+      html += `<p>${inlineFmt(trimmed.slice(1).trim())}</p>`;
+      continue;
+    } else {
+      closeBlockquote();
+    }
+
+    // Unordered list
+    if (/^[-*•]\s+/.test(trimmed)) {
+      if (inList !== 'ul') {
+        closeList();
+        inList = 'ul';
+        html += '<ul>';
+      }
+      html += `<li>${inlineFmt(trimmed.replace(/^[-*•]\s+/, ''))}</li>`;
+      continue;
+    }
+
+    // Ordered list
+    const olMatch = trimmed.match(/^\d+[.)]\s+(.+)$/);
+    if (olMatch) {
+      if (inList !== 'ol') {
+        closeList();
+        inList = 'ol';
+        html += '<ol>';
+      }
+      html += `<li>${inlineFmt(olMatch[1])}</li>`;
+      continue;
+    }
+
+    // Regular paragraph
+    closeList();
+    html += `<p>${inlineFmt(trimmed)}</p>`;
+  }
+
+  closeList();
+  closeBlockquote();
+
+  // Sanitize the final HTML to prevent XSS
+  return DOMPurify.sanitize(html, {
+    ALLOWED_TAGS: [
+      'p', 'br', 'strong', 'em', 'code', 'pre',
+      'h1', 'h2', 'h3',
+      'ul', 'ol', 'li',
+      'blockquote', 'hr',
+      'div', 'span',
+    ],
     ALLOWED_ATTR: ['class'],
   });
 };
@@ -123,11 +224,11 @@ export function LessonContent({
 
   return (
     <div className="space-y-6">
-      {/* Lesson Header */}
-      <div>
+      {/* Lesson Header — HUD-framed title area */}
+      <div className="lesson-section-frame">
         <Badge
           variant="outline"
-          className="mb-3 border-primary/50 bg-primary/10 text-primary shadow-[0_0_10px_rgba(168,85,247,0.2)]"
+          className="mb-3 border-primary/50 bg-primary/10 text-primary shadow-[0_0_10px_hsl(var(--primary)/0.2)]"
         >
           {getTypeIcon()}
           <span className="ml-1">{getTypeName()}</span>
@@ -142,7 +243,7 @@ export function LessonContent({
 
       {/* Video Player — shown for video-type lessons */}
       {lesson.type === 'video' && lesson.video_url && (
-        <div className="aspect-video bg-black/50 rounded-lg overflow-hidden border border-primary/30 shadow-[0_0_30px_rgba(168,85,247,0.2)]">
+        <div className="aspect-video bg-black/50 rounded-lg overflow-hidden border border-primary/30 shadow-[0_0_30px_hsl(var(--primary)/0.2)]">
           {lesson.video_url.includes('youtube.com') || lesson.video_url.includes('youtu.be') ? (
             <iframe
               src={lesson.video_url
@@ -169,7 +270,7 @@ export function LessonContent({
       {lesson.type === 'video' && !lesson.video_url && (
         <div className="aspect-video bg-black/50 rounded-lg overflow-hidden border border-primary/30 flex items-center justify-center">
           <div className="text-center">
-            <div className="h-16 w-16 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-3 shadow-[0_0_20px_rgba(168,85,247,0.4)]">
+            <div className="h-16 w-16 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-3 shadow-[0_0_20px_hsl(var(--primary)/0.4)]">
               <Video className="h-8 w-8 text-primary" />
             </div>
             <p className="text-muted-foreground">Video content coming soon</p>
@@ -177,14 +278,12 @@ export function LessonContent({
         </div>
       )}
 
-      {/* Text / Instructional Content — shown for ALL lesson types that have content */}
+      {/* Text / Instructional Content — rendered with rich prose styling */}
       {lesson.content && (
-        <div className="prose prose-invert max-w-none">
-          <div
-            className="text-foreground/90 leading-relaxed whitespace-pre-wrap"
-            dangerouslySetInnerHTML={{ __html: sanitizeAndFormat(lesson.content) }}
-          />
-        </div>
+        <div
+          className="lesson-prose"
+          dangerouslySetInnerHTML={{ __html: sanitizeAndFormat(lesson.content) }}
+        />
       )}
 
       {/* ── Interactive Quiz ─────────────────────────────────────────────── */}
@@ -223,7 +322,7 @@ export function LessonContent({
       {/* Placeholder for activity lessons that have no activity_data yet */}
       {lesson.type === 'activity' && !lesson.activity_data && !lesson.content && (
         <div className="bg-black/30 border border-primary/20 border-dashed rounded-lg p-8 text-center">
-          <div className="h-16 w-16 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-3 shadow-[0_0_20px_rgba(168,85,247,0.3)]">
+          <div className="h-16 w-16 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-3 shadow-[0_0_20px_hsl(var(--primary)/0.3)]">
             <Activity className="h-8 w-8 text-primary" />
           </div>
           <p className="text-muted-foreground">Activity content coming soon</p>
@@ -263,7 +362,7 @@ export function LessonContent({
       {/* Fallback for text lessons with no content */}
       {lesson.type === 'text' && !lesson.content && (
         <div className="bg-black/30 border border-primary/20 border-dashed rounded-lg p-8 text-center">
-          <div className="h-16 w-16 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-3 shadow-[0_0_20px_rgba(168,85,247,0.3)]">
+          <div className="h-16 w-16 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-3 shadow-[0_0_20px_hsl(var(--primary)/0.3)]">
             <FileText className="h-8 w-8 text-primary" />
           </div>
           <p className="text-muted-foreground">Lesson content coming soon</p>
