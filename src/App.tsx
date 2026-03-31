@@ -95,6 +95,7 @@ const ContactPage = lazy(() => import("./pages/Contact"));
 const NotificationsPage = lazy(() => import("./pages/Notifications"));
 const TranscriptPage = lazy(() => import("./pages/Transcript"));
 const StudentGrades = lazy(() => import("./pages/StudentGrades"));
+const Unsubscribe = lazy(() => import("./pages/Unsubscribe"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 /**
