@@ -145,15 +145,16 @@ export function useHasPurchasedCourse(userId: string | undefined, courseId: stri
     queryFn: async (): Promise<boolean> => {
       if (!userId || !courseId) return false;
 
+      // Use the database function which includes admin bypass logic
+      // (admins are treated as having purchased every course)
       const { data, error } = await supabase
-        .from('purchases')
-        .select('id')
-        .eq('user_id', userId)
-        .eq('course_id', courseId)
-        .maybeSingle();
+        .rpc('has_purchased_course', {
+          _user_id: userId,
+          _course_id: courseId,
+        });
 
       if (error) throw error;
-      return !!data;  // Convert null/object to boolean
+      return !!data;
     },
     enabled: !!userId && !!courseId,
   });
