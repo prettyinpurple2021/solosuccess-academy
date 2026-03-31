@@ -47,7 +47,8 @@ import {
   Sparkles,
   Play,
   Zap,
-  Terminal
+  Terminal,
+  Receipt
 } from 'lucide-react';
 import { PageMeta } from '@/components/layout/PageMeta';
 import { ErrorView } from '@/components/ui/error-view';
