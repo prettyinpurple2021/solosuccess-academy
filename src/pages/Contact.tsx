@@ -27,11 +27,25 @@ export default function Contact() {
     }
     setSubmitting(true);
     try {
-      const { data, error } = await supabase.functions.invoke('submit-contact', {
+      // Generate a unique ID for idempotency
+      const submissionId = crypto.randomUUID();
+
+      // 1. Store the submission in the database
+      const { error } = await supabase.functions.invoke('submit-contact', {
         body: { ...form, source: 'contact' },
       });
       if (error) throw error;
-      if (data?.error) throw new Error(data.error);
+
+      // 2. Send a confirmation email to the visitor
+      await supabase.functions.invoke('send-transactional-email', {
+        body: {
+          templateName: 'contact-confirmation',
+          recipientEmail: form.email,
+          idempotencyKey: `contact-confirm-${submissionId}`,
+          templateData: { name: form.name },
+        },
+      });
+
       toast({ title: 'Message sent!', description: "Thanks for reaching out — we'll respond as soon as possible." });
       setForm({ name: '', email: '', subject: '', message: '' });
     } catch (err: any) {

@@ -40,14 +40,14 @@ serve(async (req) => {
     );
 
     const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
-    if (claimsError || !claimsData?.claims) {
+    const { data: userData, error: userError } = await supabase.auth.getUser(token);
+    if (userError || !userData?.user) {
       return new Response(
         JSON.stringify({ error: "Unauthorized" }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
-    const userId = claimsData.claims.sub as string;
+    const userId = userData.user.id;
 
     const { data: roleData } = await supabase
       .from("user_roles")
@@ -77,7 +77,6 @@ serve(async (req) => {
     const { data: allCourses } = await serviceClient
       .from("courses")
       .select("id, title, description, order_number")
-      .eq("is_published", true)
       .order("order_number", { ascending: true });
 
     if (!allCourses?.length) {

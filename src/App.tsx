@@ -95,6 +95,7 @@ const ContactPage = lazy(() => import("./pages/Contact"));
 const NotificationsPage = lazy(() => import("./pages/Notifications"));
 const TranscriptPage = lazy(() => import("./pages/Transcript"));
 const StudentGrades = lazy(() => import("./pages/StudentGrades"));
+const Unsubscribe = lazy(() => import("./pages/Unsubscribe"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 /**
@@ -181,6 +182,9 @@ const App = () => (
 
               {/* Password Reset — public standalone page, user arrives via email link */}
               <Route path="/reset-password" element={<RouteErrorBoundary><ResetPassword /></RouteErrorBoundary>} />
+
+              {/* Email Unsubscribe — public standalone page */}
+              <Route path="/unsubscribe" element={<RouteErrorBoundary><Unsubscribe /></RouteErrorBoundary>} />
 
               {/* ═══════════════════════════════════════════
                   PROTECTED ROUTES — Require authentication.

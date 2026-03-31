@@ -42,45 +42,68 @@ serve(async (req: Request): Promise<Response> => {
   }
 
   try {
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
     // Create service-role client for data access (used after auth for admin APIs)
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+      serviceRoleKey!
     );
 
-    // Authorization: require valid JWT (verify_jwt = true in config) and admin role.
-    // This function reads all enrolled students and sends emails — must not be callable by anonymous or non-admin users.
+    // Authorization:
+    // - Allow internal cron/backend calls authenticated with CRON_JOB_SECRET.
+    // - Allow manual invocations only for authenticated admin users.
+    // This function reads all enrolled students and sends emails.
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
+    const apiKeyHeader = req.headers.get("apikey");
+    const cronSecretHeader = req.headers.get("x-cron-secret");
+    const bearerToken = authHeader?.startsWith("Bearer ")
+      ? authHeader.replace("Bearer ", "")
+      : null;
+    const cronJobSecret = Deno.env.get("CRON_JOB_SECRET");
+    const isCronCall = !!cronJobSecret && cronSecretHeader === cronJobSecret;
+
+    // Never accept service-role key as request auth material.
+    if (
+      !!serviceRoleKey &&
+      (bearerToken === serviceRoleKey || apiKeyHeader === serviceRoleKey)
+    ) {
       return new Response(
-        JSON.stringify({ error: "Unauthorized" }),
+        JSON.stringify({ error: "Invalid credential type" }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const token = authHeader.replace("Bearer ", "");
-    const { data: claims, error: claimsError } = await supabase.auth.getUser(token);
+    if (!isCronCall) {
+      if (!bearerToken) {
+        return new Response(
+          JSON.stringify({ error: "Unauthorized" }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
 
-    if (claimsError || !claims.user) {
-      return new Response(
-        JSON.stringify({ error: "Invalid token" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+      const { data: claims, error: claimsError } = await supabase.auth.getUser(bearerToken);
+      if (claimsError || !claims.user) {
+        return new Response(
+          JSON.stringify({ error: "Invalid token" }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
 
-    // Verify the caller has admin role
-    const { data: roleData } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", claims.user.id)
-      .eq("role", "admin")
-      .single();
+      // Verify the caller has admin role
+      const { data: roleData } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", claims.user.id)
+        .eq("role", "admin")
+        .single();
 
-    if (!roleData) {
-      return new Response(
-        JSON.stringify({ error: "Admin access required" }),
-        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      if (!roleData) {
+        return new Response(
+          JSON.stringify({ error: "Admin access required" }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
     }
 
     // Configuration

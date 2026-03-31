@@ -604,6 +604,93 @@ export type Database = {
           },
         ]
       }
+      email_send_log: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          id: string
+          message_id: string | null
+          metadata: Json | null
+          recipient_email: string
+          status: string
+          template_name: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          message_id?: string | null
+          metadata?: Json | null
+          recipient_email: string
+          status: string
+          template_name: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          message_id?: string | null
+          metadata?: Json | null
+          recipient_email?: string
+          status?: string
+          template_name?: string
+        }
+        Relationships: []
+      }
+      email_send_state: {
+        Row: {
+          auth_email_ttl_minutes: number
+          batch_size: number
+          id: number
+          retry_after_until: string | null
+          send_delay_ms: number
+          transactional_email_ttl_minutes: number
+          updated_at: string
+        }
+        Insert: {
+          auth_email_ttl_minutes?: number
+          batch_size?: number
+          id?: number
+          retry_after_until?: string | null
+          send_delay_ms?: number
+          transactional_email_ttl_minutes?: number
+          updated_at?: string
+        }
+        Update: {
+          auth_email_ttl_minutes?: number
+          batch_size?: number
+          id?: number
+          retry_after_until?: string | null
+          send_delay_ms?: number
+          transactional_email_ttl_minutes?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      email_unsubscribe_tokens: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          token: string
+          used_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          token: string
+          used_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          token?: string
+          used_at?: string | null
+        }
+        Relationships: []
+      }
       grade_settings: {
         Row: {
           activity_weight: number
@@ -740,6 +827,150 @@ export type Database = {
         }
         Relationships: []
       }
+      portfolio_entries: {
+        Row: {
+          connective_narrative: string
+          course_id: string
+          created_at: string
+          deliverable_content: string
+          executive_summary: string
+          id: string
+          order_number: number
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          connective_narrative?: string
+          course_id: string
+          created_at?: string
+          deliverable_content?: string
+          executive_summary?: string
+          id?: string
+          order_number?: number
+          title?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          connective_narrative?: string
+          course_id?: string
+          created_at?: string
+          deliverable_content?: string
+          executive_summary?: string
+          id?: string
+          order_number?: number
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portfolio_entries_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      practice_labs: {
+        Row: {
+          created_at: string
+          deliverable_description: string
+          difficulty: string
+          estimated_minutes: number | null
+          id: string
+          instructions: string
+          lesson_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          deliverable_description: string
+          difficulty?: string
+          estimated_minutes?: number | null
+          id?: string
+          instructions: string
+          lesson_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          deliverable_description?: string
+          difficulty?: string
+          estimated_minutes?: number | null
+          id?: string
+          instructions?: string
+          lesson_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "practice_labs_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: true
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      practice_submissions: {
+        Row: {
+          ai_feedback: string | null
+          ai_feedback_at: string | null
+          created_at: string
+          file_urls: string[] | null
+          id: string
+          practice_lab_id: string
+          score: number | null
+          status: string
+          submission_content: string
+          submitted_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ai_feedback?: string | null
+          ai_feedback_at?: string | null
+          created_at?: string
+          file_urls?: string[] | null
+          id?: string
+          practice_lab_id: string
+          score?: number | null
+          status?: string
+          submission_content?: string
+          submitted_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ai_feedback?: string | null
+          ai_feedback_at?: string | null
+          created_at?: string
+          file_urls?: string[] | null
+          id?: string
+          practice_lab_id?: string
+          score?: number | null
+          status?: string
+          submission_content?: string
+          submitted_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "practice_submissions_practice_lab_id_fkey"
+            columns: ["practice_lab_id"]
+            isOneToOne: false
+            referencedRelation: "practice_labs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -775,6 +1006,177 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      project_milestone_submissions: {
+        Row: {
+          ai_feedback: string | null
+          ai_feedback_at: string | null
+          created_at: string
+          file_urls: string[] | null
+          id: string
+          milestone_id: string
+          status: string
+          submission_content: string
+          submitted_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ai_feedback?: string | null
+          ai_feedback_at?: string | null
+          created_at?: string
+          file_urls?: string[] | null
+          id?: string
+          milestone_id: string
+          status?: string
+          submission_content?: string
+          submitted_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ai_feedback?: string | null
+          ai_feedback_at?: string | null
+          created_at?: string
+          file_urls?: string[] | null
+          id?: string
+          milestone_id?: string
+          status?: string
+          submission_content?: string
+          submitted_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_milestone_submissions_milestone_id_fkey"
+            columns: ["milestone_id"]
+            isOneToOne: false
+            referencedRelation: "project_milestones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_milestones: {
+        Row: {
+          course_id: string
+          created_at: string
+          deliverable_prompt: string
+          description: string
+          id: string
+          order_number: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          course_id: string
+          created_at?: string
+          deliverable_prompt?: string
+          description?: string
+          id?: string
+          order_number: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          course_id?: string
+          created_at?: string
+          deliverable_prompt?: string
+          description?: string
+          id?: string
+          order_number?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_milestones_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_rubric_categories: {
+        Row: {
+          course_id: string
+          created_at: string
+          description: string
+          id: string
+          max_points: number
+          name: string
+          order_number: number
+        }
+        Insert: {
+          course_id: string
+          created_at?: string
+          description?: string
+          id?: string
+          max_points?: number
+          name: string
+          order_number?: number
+        }
+        Update: {
+          course_id?: string
+          created_at?: string
+          description?: string
+          id?: string
+          max_points?: number
+          name?: string
+          order_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_rubric_categories_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_rubric_scores: {
+        Row: {
+          category_id: string
+          created_at: string
+          feedback: string | null
+          id: string
+          score: number
+          submission_id: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          feedback?: string | null
+          id?: string
+          score?: number
+          submission_id: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          feedback?: string | null
+          id?: string
+          score?: number
+          submission_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_rubric_scores_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "project_rubric_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_rubric_scores_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "project_milestone_submissions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       purchases: {
         Row: {
@@ -1016,6 +1418,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      suppressed_emails: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          metadata: Json | null
+          reason: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          metadata?: Json | null
+          reason: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          metadata?: Json | null
+          reason?: string
+        }
+        Relationships: []
       }
       textbook_chapter_objectives: {
         Row: {
@@ -1576,6 +2002,14 @@ export type Database = {
         Args: { _page_id: string; _selected_answer: number }
         Returns: Json
       }
+      delete_email: {
+        Args: { message_id: number; queue_name: string }
+        Returns: boolean
+      }
+      enqueue_email: {
+        Args: { payload: Json; queue_name: string }
+        Returns: number
+      }
       get_exam_for_student: { Args: { _course_id: string }; Returns: Json }
       get_overall_progress: { Args: { _user_id: string }; Returns: Json }
       get_textbook_pages_for_student: {
@@ -1600,6 +2034,23 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      move_to_dlq: {
+        Args: {
+          dlq_name: string
+          message_id: number
+          payload: Json
+          source_queue: string
+        }
+        Returns: number
+      }
+      read_email_batch: {
+        Args: { batch_size: number; queue_name: string; vt: number }
+        Returns: {
+          message: Json
+          msg_id: number
+          read_ct: number
+        }[]
       }
       verify_certificate_by_code: {
         Args: { code: string }

@@ -22,6 +22,8 @@ import { WorksheetViewer } from './WorksheetViewer';
 import { AssignmentSubmission } from './AssignmentSubmission';
 import { ActivityStepPlayer } from './ActivityStepPlayer';
 import { WorksheetPlayer } from './WorksheetPlayer';
+import { PracticeLabPlayer } from './PracticeLabPlayer';
+import { usePracticeLab } from '@/hooks/usePracticeLabs';
 
 interface LessonContentProps {
   /** The lesson to render */
@@ -46,6 +48,8 @@ interface LessonContentProps {
   existingNotes?: string | null;
   /** Current user ID — passed to interactive players for persistence */
   userId?: string;
+  /** Course ID — needed for practice lab file uploads */
+  courseId?: string;
 }
 
 // Sanitize and format content to prevent XSS attacks
@@ -76,7 +80,11 @@ export function LessonContent({
   onSaveNotes,
   isCompleted = false,
   existingNotes = null,
+  userId,
+  courseId,
 }: LessonContentProps) {
+  /** Fetch practice lab for this lesson (if one exists) */
+  const { data: practiceLab } = usePracticeLab(lesson.id);
   /** Returns the icon for the lesson type badge */
   const getTypeIcon = () => {
     switch (lesson.type) {
@@ -259,6 +267,18 @@ export function LessonContent({
             <FileText className="h-8 w-8 text-primary" />
           </div>
           <p className="text-muted-foreground">Lesson content coming soon</p>
+        </div>
+      )}
+
+      {/* ── Practice Lab ─────────────────────────────────────────────────── */}
+      {/* Shown for ANY lesson type that has a practice lab attached */}
+      {practiceLab && userId && courseId && (
+        <div className="mt-8 pt-8 border-t border-accent/20">
+          <PracticeLabPlayer
+            lab={practiceLab}
+            userId={userId}
+            courseId={courseId}
+          />
         </div>
       )}
     </div>

@@ -47,7 +47,8 @@ import {
   Sparkles,
   Play,
   Zap,
-  Terminal
+  Terminal,
+  Receipt
 } from 'lucide-react';
 import { PageMeta } from '@/components/layout/PageMeta';
 import { ErrorView } from '@/components/ui/error-view';
@@ -527,6 +528,53 @@ export default function Dashboard() {
                     View Profile
                   </Link>
                 </Button>
+              </CardContent>
+            </Card>
+
+            {/* My Purchases */}
+            <Card className="glass-card">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2 font-display">
+                  <Receipt className="h-5 w-5 text-accent" />
+                  <span className="text-gradient">MY PURCHASES</span>
+                </CardTitle>
+                <CardDescription className="font-mono text-xs">
+                  {purchases?.length || 0} course{(purchases?.length || 0) !== 1 ? 's' : ''} purchased
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {purchases && purchases.length > 0 ? (
+                  purchases.map((purchase) => {
+                    const course = purchase.courses as any;
+                    return (
+                      <Link
+                        key={purchase.id}
+                        to={`/courses/${purchase.course_id}`}
+                        className="flex items-center justify-between p-3 rounded-lg hover:bg-primary/10 transition-all group border border-transparent hover:border-primary/30"
+                      >
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-mono truncate group-hover:text-primary transition-colors">
+                            {course?.title || 'Course'}
+                          </p>
+                          <p className="text-xs text-muted-foreground font-mono mt-0.5">
+                            {new Date(purchase.purchased_at).toLocaleDateString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                              year: 'numeric',
+                            })}
+                          </p>
+                        </div>
+                        <Badge variant="outline" className="ml-2 flex-shrink-0 border-accent/30 text-accent font-mono text-xs">
+                          {formatPrice(purchase.amount_cents)}
+                        </Badge>
+                      </Link>
+                    );
+                  })
+                ) : (
+                  <p className="text-sm text-muted-foreground font-mono text-center py-4">
+                    No purchases yet.
+                  </p>
+                )}
               </CardContent>
             </Card>
           </div>

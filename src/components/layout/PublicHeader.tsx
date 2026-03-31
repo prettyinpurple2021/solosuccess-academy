@@ -16,6 +16,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Zap, Menu, X, Sun, Moon } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
+import { useScrollOpacity } from '@/hooks/useScrollOpacity';
 import {
   Tooltip,
   TooltipContent,
@@ -41,9 +42,13 @@ export function PublicHeader() {
   const { theme, setTheme } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const navOpacity = useScrollOpacity();
 
   return (
-    <header className="sticky top-0 z-50 w-full header-glass">
+    <header
+      className="sticky top-0 z-[80] w-full header-glass transition-[background-color] duration-300"
+      style={{ '--nav-opacity': navOpacity } as React.CSSProperties}
+    >
       <div className="container flex h-16 items-center justify-between">
         {/* ── Logo ── */}
         <Link to="/" className="flex items-center gap-3 group">
@@ -51,14 +56,13 @@ export function PublicHeader() {
             <Zap className="h-5 w-5 relative z-10" />
             <div className="absolute inset-0 bg-gradient-to-br from-primary via-accent to-secondary opacity-100 group-hover:animate-pulse" />
           </div>
-          <span className="font-display font-bold text-xl tracking-[0.15em] hidden sm:block">
-            <span className="text-gradient">SOLO</span>
-            <span className="text-foreground">SUCCESS</span>
+          <span className="nav-brand-text hidden sm:block">
+            SOLOSUCCESS ACADEMY
           </span>
         </Link>
 
         {/* ── Desktop Nav — Rajdhani uppercase cyber links ── */}
-        <nav className="hidden md:flex items-center gap-7">
+        <nav className="hidden md:flex h-16 items-center gap-8">
           {routeLinks.map((item) => (
             <Link
               key={item.label}
@@ -108,24 +112,19 @@ export function PublicHeader() {
 
           {/* Auth buttons */}
           {!isLoading && isAuthenticated ? (
-            <Button variant="neon" asChild className="btn-cyber-chamfer">
+            <Button variant="neon" asChild className="btn-cyber-chamfer min-w-[120px]">
               <Link to="/dashboard">Dashboard</Link>
             </Button>
           ) : !isLoading ? (
-            <div className="hidden md:flex items-center gap-3">
-              <Button variant="ghost" asChild className="font-heading tracking-[0.1em] text-xs uppercase">
-                <Link to="/auth">Sign In</Link>
-              </Button>
-              <Button variant="neon" asChild className="btn-cyber-chamfer">
-                <Link to="/auth?mode=signup">Get Started</Link>
-              </Button>
-            </div>
+            <Button variant="neon" asChild className="hidden md:inline-flex btn-cyber font-heading tracking-[0.1em] text-sm uppercase min-w-[104px]">
+              <Link to="/auth">Sign In</Link>
+            </Button>
           ) : null}
-          
+
           {/* Mobile menu toggle */}
-          <Button 
-            variant="ghost" 
-            size="icon" 
+          <Button
+            variant="ghost"
+            size="icon"
             className="md:hidden"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
@@ -136,7 +135,7 @@ export function PublicHeader() {
 
       {/* ── Mobile Menu ── */}
       <div className={cn(
-        "md:hidden absolute top-16 left-0 right-0 header-glass transition-all duration-300",
+        "md:hidden absolute top-16 left-0 right-0 z-[79] header-glass transition-all duration-300",
         mobileMenuOpen ? "opacity-100 visible" : "opacity-0 invisible pointer-events-none"
       )}>
         <nav className="container py-4 flex flex-col gap-3">
@@ -145,7 +144,7 @@ export function PublicHeader() {
               key={item.label}
               to={item.to}
               className={cn(
-                'nav-link-cyber font-heading text-sm py-2',
+                'nav-link-cyber font-heading text-sm',
                 location.pathname === item.to && 'active'
               )}
               onClick={() => setMobileMenuOpen(false)}
@@ -154,12 +153,9 @@ export function PublicHeader() {
             </Link>
           ))}
           {!isAuthenticated && (
-            <div className="flex flex-col gap-2 pt-4 border-t border-secondary/20">
-              <Button variant="ghost" asChild className="justify-start font-heading tracking-[0.1em] uppercase text-xs">
+            <div className="flex flex-col gap-2 pt-4 border-t border-secondary/35">
+              <Button variant="outline" asChild className="btn-cyber-chamfer justify-start font-heading tracking-[0.1em] uppercase text-xs">
                 <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>Sign In</Link>
-              </Button>
-              <Button variant="neon" asChild className="btn-cyber-chamfer">
-                <Link to="/auth?mode=signup" onClick={() => setMobileMenuOpen(false)}>Get Started</Link>
               </Button>
             </div>
           )}

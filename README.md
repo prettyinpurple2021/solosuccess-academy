@@ -106,6 +106,23 @@ VITE_SUPABASE_PROJECT_ID=fkqzwlpwdgdiwpsvhavt
 
 > **Note**: For local development with a new Supabase project, you'll need to create your own project and update these values.
 
+For Edge Function local development, create `supabase/functions/.env` and add:
+
+```env
+CRON_JOB_SECRET=your_long_random_secret
+```
+
+If you schedule `check-student-progress`, the caller must send header `x-cron-secret` with the same value.
+
+For database-driven scheduling with `pg_cron`, store the cron secret in Supabase Vault (do not commit the real secret to git):
+
+1. Open Supabase Dashboard -> **Database** -> **Vault**.
+2. Create a secret named `cron_job_secret`.
+3. Paste the same value you used for Edge Function secret `CRON_JOB_SECRET`.
+
+Then run migrations to apply the scheduler job in:
+`supabase/migrations/20260318123000_schedule_check_student_progress.sql`
+
 ### Step 5: Run the Development Server
 
 ```bash

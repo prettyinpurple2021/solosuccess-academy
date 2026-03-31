@@ -17,8 +17,15 @@
 
 // Production + preview domains that are allowed to call edge functions
 const ALLOWED_ORIGINS: string[] = [
-  "https://indie-blossom-lab.lovable.app",                           // Published URL
-  "https://id-preview--0ca92332-de07-43b7-a7ba-31271ca1363b.lovable.app", // Preview URL
+  "https://indie-blossom-lab.lovable.app", // Published URL
+  "https://id-preview--0ca92332-de07-43b7-a7ba-31271ca1363b.lovable.app", // Legacy preview URL
+  "https://0ca92332-de07-43b7-a7ba-31271ca1363b.lovableproject.com", // Current preview origin
+];
+
+// Allow current/future Lovable preview hostnames without manual redeploys
+const ALLOWED_ORIGIN_PATTERNS: RegExp[] = [
+  /^https:\/\/[a-z0-9-]+\.lovableproject\.com$/i,
+  /^https:\/\/[a-z0-9-]+\.lovable\.app$/i,
 ];
 
 // The default allowed headers for Supabase client requests
@@ -33,11 +40,12 @@ const ALLOWED_HEADERS =
 export function getCorsHeaders(req?: Request): Record<string, string> {
   const origin = req?.headers?.get("origin") ?? "";
 
-  // Check if the request origin matches any allowed origin
-  const matchedOrigin = ALLOWED_ORIGINS.find((allowed) => origin === allowed);
+  const isExplicitlyAllowed = ALLOWED_ORIGINS.includes(origin);
+  const matchesAllowedPattern = ALLOWED_ORIGIN_PATTERNS.some((pattern) => pattern.test(origin));
+  const allowedOrigin = isExplicitlyAllowed || matchesAllowedPattern ? origin : ALLOWED_ORIGINS[0];
 
   return {
-    "Access-Control-Allow-Origin": matchedOrigin || ALLOWED_ORIGINS[0],
+    "Access-Control-Allow-Origin": allowedOrigin,
     "Access-Control-Allow-Headers": ALLOWED_HEADERS,
     "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
   };

@@ -23,13 +23,13 @@ export function FloatingParticles({ count = 30 }: { count?: number }) {
   const particles = useMemo<Particle[]>(() => {
     return Array.from({ length: count }, (_, i) => ({
       id: i,
-      size: Math.random() * 4 + 1,          // 1–5px
-      x: Math.random() * 100,                // 0–100%
+      size: Math.random() * 5 + 1,              // 1–6px (slightly larger for nebula feel)
+      x: Math.random() * 100,                   // 0–100%
       y: Math.random() * 100,
-      duration: Math.random() * 20 + 15,     // 15–35s drift
-      delay: Math.random() * -20,            // stagger start
-      opacity: Math.random() * 0.35 + 0.05,  // 0.05–0.4
-      hue: [270, 185, 320][Math.floor(Math.random() * 3)], // purple / cyan / pink
+      duration: Math.random() * 25 + 20,         // 20–45s drift (slower, more cinematic)
+      delay: Math.random() * -25,                // stagger start
+      opacity: Math.random() * 0.4 + 0.05,       // 0.05–0.45
+      hue: [270, 185, 320, 240, 200][Math.floor(Math.random() * 5)], // purple/cyan/pink/indigo/blue
     }));
   }, [count]);
 

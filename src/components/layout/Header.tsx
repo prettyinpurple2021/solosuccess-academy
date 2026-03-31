@@ -24,6 +24,7 @@ import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { XPDisplay } from '@/components/gamification/XPDisplay';
 import { GlobalSearch } from '@/components/search/GlobalSearch';
 import { cn } from '@/lib/utils';
+import { useScrollOpacity } from '@/hooks/useScrollOpacity';
 import {
   Tooltip,
   TooltipContent,
@@ -37,6 +38,7 @@ export function Header() {
   const location = useLocation();
   const { theme, setTheme } = useTheme();
   const [searchOpen, setSearchOpen] = useState(false);
+  const navOpacity = useScrollOpacity();
 
   // Ctrl+K / Cmd+K keyboard shortcut to open search
   useEffect(() => {
@@ -69,7 +71,10 @@ export function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 w-full header-glass">
+      <header
+        className="sticky top-0 z-[80] w-full header-glass transition-[background-color] duration-300"
+        style={{ '--nav-opacity': navOpacity } as React.CSSProperties}
+      >
         <div className="container flex h-16 items-center justify-between">
           {/* ── Logo ── */}
           <Link to="/" className="flex items-center gap-3 group">
@@ -77,14 +82,13 @@ export function Header() {
               <Zap className="h-5 w-5 relative z-10" />
               <div className="absolute inset-0 bg-gradient-to-br from-primary via-accent to-secondary opacity-100 group-hover:animate-pulse" />
             </div>
-            <span className="font-display font-bold text-xl tracking-[0.15em] hidden sm:block">
-              <span className="text-gradient">SOLO</span>
-              <span className="text-foreground">SUCCESS</span>
+            <span className="nav-brand-text hidden sm:block">
+              SOLOSUCCESS ACADEMY
             </span>
           </Link>
 
           {/* ── Desktop Nav — cyber styled ── */}
-          <nav className="hidden md:flex items-center gap-7">
+          <nav className="hidden md:flex h-16 items-center gap-8">
             <Link
               to="/courses"
               className={cn(
@@ -148,12 +152,12 @@ export function Header() {
                 variant="ghost"
                 size="sm"
                 onClick={() => setSearchOpen(true)}
-                className="hidden sm:flex items-center gap-2 text-muted-foreground hover:text-secondary border border-secondary/20 hover:border-secondary/40 px-3 h-9 font-heading tracking-wider text-xs uppercase"
+                className="hidden sm:flex items-center gap-2 text-foreground hover:text-secondary border border-secondary/55 hover:border-secondary px-3 h-9 font-heading tracking-[0.1em] text-xs uppercase bg-background/20 hover:bg-secondary/10"
                 title="Search (Ctrl+K)"
               >
                 <Search className="h-4 w-4" />
                 <span>Search</span>
-                <kbd className="pointer-events-none hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border border-muted-foreground/30 bg-muted/50 px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
+                <kbd className="pointer-events-none hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border border-secondary/45 bg-background/30 px-1.5 font-mono text-[10px] font-medium text-foreground/80">
                   ⌘K
                 </kbd>
               </Button>
@@ -229,14 +233,9 @@ export function Header() {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <div className="flex items-center gap-3">
-                <Button variant="ghost" asChild className="font-heading tracking-[0.1em] text-xs uppercase">
-                  <Link to="/auth">Sign In</Link>
-                </Button>
-                <Button variant="neon" asChild className="btn-cyber-chamfer">
-                  <Link to="/auth?mode=signup">Get Started</Link>
-                </Button>
-              </div>
+              <Button variant="outline" asChild className="btn-cyber-chamfer font-heading tracking-[0.1em] text-xs uppercase min-w-[104px]">
+                <Link to="/auth">Sign In</Link>
+              </Button>
             )}
           </div>
         </div>
