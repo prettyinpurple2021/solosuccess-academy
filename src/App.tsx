@@ -183,6 +183,9 @@ const App = () => (
               {/* Password Reset — public standalone page, user arrives via email link */}
               <Route path="/reset-password" element={<RouteErrorBoundary><ResetPassword /></RouteErrorBoundary>} />
 
+              {/* Email Unsubscribe — public standalone page */}
+              <Route path="/unsubscribe" element={<RouteErrorBoundary><Unsubscribe /></RouteErrorBoundary>} />
+
               {/* ═══════════════════════════════════════════
                   PROTECTED ROUTES — Require authentication.
                   AppLayout checks auth and redirects to /auth
