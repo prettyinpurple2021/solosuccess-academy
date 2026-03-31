@@ -2,13 +2,13 @@
  * @file bulk-generate-lessons/index.ts — Batch AI Content Generator
  *
  * PURPOSE: Generates full lesson content for lessons that currently have
- * placeholder/stub text (<500 chars). Processes up to 3 lessons per
- * invocation to stay within edge function timeout limits.
+ * placeholder/stub text (<500 chars), or force-regenerates ALL lessons
+ * with rich markdown formatting when the `force` flag is set.
  *
  * HOW IT WORKS:
- * 1. Admin calls this function with optional course_id filter
- * 2. Function finds lessons with short content (<500 chars)
- * 3. Generates rich content for up to 3 lessons per call
+ * 1. Admin calls this function with optional course_id filter and force flag
+ * 2. Function finds lessons to process (placeholders, or ALL if force=true)
+ * 3. Generates rich markdown content for up to 3 lessons per call
  * 4. Saves generated content directly to the database
  * 5. Returns how many remain so the client can call again
  */
@@ -21,10 +21,24 @@ import { getCorsHeaders, corsResponse } from "../_shared/cors.ts";
 const BATCH_SIZE = 3;
 
 /**
- * Builds a rich prompt for generating lesson content based on lesson type
+ * Builds a rich prompt that explicitly requests markdown with headings,
+ * lists, blockquotes, callout sections, and horizontal-rule dividers.
  */
 function buildPrompt(lesson: any, course: any): { system: string; user: string } {
-  const baseSystem = `You are an expert educational content writer for SoloSuccess Academy, an online learning platform for solo founders and small business owners. Write engaging, actionable content that is practical and motivating.`;
+  const baseSystem = `You are an expert educational content writer for SoloSuccess Academy, an online learning platform for solo founders and small business owners. Write engaging, actionable content that is practical and motivating.
+
+CRITICAL FORMATTING RULES — you MUST follow these exactly:
+- Use ## and ### headings to break content into clear sections
+- Use bullet lists (- item) for key points, tips, and lists
+- Use numbered lists (1. item) for step-by-step processes
+- Use blockquotes (> text) for important quotes, definitions, or key insights
+- Use horizontal rules (---) between major sections as visual dividers
+- Use **bold** for key terms and emphasis
+- Use *italic* for definitions or secondary emphasis
+- Use \`inline code\` for tools, apps, or technical terms
+- Include at least 2 blockquote callouts per lesson
+- Include at least 1 horizontal rule divider
+- DO NOT use HTML tags — only standard markdown`;
 
   switch (lesson.type) {
     case "quiz":
@@ -51,7 +65,37 @@ Generate a worksheet in JSON format:\n{\"title\":\"...\",\"instructions\":\"...\
     case "assignment":
       return {
         system: `${baseSystem}\n
-Write a comprehensive assignment description in markdown. Include:\n- Clear objectives\n- Step-by-step instructions\n- Deliverables expected\n- Evaluation criteria\n- Tips for success\nKeep it between 600-1000 words.`,
+Write a comprehensive assignment description using rich markdown formatting. Structure it with:
+## Assignment Overview
+Brief description of the assignment and its real-world value.
+
+## Learning Objectives
+- Objective 1
+- Objective 2
+
+> **Why this matters:** A blockquote explaining the practical importance.
+
+---
+
+## Step-by-Step Instructions
+1. First step with details
+2. Second step with details
+
+## Deliverables
+- What to submit
+- Format requirements
+
+> **Pro Tip:** Helpful advice in a blockquote.
+
+---
+
+## Evaluation Criteria
+- Criteria with point values
+
+## Tips for Success
+- Actionable tips
+
+Keep it between 600-1000 words.`,
         user: `Create an assignment for \"${lesson.title}\" in \"${course.title}\" (${course.description}). Make it a practical project a solo founder can complete and add to their portfolio.`,
       };
 
@@ -59,8 +103,59 @@ Write a comprehensive assignment description in markdown. Include:\n- Clear obje
       // text or video type — generate rich markdown content
       return {
         system: `${baseSystem}\n
-Generate engaging lesson content in markdown format. Include:\n- An engaging introduction paragraph\n- 3-5 main sections with ## headers\n- Practical tips, examples, and action items\n- Bullet points for key concepts\n- A "Key Takeaways" section at the end\nKeep the content between 800-1500 words. Use **bold** for emphasis.`,
-        user: `Write comprehensive lesson content for \"${lesson.title}\" in the course \"${course.title}\" (${course.description}). Make it practical, motivating, and immediately useful for solo founders and entrepreneurs.`,
+Generate engaging lesson content using this exact structure pattern:
+
+## Introduction
+An engaging opening paragraph that hooks the reader and explains why this topic matters for solo entrepreneurs.
+
+> **Key Insight:** A compelling blockquote that frames the main concept.
+
+---
+
+## [First Major Section]
+Detailed content with practical examples.
+
+- Key point one with explanation
+- Key point two with explanation  
+- Key point three with explanation
+
+### [Subsection if needed]
+Deeper dive into a specific aspect.
+
+> **Real-World Example:** A practical example or case study in blockquote format.
+
+---
+
+## [Second Major Section]
+More detailed content with actionable advice.
+
+1. Step-by-step process item one
+2. Step-by-step process item two
+3. Step-by-step process item three
+
+### Common Mistakes to Avoid
+- Mistake 1 and how to fix it
+- Mistake 2 and how to fix it
+
+---
+
+## [Third Major Section]
+Additional practical content.
+
+> **Pro Tip:** An expert tip or best practice.
+
+---
+
+## Key Takeaways
+- Takeaway 1
+- Takeaway 2
+- Takeaway 3
+- Takeaway 4
+
+> **Action Step:** What the student should do RIGHT NOW to apply this lesson.
+
+Keep the content between 800-1500 words. Every lesson MUST include at least 3 section headings (##), 2 blockquotes (>), 1 horizontal rule (---), and both bullet and numbered lists.`,
+        user: `Write comprehensive lesson content for \"${lesson.title}\" in the course \"${course.title}\" (${course.description}). Make it practical, motivating, and immediately useful for solo founders and entrepreneurs. Use rich markdown formatting with headings, blockquotes, lists, and dividers.`,
       };
   }
 }
@@ -114,6 +209,9 @@ serve(async (req) => {
     // --- Parse request ---
     const body = await req.json();
     const courseId = body.courseId; // optional filter
+    const force = body.force === true; // force-regenerate ALL lessons
+    // Track which lesson IDs have already been processed (sent from client)
+    const processedIds: string[] = body.processedIds || [];
 
     // --- Use service role for DB writes ---
     const serviceClient = createClient(
@@ -121,50 +219,49 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // --- Find placeholder lessons ---
+    // --- Find lessons to process ---
     let query = serviceClient
       .from("lessons")
       .select("id, title, type, order_number, content, course_id")
       .eq("is_published", true)
-      .order("order_number", { ascending: true })
-      .limit(BATCH_SIZE);
+      .order("order_number", { ascending: true });
 
     if (courseId) {
       query = query.eq("course_id", courseId);
     }
 
-    const { data: lessons, error: lessonsErr } = await query;
+    const { data: allLessons, error: lessonsErr } = await query;
     if (lessonsErr) throw new Error(lessonsErr.message);
 
-    // Filter to only placeholder lessons (content < 500 chars or null)
-    const placeholderLessons = (lessons || []).filter(
-      (l: any) => !l.content || l.content.length < 500
-    );
+    // Filter based on mode: force = all text/video/assignment; normal = placeholders only
+    let eligibleLessons = (allLessons || []).filter((l: any) => {
+      // Skip already-processed lessons in this session
+      if (processedIds.includes(l.id)) return false;
 
-    if (placeholderLessons.length === 0) {
-      // Check total remaining across all courses
-      let countQuery = serviceClient
-        .from("lessons")
-        .select("id, content", { count: "exact" })
-        .eq("is_published", true);
-      if (courseId) countQuery = countQuery.eq("course_id", courseId);
-      const { data: allLessons } = await countQuery;
-      const remaining = (allLessons || []).filter(
-        (l: any) => !l.content || l.content.length < 500
-      ).length;
+      if (force) {
+        // In force mode, regenerate text/video/assignment lessons (not quiz/activity/worksheet which use JSON)
+        return ['text', 'video', 'assignment'].includes(l.type);
+      }
+      // Normal mode: only placeholder lessons
+      return !l.content || l.content.length < 500;
+    });
 
+    // Take only BATCH_SIZE
+    const lessonsToProcess = eligibleLessons.slice(0, BATCH_SIZE);
+
+    if (lessonsToProcess.length === 0) {
       return new Response(
         JSON.stringify({
-          message: "No placeholder lessons found in this batch",
+          message: "No lessons to process in this batch",
           processed: 0,
-          remaining,
+          remaining: 0,
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     // --- Fetch course info for context ---
-    const courseIds = [...new Set(placeholderLessons.map((l: any) => l.course_id))];
+    const courseIds = [...new Set(lessonsToProcess.map((l: any) => l.course_id))];
     const { data: courses } = await serviceClient
       .from("courses")
       .select("id, title, description")
@@ -178,12 +275,12 @@ serve(async (req) => {
 
     const results: any[] = [];
 
-    for (const lesson of placeholderLessons) {
+    for (const lesson of lessonsToProcess) {
       const course = courseMap[lesson.course_id] || { title: "Unknown", description: "" };
       const { system, user } = buildPrompt(lesson, course);
 
       try {
-        console.log(`Generating content for: \"${lesson.title}\" (${lesson.type})`);
+        console.log(`Generating content for: \"${lesson.title}\" (${lesson.type})${force ? ' [FORCE]' : ''}`);
 
         const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
           method: "POST",
@@ -227,7 +324,6 @@ serve(async (req) => {
             const jsonStr = jsonMatch ? jsonMatch[1] : generated;
             const parsed = JSON.parse(jsonStr.trim());
             updatePayload.quiz_data = parsed;
-            // Also set some content text for display
             updatePayload.content = `Quiz: ${lesson.title}\n\nThis quiz contains ${parsed.questions?.length || 0} questions to test your knowledge.`;
           } catch {
             updatePayload.content = generated;
@@ -253,7 +349,7 @@ serve(async (req) => {
             updatePayload.content = generated;
           }
         } else {
-          // text, video, assignment — plain markdown content
+          // text, video, assignment — rich markdown content
           updatePayload.content = generated;
         }
 
@@ -278,15 +374,9 @@ serve(async (req) => {
     }
 
     // --- Count remaining ---
-    let remainQuery = serviceClient
-      .from("lessons")
-      .select("id, content")
-      .eq("is_published", true);
-    if (courseId) remainQuery = remainQuery.eq("course_id", courseId);
-    const { data: allRemaining } = await remainQuery;
-    const remaining = (allRemaining || []).filter(
-      (l: any) => !l.content || l.content.length < 500
-    ).length;
+    const newlyProcessedIds = results.filter((r: any) => r.status === 'success').map((r: any) => r.id);
+    const allProcessedIds = [...processedIds, ...newlyProcessedIds];
+    const remaining = eligibleLessons.length - lessonsToProcess.length;
 
     return new Response(
       JSON.stringify({
@@ -294,6 +384,7 @@ serve(async (req) => {
         processed: results.length,
         remaining,
         results,
+        processedIds: allProcessedIds,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
