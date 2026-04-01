@@ -97,8 +97,10 @@ serve(async (req) => {
       courseChapterMap.set(c.course_id, (courseChapterMap.get(c.course_id) || 0) + 1);
     });
 
-    // Filter to courses with no chapters
-    const emptyCourses = allCourses.filter(c => !courseChapterMap.get(c.id));
+    // Filter to courses that need textbooks
+    const targetCourses = force
+      ? allCourses // Force mode: regenerate all courses
+      : allCourses.filter(c => !courseChapterMap.get(c.id)); // Normal: only empty courses
 
     // Pick the target course
     let targetCourse;
@@ -111,7 +113,7 @@ serve(async (req) => {
         );
       }
     } else {
-      targetCourse = emptyCourses[0];
+      targetCourse = targetCourses[0];
     }
 
     if (!targetCourse) {
@@ -119,6 +121,24 @@ serve(async (req) => {
         JSON.stringify({ message: "All courses already have textbook content!", processed: 0, remaining: 0 }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
+    }
+
+    // If force mode, delete existing chapters & pages for this course first
+    if (force && courseChapterMap.get(targetCourse.id)) {
+      console.log(`Force mode: deleting existing textbook for "${targetCourse.title}"`);
+      // Get chapter IDs first
+      const { data: existingChapters } = await serviceClient
+        .from("textbook_chapters")
+        .select("id")
+        .eq("course_id", targetCourse.id);
+      
+      if (existingChapters?.length) {
+        const chapterIds = existingChapters.map((c: any) => c.id);
+        // Delete pages, then chapters
+        await serviceClient.from("textbook_pages").delete().in("chapter_id", chapterIds);
+        await serviceClient.from("textbook_chapter_objectives").delete().in("chapter_id", chapterIds);
+        await serviceClient.from("textbook_chapters").delete().eq("course_id", targetCourse.id);
+      }
     }
 
     // --- Also get lesson titles for context ---
