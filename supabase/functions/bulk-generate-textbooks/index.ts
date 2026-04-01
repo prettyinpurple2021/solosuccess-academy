@@ -139,12 +139,42 @@ serve(async (req) => {
 
 Generate a complete textbook with 3 chapters, each containing 4-5 pages of rich educational content.
 
-IMPORTANT FORMAT RULES:
-- Each page should be 300-500 words of markdown content
-- Use ## headers for sections, **bold** for key terms, bullet points for lists
-- Include practical examples, case studies, and actionable tips
-- Make content engaging and directly applicable to solo entrepreneurship
+IMPORTANT FORMAT RULES — USE RICH MARKDOWN:
+- Start each page with a ## heading for the page title
+- Use ### subheadings to break content into clear sections
+- Use **bold** for key terms and important concepts
+- Use bullet points and numbered lists liberally for steps, tips, and examples
+- Include > blockquotes for "Pro Tips", real-world insights, or motivational callouts (prefix with > 💡 **Pro Tip:** or > 📌 **Key Insight:** or > 🎯 **Action Item:**)
+- Use --- horizontal rules between major sections for visual separation
+- Each page should be 400-600 words of markdown content
+- Include practical examples, mini case studies, and actionable advice
+- Make content engaging, conversational, and directly applicable to solo entrepreneurship
 - At least 2 pages per chapter should have an embedded quiz
+
+EXAMPLE PAGE STRUCTURE:
+## Understanding Your Target Market
+
+Every successful solo business starts with one critical question...
+
+### Why Market Research Matters
+
+> 💡 **Pro Tip:** You don't need expensive tools to research your market. Start with free resources like Google Trends, Reddit communities, and social media groups.
+
+Here are the **three pillars** of effective market research:
+
+1. **Demographics** — Who are your potential customers?
+2. **Psychographics** — What motivates them to buy?
+3. **Behavior patterns** — Where do they spend time online?
+
+---
+
+### Putting It Into Practice
+
+- Start by listing 5 communities where your ideal customer hangs out
+- Spend 30 minutes reading their questions and complaints
+- Document the **exact words** they use to describe their problems
+
+> 🎯 **Action Item:** Create a simple spreadsheet tracking customer pain points you discover this week.
 
 For interactive elements, you may optionally include:
 - [SCRAMBLE: keyword | hint about the word] — creates a word scramble game
@@ -157,7 +187,7 @@ Return ONLY valid JSON in this exact format:
       "title": "Chapter Title",
       "pages": [
         {
-          "content": "Full markdown content for this page...",
+          "content": "Full rich markdown content for this page...",
           "embedded_quiz": null
         },
         {
