@@ -194,75 +194,74 @@ export default function Dashboard() {
           </p>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-10">
+        {/* Stats Cards — responsive grid: 2-col mobile, 3-col tablet, 5-col desktop */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 mb-8 sm:mb-10">
           <Card className="glass-card glass-card-hover group">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="h-14 w-14 rounded-xl bg-primary/10 border border-primary/30 flex items-center justify-center group-hover:shadow-[0_0_20px_hsl(270_80%_60%/0.4)] transition-all">
-                  <BookOpen className="h-7 w-7 text-primary" />
+            <CardContent className="pt-4 sm:pt-6 pb-4 sm:pb-6">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className="h-10 w-10 sm:h-14 sm:w-14 rounded-xl bg-primary/10 border border-primary/30 flex items-center justify-center group-hover:shadow-[0_0_20px_hsl(270_80%_60%/0.4)] transition-all flex-shrink-0">
+                  <BookOpen className="h-5 w-5 sm:h-7 sm:w-7 text-primary" />
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground font-mono">Courses Owned</p>
-                  <p className="text-3xl font-display font-bold text-gradient">{purchasedCount}/{totalCourses}</p>
+                <div className="min-w-0">
+                  <p className="text-xs sm:text-sm text-muted-foreground font-mono truncate">Courses</p>
+                  <p className="text-2xl sm:text-3xl font-display font-bold text-gradient">{purchasedCount}/{totalCourses}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
           <Card className="glass-card glass-card-hover group">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="h-14 w-14 rounded-xl bg-success/10 border border-success/30 flex items-center justify-center group-hover:shadow-[0_0_20px_hsl(142_80%_50%/0.4)] transition-all">
-                  <CheckCircle2 className="h-7 w-7 text-success" />
+            <CardContent className="pt-4 sm:pt-6 pb-4 sm:pb-6">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className="h-10 w-10 sm:h-14 sm:w-14 rounded-xl bg-success/10 border border-success/30 flex items-center justify-center group-hover:shadow-[0_0_20px_hsl(142_80%_50%/0.4)] transition-all flex-shrink-0">
+                  <CheckCircle2 className="h-5 w-5 sm:h-7 sm:w-7 text-success" />
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground font-mono">Lessons Complete</p>
-                  <p className="text-3xl font-display font-bold text-success">{completedLessons}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="glass-card glass-card-hover group">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="h-14 w-14 rounded-xl bg-secondary/10 border border-secondary/30 flex items-center justify-center group-hover:shadow-[0_0_20px_hsl(185_80%_50%/0.4)] transition-all">
-                  <Target className="h-7 w-7 text-secondary" />
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground font-mono">Overall Progress</p>
-                  <p className="text-3xl font-display font-bold text-secondary">{overallProgress}%</p>
+                <div className="min-w-0">
+                  <p className="text-xs sm:text-sm text-muted-foreground font-mono truncate">Lessons</p>
+                  <p className="text-2xl sm:text-3xl font-display font-bold text-success">{completedLessons}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
           <Card className="glass-card glass-card-hover group">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="h-14 w-14 rounded-xl bg-accent/10 border border-accent/30 flex items-center justify-center group-hover:shadow-[0_0_20px_hsl(320_80%_60%/0.4)] transition-all">
-                  <Trophy className="h-7 w-7 text-accent" />
+            <CardContent className="pt-4 sm:pt-6 pb-4 sm:pb-6">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className="h-10 w-10 sm:h-14 sm:w-14 rounded-xl bg-secondary/10 border border-secondary/30 flex items-center justify-center group-hover:shadow-[0_0_20px_hsl(185_80%_50%/0.4)] transition-all flex-shrink-0">
+                  <Target className="h-5 w-5 sm:h-7 sm:w-7 text-secondary" />
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground font-mono">Certificates</p>
-                  <p className="text-3xl font-display font-bold text-accent">{certificateCount || 0}</p>
+                <div className="min-w-0">
+                  <p className="text-xs sm:text-sm text-muted-foreground font-mono truncate">Progress</p>
+                  <p className="text-2xl sm:text-3xl font-display font-bold text-secondary">{overallProgress}%</p>
                 </div>
               </div>
             </CardContent>
           </Card>
-          <Link to="/certificates" className="hidden" />
+
+          <Card className="glass-card glass-card-hover group">
+            <CardContent className="pt-4 sm:pt-6 pb-4 sm:pb-6">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className="h-10 w-10 sm:h-14 sm:w-14 rounded-xl bg-accent/10 border border-accent/30 flex items-center justify-center group-hover:shadow-[0_0_20px_hsl(320_80%_60%/0.4)] transition-all flex-shrink-0">
+                  <Trophy className="h-5 w-5 sm:h-7 sm:w-7 text-accent" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs sm:text-sm text-muted-foreground font-mono truncate">Certificates</p>
+                  <p className="text-2xl sm:text-3xl font-display font-bold text-accent">{certificateCount || 0}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Reading Time Stats */}
-          <Card className="glass-card glass-card-hover group">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="h-14 w-14 rounded-xl bg-primary/10 border border-primary/30 flex items-center justify-center group-hover:shadow-[0_0_20px_hsl(270_80%_60%/0.4)] transition-all">
-                  <Clock className="h-7 w-7 text-primary" />
+          <Card className="glass-card glass-card-hover group col-span-2 sm:col-span-1">
+            <CardContent className="pt-4 sm:pt-6 pb-4 sm:pb-6">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className="h-10 w-10 sm:h-14 sm:w-14 rounded-xl bg-primary/10 border border-primary/30 flex items-center justify-center group-hover:shadow-[0_0_20px_hsl(270_80%_60%/0.4)] transition-all flex-shrink-0">
+                  <Clock className="h-5 w-5 sm:h-7 sm:w-7 text-primary" />
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground font-mono">Reading Time</p>
-                  <p className="text-3xl font-display font-bold text-gradient">
+                <div className="min-w-0">
+                  <p className="text-xs sm:text-sm text-muted-foreground font-mono truncate">Reading Time</p>
+                  <p className="text-2xl sm:text-3xl font-display font-bold text-gradient">
                     {readingStats ? formatReadableTime(readingStats.totalSeconds) : '0m'}
                   </p>
                   {readingStats && readingStats.todaySeconds > 0 && (
