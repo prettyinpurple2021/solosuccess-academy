@@ -50,11 +50,60 @@ async function callAI(apiKey: string, system: string, user: string): Promise<str
   return text;
 }
 
-/** Extract JSON from a response that may be wrapped in markdown code blocks */
+/**
+ * Robust JSON extraction — strips markdown fences, finds JSON boundaries,
+ * repairs trailing commas / control chars, and attempts to close truncated JSON.
+ */
 function extractJSON(text: string): any {
-  const jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
-  const jsonStr = jsonMatch ? jsonMatch[1] : text;
-  return JSON.parse(jsonStr.trim());
+  // Step 1: Strip markdown code fences
+  let cleaned = text
+    .replace(/```json\s*/gi, "")
+    .replace(/```\s*/g, "")
+    .trim();
+
+  // Step 2: Find JSON boundaries
+  const startChar = cleaned.search(/[\{\[]/);
+  if (startChar === -1) throw new Error("No JSON object found in AI response");
+
+  const opener = cleaned[startChar];
+  const closer = opener === "[" ? "]" : "}";
+  const lastClose = cleaned.lastIndexOf(closer);
+
+  if (lastClose > startChar) {
+    cleaned = cleaned.substring(startChar, lastClose + 1);
+  } else {
+    // JSON may be truncated — take from start and try to repair
+    cleaned = cleaned.substring(startChar);
+  }
+
+  // Step 3: Clean control characters and trailing commas
+  cleaned = cleaned
+    .replace(/[\x00-\x1F\x7F]/g, " ")  // control chars → spaces
+    .replace(/,\s*}/g, "}")
+    .replace(/,\s*]/g, "]");
+
+  // Step 4: Try to parse
+  try {
+    return JSON.parse(cleaned);
+  } catch (_firstErr) {
+    // Step 5: Attempt to repair truncated JSON by closing open brackets
+    let repaired = cleaned;
+    const opens = (repaired.match(/{/g) || []).length;
+    const closes = (repaired.match(/}/g) || []).length;
+    const openBrackets = (repaired.match(/\[/g) || []).length;
+    const closeBrackets = (repaired.match(/]/g) || []).length;
+
+    // Remove any trailing partial key/value (after last comma)
+    repaired = repaired.replace(/,\s*"[^"]*"?\s*:?\s*"?[^"]*$/, "");
+
+    for (let i = 0; i < openBrackets - closeBrackets; i++) repaired += "]";
+    for (let i = 0; i < opens - closes; i++) repaired += "}";
+
+    // Clean again after repair
+    repaired = repaired.replace(/,\s*}/g, "}").replace(/,\s*]/g, "]");
+
+    return JSON.parse(repaired);
+  }
 }
 
 serve(async (req) => {
