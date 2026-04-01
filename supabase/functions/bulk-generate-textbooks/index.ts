@@ -336,8 +336,8 @@ Make the content practical, motivating, and immediately useful for solo founders
       }
     }
 
-    // Count remaining courses without textbooks
-    const remainingCount = emptyCourses.length - 1; // Minus the one we just processed
+    // Count remaining courses
+    const remainingCount = targetCourses.length - 1; // Minus the one we just processed
 
     console.log(`Generated ${textbookData.chapters.length} chapters, ${totalPages} pages for "${targetCourse.title}"`);
 

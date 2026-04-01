@@ -10,9 +10,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { BookText, Loader2, CheckCircle, XCircle } from 'lucide-react';
+import { BookText, Loader2, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
 
 interface CourseResult {
   course: string;
