@@ -66,6 +66,7 @@ serve(async (req) => {
     // --- Parse request ---
     const body = await req.json();
     const requestedCourseId = body.courseId;
+    const force = body.force === true; // Force regenerate existing textbooks
 
     // --- Use service role for DB writes ---
     const serviceClient = createClient(
@@ -96,8 +97,10 @@ serve(async (req) => {
       courseChapterMap.set(c.course_id, (courseChapterMap.get(c.course_id) || 0) + 1);
     });
 
-    // Filter to courses with no chapters
-    const emptyCourses = allCourses.filter(c => !courseChapterMap.get(c.id));
+    // Filter to courses that need textbooks
+    const targetCourses = force
+      ? allCourses // Force mode: regenerate all courses
+      : allCourses.filter(c => !courseChapterMap.get(c.id)); // Normal: only empty courses
 
     // Pick the target course
     let targetCourse;
@@ -110,7 +113,7 @@ serve(async (req) => {
         );
       }
     } else {
-      targetCourse = emptyCourses[0];
+      targetCourse = targetCourses[0];
     }
 
     if (!targetCourse) {
@@ -118,6 +121,24 @@ serve(async (req) => {
         JSON.stringify({ message: "All courses already have textbook content!", processed: 0, remaining: 0 }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
+    }
+
+    // If force mode, delete existing chapters & pages for this course first
+    if (force && courseChapterMap.get(targetCourse.id)) {
+      console.log(`Force mode: deleting existing textbook for "${targetCourse.title}"`);
+      // Get chapter IDs first
+      const { data: existingChapters } = await serviceClient
+        .from("textbook_chapters")
+        .select("id")
+        .eq("course_id", targetCourse.id);
+      
+      if (existingChapters?.length) {
+        const chapterIds = existingChapters.map((c: any) => c.id);
+        // Delete pages, then chapters
+        await serviceClient.from("textbook_pages").delete().in("chapter_id", chapterIds);
+        await serviceClient.from("textbook_chapter_objectives").delete().in("chapter_id", chapterIds);
+        await serviceClient.from("textbook_chapters").delete().eq("course_id", targetCourse.id);
+      }
     }
 
     // --- Also get lesson titles for context ---
@@ -139,12 +160,42 @@ serve(async (req) => {
 
 Generate a complete textbook with 3 chapters, each containing 4-5 pages of rich educational content.
 
-IMPORTANT FORMAT RULES:
-- Each page should be 300-500 words of markdown content
-- Use ## headers for sections, **bold** for key terms, bullet points for lists
-- Include practical examples, case studies, and actionable tips
-- Make content engaging and directly applicable to solo entrepreneurship
+IMPORTANT FORMAT RULES — USE RICH MARKDOWN:
+- Start each page with a ## heading for the page title
+- Use ### subheadings to break content into clear sections
+- Use **bold** for key terms and important concepts
+- Use bullet points and numbered lists liberally for steps, tips, and examples
+- Include > blockquotes for "Pro Tips", real-world insights, or motivational callouts (prefix with > 💡 **Pro Tip:** or > 📌 **Key Insight:** or > 🎯 **Action Item:**)
+- Use --- horizontal rules between major sections for visual separation
+- Each page should be 400-600 words of markdown content
+- Include practical examples, mini case studies, and actionable advice
+- Make content engaging, conversational, and directly applicable to solo entrepreneurship
 - At least 2 pages per chapter should have an embedded quiz
+
+EXAMPLE PAGE STRUCTURE:
+## Understanding Your Target Market
+
+Every successful solo business starts with one critical question...
+
+### Why Market Research Matters
+
+> 💡 **Pro Tip:** You don't need expensive tools to research your market. Start with free resources like Google Trends, Reddit communities, and social media groups.
+
+Here are the **three pillars** of effective market research:
+
+1. **Demographics** — Who are your potential customers?
+2. **Psychographics** — What motivates them to buy?
+3. **Behavior patterns** — Where do they spend time online?
+
+---
+
+### Putting It Into Practice
+
+- Start by listing 5 communities where your ideal customer hangs out
+- Spend 30 minutes reading their questions and complaints
+- Document the **exact words** they use to describe their problems
+
+> 🎯 **Action Item:** Create a simple spreadsheet tracking customer pain points you discover this week.
 
 For interactive elements, you may optionally include:
 - [SCRAMBLE: keyword | hint about the word] — creates a word scramble game
@@ -157,7 +208,7 @@ Return ONLY valid JSON in this exact format:
       "title": "Chapter Title",
       "pages": [
         {
-          "content": "Full markdown content for this page...",
+          "content": "Full rich markdown content for this page...",
           "embedded_quiz": null
         },
         {
@@ -285,8 +336,8 @@ Make the content practical, motivating, and immediately useful for solo founders
       }
     }
 
-    // Count remaining courses without textbooks
-    const remainingCount = emptyCourses.length - 1; // Minus the one we just processed
+    // Count remaining courses
+    const remainingCount = targetCourses.length - 1; // Minus the one we just processed
 
     console.log(`Generated ${textbookData.chapters.length} chapters, ${totalPages} pages for "${targetCourse.title}"`);
 

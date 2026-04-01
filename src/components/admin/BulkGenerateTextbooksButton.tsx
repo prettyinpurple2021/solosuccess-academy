@@ -10,9 +10,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { BookText, Loader2, CheckCircle, XCircle } from 'lucide-react';
+import { BookText, Loader2, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
 
 interface CourseResult {
   course: string;
@@ -24,6 +26,7 @@ interface CourseResult {
 
 export function BulkGenerateTextbooksButton() {
   const [isRunning, setIsRunning] = useState(false);
+  const [forceRegenerate, setForceRegenerate] = useState(false);
   const [results, setResults] = useState<CourseResult[]>([]);
   const [remaining, setRemaining] = useState<number | null>(null);
   const { toast } = useToast();
@@ -38,7 +41,7 @@ export function BulkGenerateTextbooksButton() {
     try {
       while (true) {
         const { data, error } = await supabase.functions.invoke('bulk-generate-textbooks', {
-          body: {},
+          body: { force: forceRegenerate },
         });
 
         if (error) {
@@ -106,7 +109,7 @@ export function BulkGenerateTextbooksButton() {
     } finally {
       setIsRunning(false);
     }
-  }, [toast]);
+  }, [toast, forceRegenerate]);
 
   const successCount = results.filter(r => r.status === 'success').length;
   const totalChapters = results.reduce((sum, r) => sum + r.chaptersCreated, 0);
@@ -141,6 +144,11 @@ export function BulkGenerateTextbooksButton() {
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Generating...
               </>
+            ) : forceRegenerate ? (
+              <>
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Regenerate All Textbooks
+              </>
             ) : (
               <>
                 <BookText className="mr-2 h-4 w-4" />
@@ -148,6 +156,19 @@ export function BulkGenerateTextbooksButton() {
               </>
             )}
           </Button>
+        </div>
+
+        {/* Force regenerate toggle */}
+        <div className="flex items-center gap-2 px-1">
+          <Switch
+            id="force-textbook-regen"
+            checked={forceRegenerate}
+            onCheckedChange={setForceRegenerate}
+            disabled={isRunning}
+          />
+          <Label htmlFor="force-textbook-regen" className="text-xs text-muted-foreground cursor-pointer">
+            Force Regenerate — overwrite existing textbooks with rich markdown
+          </Label>
         </div>
 
         {(isRunning || results.length > 0) && (
