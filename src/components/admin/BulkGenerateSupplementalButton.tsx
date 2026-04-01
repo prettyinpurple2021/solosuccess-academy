@@ -2,35 +2,31 @@
  * @file BulkGenerateSupplementalButton.tsx — Bulk Quiz/Worksheet/Activity Generator
  *
  * PURPOSE: Admin button that generates quiz_data, worksheet_data, and activity_data
- * for all text-type lessons that are currently missing supplemental content.
- * Processes 2 lessons per batch (each generating 3 AI items = 6 AI calls per batch).
- *
- * HOW IT WORKS:
- * 1. Admin clicks "Bulk Generate Supplemental Content"
- * 2. Calls the bulk-generate-supplemental edge function in a loop
- * 3. Each call generates quiz + worksheet + activity for up to 2 lessons
- * 4. Progress bar tracks how many lessons are done vs. remaining
- * 5. Automatically stops when all lessons have supplemental content
+ * for all lessons. Supports a "Force Regenerate" toggle to overwrite existing
+ * content with richer, higher-quality versions.
  */
 import { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { ClipboardList, Loader2, CheckCircle, XCircle } from 'lucide-react';
+import { ClipboardList, Loader2, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
 
 interface LessonResult {
   id: string;
   title: string;
   status: 'success' | 'error';
-  generated?: string[]; // e.g. ['quiz', 'worksheet', 'activity']
+  generated?: string[];
   error?: string;
 }
 
 export function BulkGenerateSupplementalButton() {
   const [isRunning, setIsRunning] = useState(false);
+  const [forceRegenerate, setForceRegenerate] = useState(false);
   const [results, setResults] = useState<LessonResult[]>([]);
   const [remaining, setRemaining] = useState<number | null>(null);
   const [totalProcessed, setTotalProcessed] = useState(0);
@@ -44,12 +40,13 @@ export function BulkGenerateSupplementalButton() {
 
     let totalDone = 0;
     let consecutiveErrors = 0;
+    let processedIds: string[] = [];
 
     try {
       // Loop until all lessons have supplemental content
       while (true) {
         const { data, error } = await supabase.functions.invoke('bulk-generate-supplemental', {
-          body: {},
+          body: { force: forceRegenerate, processedIds },
         });
 
         if (error) {
@@ -63,14 +60,16 @@ export function BulkGenerateSupplementalButton() {
             });
             break;
           }
-          // Wait before retrying on error
           await new Promise(r => setTimeout(r, 5000));
           continue;
         }
 
         consecutiveErrors = 0;
 
-        const { processed, remaining: rem, results: batchResults } = data;
+        const { processed, remaining: rem, results: batchResults, processedIds: newIds } = data;
+
+        // Track processed IDs for force mode
+        if (newIds) processedIds = newIds;
 
         // Add batch results to the live log
         if (batchResults) {
@@ -91,7 +90,6 @@ export function BulkGenerateSupplementalButton() {
         }
 
         // Wait between batches to avoid AI rate limits
-        // Each batch has 6 AI calls so we give it a few seconds
         await new Promise(r => setTimeout(r, 4000));
       }
     } catch (err) {
@@ -104,7 +102,7 @@ export function BulkGenerateSupplementalButton() {
     } finally {
       setIsRunning(false);
     }
-  }, [toast]);
+  }, [toast, forceRegenerate]);
 
   const successCount = results.filter(r => r.status === 'success').length;
   const errorCount = results.filter(r => r.status === 'error').length;
@@ -128,7 +126,7 @@ export function BulkGenerateSupplementalButton() {
             <div>
               <h3 className="font-semibold">Bulk Generate Quizzes, Worksheets & Activities</h3>
               <p className="text-sm text-muted-foreground">
-                AI-generate supplemental content for all text lessons missing them (2 at a time)
+                AI-generate supplemental content for all lessons {forceRegenerate ? '(overwriting existing)' : 'missing them'}
               </p>
             </div>
           </div>
@@ -142,6 +140,11 @@ export function BulkGenerateSupplementalButton() {
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Generating...
               </>
+            ) : forceRegenerate ? (
+              <>
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Regenerate All
+              </>
             ) : (
               <>
                 <ClipboardList className="mr-2 h-4 w-4" />
@@ -149,6 +152,19 @@ export function BulkGenerateSupplementalButton() {
               </>
             )}
           </Button>
+        </div>
+
+        {/* Force regenerate toggle */}
+        <div className="flex items-center gap-2 px-1">
+          <Switch
+            id="force-supplemental-regen"
+            checked={forceRegenerate}
+            onCheckedChange={setForceRegenerate}
+            disabled={isRunning}
+          />
+          <Label htmlFor="force-supplemental-regen" className="text-xs text-muted-foreground cursor-pointer">
+            Force Regenerate — overwrite existing quizzes, worksheets & activities with richer content
+          </Label>
         </div>
 
         {/* Progress section — only visible during/after generation */}

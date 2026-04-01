@@ -1,13 +1,13 @@
 /**
  * @file bulk-generate-supplemental/index.ts — Batch Supplemental Content Generator
  *
- * PURPOSE: For text-type lessons that already have content but are MISSING
- * quiz_data, worksheet_data, or activity_data, this function generates all
- * three supplemental items per lesson in a single batch call.
+ * PURPOSE: For lessons that are MISSING quiz_data, worksheet_data, or activity_data,
+ * this function generates all three supplemental items per lesson in a single batch call.
+ * Supports a "force" flag to regenerate existing content with richer quality.
  *
  * HOW IT WORKS:
  * 1. Admin triggers the function from the AdminDashboard
- * 2. Finds up to BATCH_SIZE text lessons missing any supplemental data
+ * 2. Finds up to BATCH_SIZE lessons missing any supplemental data (or all if force=true)
  * 3. For each lesson, generates quiz + worksheet + activity via AI
  * 4. Saves all three to the lessons table
  * 5. Returns remaining count so the client can loop until done
@@ -17,7 +17,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
 import { getCorsHeaders, corsResponse } from "../_shared/cors.ts";
 
-// Process 1 lesson per call (generates 3 AI requests = 3 total per call) to avoid timeouts
+// Process 1 lesson per call (generates 3 AI requests) to avoid timeouts
 const BATCH_SIZE = 1;
 
 /** Call the Lovable AI gateway and return the raw text response */
@@ -35,7 +35,7 @@ async function callAI(apiKey: string, system: string, user: string): Promise<str
         { role: "user", content: user },
       ],
       temperature: 0.7,
-      max_tokens: 3000,
+      max_tokens: 4000,
     }),
   });
 
@@ -64,11 +64,14 @@ serve(async (req) => {
   }
 
   try {
-    // Auth temporarily bypassed for bulk generation run
-    // TODO: Re-enable admin auth check after bulk generation is complete
-
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
+
+    // --- Parse request body ---
+    const body = await req.json().catch(() => ({}));
+    const force = body.force === true;
+    // Track already-processed lesson IDs to avoid re-processing in the same loop
+    const processedIds: string[] = body.processedIds || [];
 
     // --- Use service role for DB reads/writes ---
     const serviceClient = createClient(
@@ -76,36 +79,33 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // --- Find text-type lessons missing supplemental content ---
-    // A lesson needs supplemental work if it's missing quiz_data OR worksheet_data OR activity_data
-    // Target ALL lesson types (text, quiz, assignment, activity) missing supplemental content
-    const { data: lessons, error: lessonsErr } = await serviceClient
+    // --- Find lessons needing supplemental content ---
+    let query = serviceClient
       .from("lessons")
       .select("id, title, type, content, course_id, quiz_data, worksheet_data, activity_data")
-      .eq("is_published", true)
-      .or("quiz_data.is.null,worksheet_data.is.null,activity_data.is.null")
-      .limit(BATCH_SIZE);
+      .eq("is_published", true);
 
+    // In normal mode, only find lessons missing supplemental data
+    if (!force) {
+      query = query.or("quiz_data.is.null,worksheet_data.is.null,activity_data.is.null");
+    }
+
+    // Exclude already-processed IDs so the loop makes progress
+    if (processedIds.length > 0) {
+      query = query.not("id", "in", `(${processedIds.join(",")})`);
+    }
+
+    const { data: lessons, error: lessonsErr } = await query.limit(BATCH_SIZE);
     if (lessonsErr) throw new Error(lessonsErr.message);
 
-    // Filter to lessons actually missing at least one supplemental item
-    const needsSupplemental = (lessons || []).filter(
-      (l: any) => !l.quiz_data || !l.worksheet_data || !l.activity_data
+    // Filter to lessons that actually need work
+    const needsSupplemental = (lessons || []).filter((l: any) =>
+      force ? true : (!l.quiz_data || !l.worksheet_data || !l.activity_data)
     );
 
     if (needsSupplemental.length === 0) {
-      // Count total remaining across all courses
-      const { data: allLessons } = await serviceClient
-        .from("lessons")
-        .select("id, quiz_data, worksheet_data, activity_data")
-        .eq("is_published", true);
-
-      const remaining = (allLessons || []).filter(
-        (l: any) => !l.quiz_data || !l.worksheet_data || !l.activity_data
-      ).length;
-
       return new Response(
-        JSON.stringify({ message: "No lessons need supplemental content", processed: 0, remaining }),
+        JSON.stringify({ message: "No lessons need supplemental content", processed: 0, remaining: 0, processedIds }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -120,34 +120,54 @@ serve(async (req) => {
     const courseMap = Object.fromEntries((courses || []).map((c: any) => [c.id, c]));
 
     const results: any[] = [];
+    const newProcessedIds = [...processedIds];
 
     for (const lesson of needsSupplemental) {
       const course = courseMap[lesson.course_id] || { title: "SoloSuccess Academy", description: "" };
 
-      // Truncate content to first 1000 chars as context (saves tokens)
-      const contentSnippet = (lesson.content || "").substring(0, 1000);
+      // Truncate content to first 1500 chars as context
+      const contentSnippet = (lesson.content || "").substring(0, 1500);
 
       const updatePayload: any = { updated_at: new Date().toISOString() };
       const generated: string[] = [];
 
-      // --- Generate QUIZ (if missing) ---
-      if (!lesson.quiz_data) {
+      // --- Generate QUIZ (if missing or force mode) ---
+      if (!lesson.quiz_data || force) {
         try {
           const quizText = await callAI(
             LOVABLE_API_KEY,
-            `You are an expert educational content creator for SoloSuccess Academy. Generate a quiz as a JSON object with this exact structure:
-{"questions":[{"question":"...","options":["A) ...","B) ...","C) ...","D) ..."],"correctIndex":0,"explanation":"..."}]}
-Include exactly 5 questions. Questions must test practical understanding of the lesson content. Return ONLY valid JSON, no markdown.`,
+            `You are an expert educational content creator for SoloSuccess Academy. Generate a high-quality quiz that tests practical understanding.
+
+IMPORTANT: Create engaging, scenario-based questions that go beyond simple recall. Include real-world situations a solo entrepreneur would face.
+
+Return ONLY valid JSON in this exact structure:
+{
+  "questions": [
+    {
+      "question": "Scenario-based question that tests applied knowledge...",
+      "options": ["A) First option", "B) Second option", "C) Third option", "D) Fourth option"],
+      "correctIndex": 0,
+      "explanation": "Detailed explanation of WHY this is correct, with a practical tip the student can use immediately."
+    }
+  ]
+}
+
+RULES:
+- Exactly 5 questions
+- Mix question types: 2 scenario-based, 1 "which is NOT", 1 best-practice, 1 definition/concept
+- Explanations should be 2-3 sentences with actionable insight
+- Options should be plausible — avoid obviously wrong answers
+- Return ONLY valid JSON, no markdown wrapping`,
             `Create a 5-question quiz for the lesson "${lesson.title}" in the course "${course.title}".
 Course description: ${course.description}
 Lesson content excerpt: ${contentSnippet}
-Focus on practical, actionable knowledge for solo entrepreneurs.`
+
+Make questions test APPLIED knowledge — what would a solo founder actually DO with this information?`
           );
           try {
             updatePayload.quiz_data = extractJSON(quizText);
             generated.push("quiz");
           } catch {
-            // Store raw if JSON parse fails — better than nothing
             updatePayload.quiz_data = { raw: quizText };
             generated.push("quiz(raw)");
           }
@@ -159,18 +179,44 @@ Focus on practical, actionable knowledge for solo entrepreneurs.`
       // Small delay between AI calls to avoid rate limiting
       await new Promise(r => setTimeout(r, 500));
 
-      // --- Generate WORKSHEET (if missing) ---
-      if (!lesson.worksheet_data) {
+      // --- Generate WORKSHEET (if missing or force mode) ---
+      if (!lesson.worksheet_data || force) {
         try {
           const worksheetText = await callAI(
             LOVABLE_API_KEY,
-            `You are an expert educational content creator for SoloSuccess Academy. Generate a worksheet as a JSON object with this exact structure:
-{"title":"...","instructions":"...","sections":[{"title":"...","description":"...","exercises":[{"type":"text","prompt":"...","hints":"..."}]}]}
-Include 2-3 sections, each with 2-3 exercises. Exercises should be practical and help students apply the lesson immediately. Return ONLY valid JSON, no markdown.`,
-            `Create a practical worksheet for the lesson "${lesson.title}" in the course "${course.title}".
+            `You are an expert educational content creator for SoloSuccess Academy. Generate a rich, practical worksheet.
+
+Return ONLY valid JSON in this exact structure:
+{
+  "title": "Worksheet title related to the lesson",
+  "instructions": "Clear 2-3 sentence overview of what the student will accomplish. Include a motivating statement.",
+  "sections": [
+    {
+      "title": "Section Title (action-oriented, e.g. 'Map Your Target Audience')",
+      "description": "Brief explanation of why this section matters and what they'll create.",
+      "exercises": [
+        {
+          "type": "text",
+          "prompt": "Detailed, specific prompt that guides the student step-by-step. Include an example of what a good answer looks like.",
+          "hints": "💡 Pro tip or helpful hint to get started"
+        }
+      ]
+    }
+  ]
+}
+
+RULES:
+- 3 sections, each with 2-3 exercises
+- Each exercise prompt should be 2-4 sentences with specific guidance
+- Include at least one exercise per section that asks the student to create something tangible (a list, a draft, a plan)
+- Hints should include emoji for visual appeal (💡, 🎯, 📌, ✅)
+- Section titles should be action verbs: "Define...", "Build...", "Analyze...", "Create..."
+- Return ONLY valid JSON, no markdown`,
+            `Create a hands-on worksheet for the lesson "${lesson.title}" in the course "${course.title}".
 Course description: ${course.description}
 Lesson content excerpt: ${contentSnippet}
-Make exercises immediately actionable for a solo entrepreneur.`
+
+The worksheet should help a solo entrepreneur BUILD something real — not just answer questions. Each exercise should produce a tangible output they can use in their business.`
           );
           try {
             updatePayload.worksheet_data = extractJSON(worksheetText);
@@ -186,18 +232,47 @@ Make exercises immediately actionable for a solo entrepreneur.`
 
       await new Promise(r => setTimeout(r, 500));
 
-      // --- Generate ACTIVITY (if missing) ---
-      if (!lesson.activity_data) {
+      // --- Generate ACTIVITY (if missing or force mode) ---
+      if (!lesson.activity_data || force) {
         try {
           const activityText = await callAI(
             LOVABLE_API_KEY,
-            `You are an expert educational content creator for SoloSuccess Academy. Generate a hands-on activity as a JSON object with this exact structure:
-{"title":"...","description":"...","objectives":["..."],"steps":[{"stepNumber":1,"title":"...","instructions":"...","duration":"...","deliverable":"..."}],"reflection":"..."}
-Include 3-5 steps. Make it a 30-60 minute hands-on activity a solo founder can complete today. Return ONLY valid JSON, no markdown.`,
-            `Create a hands-on activity for the lesson "${lesson.title}" in the course "${course.title}".
+            `You are an expert educational content creator for SoloSuccess Academy. Generate an engaging, hands-on activity.
+
+Return ONLY valid JSON in this exact structure:
+{
+  "title": "Engaging activity title (action-oriented)",
+  "description": "2-3 sentence overview of what the student will accomplish. Be motivating and specific about the outcome.",
+  "objectives": [
+    "By the end, you'll have [specific tangible outcome]",
+    "You'll understand [key concept] well enough to [apply it]",
+    "You'll create [deliverable] you can use immediately"
+  ],
+  "steps": [
+    {
+      "stepNumber": 1,
+      "title": "Action-Oriented Step Title",
+      "instructions": "Detailed 3-5 sentence instructions. Be specific about WHAT to do, HOW to do it, and what a good result looks like. Include an example if helpful.",
+      "duration": "10 minutes",
+      "deliverable": "What the student should have after completing this step"
+    }
+  ],
+  "reflection": "2-3 thoughtful reflection questions that help the student connect this activity to their business goals. Format as: 1) Question one? 2) Question two? 3) Question three?"
+}
+
+RULES:
+- 4-5 steps, building progressively (each step builds on the previous)
+- Total duration: 30-60 minutes
+- Each step should produce something tangible
+- Include specific examples or templates in the instructions
+- The final step should be about putting it all together
+- Objectives should use measurable language
+- Return ONLY valid JSON, no markdown`,
+            `Create an immersive hands-on activity for the lesson "${lesson.title}" in the course "${course.title}".
 Course description: ${course.description}
 Lesson content excerpt: ${contentSnippet}
-Make it practical and immediately applicable for a solo entrepreneur.`
+
+This should be a REAL business exercise, not a theoretical one. The student should walk away with something they can use in their solo business TODAY.`
           );
           try {
             updatePayload.activity_data = extractJSON(activityText);
@@ -217,6 +292,8 @@ Make it practical and immediately applicable for a solo entrepreneur.`
         .update(updatePayload)
         .eq("id", lesson.id);
 
+      newProcessedIds.push(lesson.id);
+
       if (updateErr) {
         results.push({ id: lesson.id, title: lesson.title, status: "error", error: updateErr.message });
       } else {
@@ -230,21 +307,32 @@ Make it practical and immediately applicable for a solo entrepreneur.`
     }
 
     // --- Count remaining lessons that still need supplemental content ---
-    const { data: allRemaining } = await serviceClient
-      .from("lessons")
-      .select("id, quiz_data, worksheet_data, activity_data")
-      .eq("is_published", true);
-
-    const remaining = (allRemaining || []).filter(
-      (l: any) => !l.quiz_data || !l.worksheet_data || !l.activity_data
-    ).length;
+    let remainingCount = 0;
+    if (force) {
+      // In force mode, count total published lessons minus processed ones
+      const { count } = await serviceClient
+        .from("lessons")
+        .select("id", { count: "exact", head: true })
+        .eq("is_published", true)
+        .not("id", "in", `(${newProcessedIds.join(",")})`);
+      remainingCount = count || 0;
+    } else {
+      const { data: allRemaining } = await serviceClient
+        .from("lessons")
+        .select("id, quiz_data, worksheet_data, activity_data")
+        .eq("is_published", true);
+      remainingCount = (allRemaining || []).filter(
+        (l: any) => !l.quiz_data || !l.worksheet_data || !l.activity_data
+      ).length;
+    }
 
     return new Response(
       JSON.stringify({
         message: `Processed ${results.length} lessons`,
         processed: results.length,
-        remaining,
+        remaining: remainingCount,
         results,
+        processedIds: newProcessedIds,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
