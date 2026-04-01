@@ -3,6 +3,9 @@
  * 
  * Showcases who the academy is for and the key platform
  * capabilities in chamfered data-card style.
+ * 
+ * NOTE: Tailwind classes must be written in full (not dynamic template strings)
+ * so the JIT compiler can detect them during the build.
  */
 import {
   Brain,
@@ -14,12 +17,40 @@ import {
   GraduationCap,
 } from 'lucide-react';
 
-/** Target audience personas */
+/** Target audience personas with full Tailwind class strings */
 const audiences = [
-  { icon: Lightbulb, title: 'First-Time Founders', desc: 'New to entrepreneurship? Learn the complete journey from idea validation to your first paying customer.', color: 'primary' },
-  { icon: Briefcase, title: 'Side Hustlers', desc: 'Building alongside a day job? Self-paced learning with lifetime access fits your busy schedule.', color: 'secondary' },
-  { icon: GraduationCap, title: 'Career Changers', desc: 'Transitioning from corporate? Graduate with a professional portfolio and investor-ready pitch.', color: 'accent' },
-  { icon: Users, title: 'Indie Hackers', desc: 'Already building? Fill the gaps in your knowledge with targeted courses on branding, sales, and automation.', color: 'primary' },
+  {
+    icon: Lightbulb,
+    title: 'First-Time Founders',
+    desc: 'New to entrepreneurship? Learn the complete journey from idea validation to your first paying customer.',
+    bgClass: 'bg-primary/10',
+    borderClass: 'border-primary/30',
+    iconClass: 'text-primary',
+  },
+  {
+    icon: Briefcase,
+    title: 'Side Hustlers',
+    desc: 'Building alongside a day job? Self-paced learning with lifetime access fits your busy schedule.',
+    bgClass: 'bg-secondary/10',
+    borderClass: 'border-secondary/30',
+    iconClass: 'text-secondary',
+  },
+  {
+    icon: GraduationCap,
+    title: 'Career Changers',
+    desc: 'Transitioning from corporate? Graduate with a professional portfolio and investor-ready pitch.',
+    bgClass: 'bg-accent/10',
+    borderClass: 'border-accent/30',
+    iconClass: 'text-accent',
+  },
+  {
+    icon: Users,
+    title: 'Indie Hackers',
+    desc: 'Already building? Fill the gaps in your knowledge with targeted courses on branding, sales, and automation.',
+    bgClass: 'bg-primary/10',
+    borderClass: 'border-primary/30',
+    iconClass: 'text-primary',
+  },
 ] as const;
 
 /** Platform feature highlights */
@@ -32,53 +63,53 @@ const features = [
 
 export function FeaturesSection() {
   return (
-    <section id="features" className="py-24 relative nebula-section">
-      <div className="cosmic-divider mb-16" />
+    <section id="features" className="py-20 md:py-24 relative nebula-section">
+      <div className="cosmic-divider mb-12 md:mb-16" />
 
-      <div className="container relative">
+      <div className="container relative px-4 sm:px-6">
         {/* Section heading */}
-        <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-display font-bold mb-6">
+        <div className="text-center mb-12 md:mb-16">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-display font-bold mb-4 md:mb-6">
             <span className="text-gradient-pink animate-neon-glow inline-block">DESIGNED FOR</span>
             <br />
             <span className="text-foreground font-heading">AMBITIOUS SOLO FOUNDERS</span>
           </h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
+          <p className="text-muted-foreground max-w-2xl mx-auto text-base md:text-lg leading-relaxed">
             Whether you're just starting out or scaling your existing business,
             this academy is built for founders who want to do it all themselves.
           </p>
         </div>
 
-        {/* Audience cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+        {/* Audience cards — 2-col on mobile for better density */}
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-12 md:mb-16">
           {audiences.map((item) => (
-            <div key={item.title} className="data-card p-6 group cursor-default nebula-glow-hover">
-              <div className={`h-14 w-14 rounded-xl bg-${item.color}/10 border border-${item.color}/30 flex items-center justify-center mb-4 transition-all duration-300`}>
-                <item.icon className={`h-7 w-7 text-${item.color}`} />
+            <div key={item.title} className="data-card p-4 sm:p-6 group cursor-default nebula-glow-hover">
+              <div className={`h-11 w-11 sm:h-14 sm:w-14 rounded-xl ${item.bgClass} border ${item.borderClass} flex items-center justify-center mb-3 sm:mb-4 transition-all duration-300`}>
+                <item.icon className={`h-5 w-5 sm:h-7 sm:w-7 ${item.iconClass}`} />
               </div>
-              <h3 className="text-xl font-heading font-semibold text-foreground mb-2">{item.title}</h3>
-              <p className="text-muted-foreground text-sm">{item.desc}</p>
+              <h3 className="text-sm sm:text-xl font-heading font-semibold text-foreground mb-1 sm:mb-2">{item.title}</h3>
+              <p className="text-muted-foreground text-xs sm:text-sm leading-relaxed">{item.desc}</p>
             </div>
           ))}
         </div>
 
         {/* Features heading */}
-        <div className="text-center mb-12">
-          <h3 className="text-3xl font-display font-bold mb-4 text-foreground">Platform Features</h3>
-          <p className="text-muted-foreground max-w-xl mx-auto">
+        <div className="text-center mb-8 md:mb-12">
+          <h3 className="text-2xl md:text-3xl font-display font-bold mb-3 md:mb-4 text-foreground">Platform Features</h3>
+          <p className="text-muted-foreground max-w-xl mx-auto text-sm md:text-base">
             Everything you need to succeed, built into one powerful learning platform.
           </p>
         </div>
 
-        {/* Feature cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Feature cards — 2-col on mobile */}
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
           {features.map((feature) => (
-            <div key={feature.title} className="data-card p-6 group cursor-default nebula-glow-hover">
-              <div className="h-14 w-14 rounded-xl bg-primary/10 border border-primary/30 flex items-center justify-center mb-4 transition-all duration-300">
-                <feature.icon className="h-7 w-7 text-primary" />
+            <div key={feature.title} className="data-card p-4 sm:p-6 group cursor-default nebula-glow-hover">
+              <div className="h-11 w-11 sm:h-14 sm:w-14 rounded-xl bg-primary/10 border border-primary/30 flex items-center justify-center mb-3 sm:mb-4 transition-all duration-300">
+                <feature.icon className="h-5 w-5 sm:h-7 sm:w-7 text-primary" />
               </div>
-              <h3 className="text-xl font-heading font-semibold text-foreground mb-2">{feature.title}</h3>
-              <p className="text-muted-foreground text-sm">{feature.description}</p>
+              <h3 className="text-sm sm:text-xl font-heading font-semibold text-foreground mb-1 sm:mb-2">{feature.title}</h3>
+              <p className="text-muted-foreground text-xs sm:text-sm leading-relaxed">{feature.description}</p>
             </div>
           ))}
         </div>
