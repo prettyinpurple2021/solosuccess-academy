@@ -26,6 +26,7 @@ interface CourseResult {
 
 export function BulkGenerateTextbooksButton() {
   const [isRunning, setIsRunning] = useState(false);
+  const [forceRegenerate, setForceRegenerate] = useState(false);
   const [results, setResults] = useState<CourseResult[]>([]);
   const [remaining, setRemaining] = useState<number | null>(null);
   const { toast } = useToast();
