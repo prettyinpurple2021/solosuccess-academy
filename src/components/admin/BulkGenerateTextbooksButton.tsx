@@ -144,6 +144,11 @@ export function BulkGenerateTextbooksButton() {
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Generating...
               </>
+            ) : forceRegenerate ? (
+              <>
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Regenerate All Textbooks
+              </>
             ) : (
               <>
                 <BookText className="mr-2 h-4 w-4" />
@@ -151,6 +156,19 @@ export function BulkGenerateTextbooksButton() {
               </>
             )}
           </Button>
+        </div>
+
+        {/* Force regenerate toggle */}
+        <div className="flex items-center gap-2 px-1">
+          <Switch
+            id="force-textbook-regen"
+            checked={forceRegenerate}
+            onCheckedChange={setForceRegenerate}
+            disabled={isRunning}
+          />
+          <Label htmlFor="force-textbook-regen" className="text-xs text-muted-foreground cursor-pointer">
+            Force Regenerate — overwrite existing textbooks with rich markdown
+          </Label>
         </div>
 
         {(isRunning || results.length > 0) && (
