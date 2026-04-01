@@ -29,13 +29,13 @@ async function callAI(apiKey: string, system: string, user: string): Promise<str
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: "google/gemini-3-flash-preview",
+      model: "google/gemini-2.5-flash",
       messages: [
         { role: "system", content: system },
         { role: "user", content: user },
       ],
       temperature: 0.7,
-      max_tokens: 4000,
+      max_tokens: 8000,
     }),
   });
 
