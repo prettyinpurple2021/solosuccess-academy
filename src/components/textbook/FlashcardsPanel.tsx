@@ -166,7 +166,7 @@ export function FlashcardsPanel({ courseId, highlights, pageContents }: Flashcar
     <>
       <Sheet>
         <SheetTrigger asChild>
-          <Button variant="outline" size="icon" className="relative">
+          <Button variant="ghost" size="icon" className="relative hover:bg-primary/20 text-foreground">
             <Brain className="h-4 w-4" />
             {dueCards.length > 0 && (
               <Badge 
