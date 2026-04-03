@@ -544,7 +544,7 @@ export function TextbookViewer({ courseId, courseName }: TextbookViewerProps) {
           {/* Table of Contents */}
           <Sheet>
             <SheetTrigger asChild>
-              <Button variant="outline" size="icon" className="border-primary/30 hover:bg-primary/20 hover:border-primary">
+              <Button variant="ghost" size="icon" className="hover:bg-primary/20 text-foreground">
                 <List className="h-4 w-4" />
               </Button>
             </SheetTrigger>
