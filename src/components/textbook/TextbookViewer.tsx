@@ -682,20 +682,20 @@ export function TextbookViewer({ courseId, courseName }: TextbookViewerProps) {
       {/* Book with touch gesture support */}
       <ContentTransition>
         <div 
-          className="relative w-full max-w-5xl" 
+          className="relative w-full max-w-7xl" 
           style={{ perspective: '2000px' }}
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >
           <HTMLFlipBook
             ref={bookRef}
-            width={800}
-            height={680}
+            width={1200}
+            height={750}
             size="stretch"
-            minWidth={400}
-            maxWidth={1000}
-            minHeight={450}
-            maxHeight={800}
+            minWidth={500}
+            maxWidth={1800}
+            minHeight={500}
+            maxHeight={1000}
             showCover={false}
             mobileScrollSupport={true}
             onFlip={handleFlip}
