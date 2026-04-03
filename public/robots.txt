@@ -13,4 +13,4 @@ Allow: /
 User-agent: *
 Allow: /
 
-Sitemap: https://indie-blossom-lab.lovable.app/sitemap.xml
+Sitemap: https://solosuccessacademy.cloud/sitemap.xml
