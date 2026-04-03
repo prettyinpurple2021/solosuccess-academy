@@ -689,13 +689,13 @@ export function TextbookViewer({ courseId, courseName }: TextbookViewerProps) {
         >
           <HTMLFlipBook
             ref={bookRef}
-            width={700}
-            height={850}
+            width={800}
+            height={680}
             size="stretch"
-            minWidth={350}
-            maxWidth={900}
-            minHeight={500}
-            maxHeight={1000}
+            minWidth={400}
+            maxWidth={1000}
+            minHeight={450}
+            maxHeight={800}
             showCover={false}
             mobileScrollSupport={true}
             onFlip={handleFlip}
