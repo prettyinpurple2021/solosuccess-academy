@@ -74,10 +74,10 @@ export function VocabularyGlossary({ terms, className }: VocabularyGlossaryProps
       <SheetTrigger asChild>
         {/* Glossary button in the toolbar */}
         <Button
-          variant="outline"
+          variant="ghost"
           size="icon"
           className={cn(
-            'border-primary/30 hover:bg-primary/20 hover:border-primary',
+            'hover:bg-primary/20 text-foreground',
             className
           )}
           title="Vocabulary Glossary"

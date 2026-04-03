@@ -42,45 +42,43 @@ export default function Textbook() {
   }
 
   return (
-    <div className="flex-1 py-8">
-      <div className="container">
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-          <CourseBreadcrumb
-            segments={[
-              { label: course.title, href: `/courses/${courseId}` },
-              { label: 'Textbook' },
-            ]}
-            className="flex-1 min-w-0"
-          />
-          {user?.id && courseId && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={async () => {
-                try {
-                  await setContinueLater.mutateAsync({
-                    userId: user.id,
-                    courseId,
-                    lessonId: null,
-                    textbookPage: null,
-                  });
-                  toast({ title: 'Saved!', description: 'Textbook is set as your continue point. Find it on your Dashboard.' });
-                } catch {
-                  toast({ title: 'Could not save', variant: 'destructive' });
-                }
-              }}
-              disabled={setContinueLater.isPending}
-              className="gap-2 border-primary/30 hover:bg-primary/10"
-            >
-              <Bookmark className="h-4 w-4" />
-              Continue later
-            </Button>
-          )}
-        </div>
-
-        {/* Textbook Viewer */}
-        <TextbookViewer courseId={courseId!} courseName={course.title} />
+    <div className="flex-1 py-4 px-4">
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+        <CourseBreadcrumb
+          segments={[
+            { label: course.title, href: `/courses/${courseId}` },
+            { label: 'Textbook' },
+          ]}
+          className="flex-1 min-w-0"
+        />
+        {user?.id && courseId && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={async () => {
+              try {
+                await setContinueLater.mutateAsync({
+                  userId: user.id,
+                  courseId,
+                  lessonId: null,
+                  textbookPage: null,
+                });
+                toast({ title: 'Saved!', description: 'Textbook is set as your continue point. Find it on your Dashboard.' });
+              } catch {
+                toast({ title: 'Could not save', variant: 'destructive' });
+              }
+            }}
+            disabled={setContinueLater.isPending}
+            className="gap-2 border-primary/30 hover:bg-primary/10"
+          >
+            <Bookmark className="h-4 w-4" />
+            Continue later
+          </Button>
+        )}
       </div>
+
+      {/* Textbook Viewer — full width, no container constraint */}
+      <TextbookViewer courseId={courseId!} courseName={course.title} />
     </div>
   );
 }

@@ -174,7 +174,7 @@ export function HighlightsPanel({ highlights, pageContents, onNavigateToPage }: 
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button variant="outline" size="icon" className="relative">
+        <Button variant="ghost" size="icon" className="relative hover:bg-primary/20 text-foreground">
           <Highlighter className="h-4 w-4" />
           {highlights.length > 0 && (
             <Badge 
