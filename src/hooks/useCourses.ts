@@ -91,9 +91,12 @@ export function useCourseLessons(courseId: string | undefined) {
     queryFn: async (): Promise<Lesson[]> => {
       if (!courseId) return [];
 
+      // Only fetch metadata columns needed for the course detail page.
+      // Content, quiz_data, etc. are fetched separately on the lesson viewer.
+      // This keeps the catalog page lightweight and avoids leaking full content.
       const { data, error } = await supabase
         .from('lessons')
-        .select('*')
+        .select('id, title, type, order_number, duration_minutes, course_id, is_published, created_at, updated_at, video_url')
         .eq('course_id', courseId)
         .order('order_number', { ascending: true });
 
