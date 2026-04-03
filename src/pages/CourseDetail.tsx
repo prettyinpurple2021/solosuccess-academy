@@ -159,7 +159,7 @@ export default function CourseDetail() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col cyber-bg">
+    <div className="cyber-bg">
       <PageMeta
         title={course.title}
         description={course.description ?? undefined}
