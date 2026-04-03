@@ -103,8 +103,8 @@ Courses exist in the database but lessons, textbook chapters, and project prompt
 |----------|-------|----------|-----------|
 | 🚨 Critical (blockers) | 6 | 6 | 0 |
 | ⚠️ High priority | 6 | 6 | 0 |
-| 🟡 Medium priority | 7 | 5 | 2 (Twitter handle, course content) |
-| 🔵 Low priority / polish | 5 | 4 | 1 (sitemap reference) |
+| 🟡 Medium priority | 7 | 6 | 1 (Twitter handle) |
+| 🔵 Low priority / polish | 5 | 5 | 0 |
 
 **Remaining actions before launch:**
 1. 👤 Populate course content (lessons, textbooks, projects)
