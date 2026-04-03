@@ -270,7 +270,7 @@ export const BookPage = forwardRef<HTMLDivElement, BookPageProps>(
         {/* Page content */}
         <div 
           ref={contentRef}
-          className="flex-1 overflow-auto prose prose-sm prose-invert max-w-none select-text"
+          className="flex-1 overflow-auto prose prose-base prose-invert max-w-none select-text"
           onMouseUp={handleMouseUp}
         >
           {renderedContent}
