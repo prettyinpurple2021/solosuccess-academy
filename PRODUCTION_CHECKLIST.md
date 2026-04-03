@@ -89,9 +89,8 @@ Courses exist in the database but lessons, textbook chapters, and project prompt
 ### 22. ✅ Route-Level Error Boundaries
 **Status:** Fixed — Every route wrapped in `<RouteErrorBoundary>`.
 
-### 23. 👤 `robots.txt` Sitemap Reference
-**File:** `public/robots.txt`  
-**Action needed after deploying:** Add `Sitemap: https://yourdomain.com/sitemap.xml`.
+### 23. ✅ `robots.txt` Sitemap Reference
+**Status:** Fixed — `robots.txt` and `sitemap.xml` updated with production domain `solosuccessacademy.cloud`.
 
 ### 24. ✅ PWA Package Removed
 **Status:** Fixed — Unused `vite-plugin-pwa` removed.
