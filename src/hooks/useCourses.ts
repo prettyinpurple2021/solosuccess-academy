@@ -96,7 +96,7 @@ export function useCourseLessons(courseId: string | undefined) {
       // This keeps the catalog page lightweight and avoids leaking full content.
       const { data, error } = await supabase
         .from('lessons')
-        .select('id, title, type, order_number, duration_minutes, course_id, is_published, created_at, updated_at, video_url')
+        .select('id, title, description, type, order_number, duration_minutes, course_id, is_published, created_at, updated_at, video_url')
         .eq('course_id', courseId)
         .order('order_number', { ascending: true });
 

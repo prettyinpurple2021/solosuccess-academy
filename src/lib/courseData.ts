@@ -120,6 +120,7 @@ export interface Lesson {
   course_id: string;                       // FK → courses.id
   order_number: number;                    // Determines display order within a course
   title: string;
+  description: string | null;              // Short preview blurb for course catalog
   type: LessonType;                        // Determines which viewer component renders
   content: string | null;                  // Markdown/HTML content for text lessons
   video_url: string | null;                // URL for video lessons (Supabase Storage)
