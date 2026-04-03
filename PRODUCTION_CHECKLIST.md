@@ -109,4 +109,3 @@ Courses exist in the database but lessons, textbook chapters, and project prompt
 **Remaining actions before launch:**
 1. 👤 Populate course content (lessons, textbooks, projects)
 2. 👤 Create real Twitter/X account and update handle
-3. 👤 Add sitemap reference to robots.txt after deploying with custom domain
