@@ -1,105 +1,61 @@
 
 
-## Comprehensive Project Review & Enhancement Plan
+# Project Knowledge Generation — SoloSuccess Academy T=0
 
-### Summary of Findings
+I'll create knowledge entries documenting the current state of all implemented features across the platform.
 
-After reviewing every page, component, hook, and edge function, the project is impressively complete. Here's what's working and what needs attention:
+## Knowledge Entries to Create
 
----
+### 1. **architecture/overview**
+Project architecture: React 18 + Vite 5 + Tailwind v3 + TypeScript 5 frontend with Lovable Cloud (Supabase) backend. Three route groups (Public, Protected, Admin) with code-splitting via React.lazy. Provider hierarchy: QueryClient > ErrorBoundary > Helmet > Theme > Gamification > Router. 37 pages, 29 edge functions, 57 migrations.
 
-### What's Fully Functional (No Changes Needed)
-- **Routing & Auth**: Dual-layout system, protected routes, admin RBAC, purchase guards
-- **Admin Dashboard**: Course CRUD, publish/unpublish, bulk generators (lessons, textbooks, supplemental, assessments), enricher, quick generate, asset uploads
-- **Admin Gradebook**: Full student table with quiz/activity/worksheet/exam/essay scores, grade overrides, PDF reports, weight management
-- **Admin Analytics**: Revenue charts, engagement metrics, course completions
-- **Admin Exam/Essay Generator**: Bulk generation, individual generators, progress tracking
-- **Student Lesson Viewer**: All 6 lesson types (text, video, quiz, activity, worksheet, assignment), AI tutor, keyboard nav, reading progress, continue-later, certificate generation on completion
-- **Student Course Detail**: Purchase flow, lesson list, sidebar cards for exam/essay/textbook/project/discussion/asset
-- **Student Dashboard**: Stats, continue learning, course list, roadmap
-- **Final Exam & Essay**: Full interactive players with grading and results
-- **Textbook Viewer**: Page-turning, highlights, bookmarks, flashcards, mini-games, TTS, comments
-- **Gamification**: XP, streaks, badges, leaderboard
-- **Profile, Settings, Certificates, Notifications, Help, Contact, About, Legal pages** — all functional
+### 2. **features/authentication**
+Email/password auth with email verification via Supabase Auth. Session timeout after 30 min inactivity with warning toast at 29 min. Auto-created profile row on signup via DB trigger. Password reset flow via email link (/reset-password). Email unsubscribe support (/unsubscribe). Protected routes via AppLayout auth check.
 
----
+### 3. **features/course-catalog-and-purchasing**
+10 courses across 3 phases (Initialization, Orchestration, Launch) with 78 lessons total. Public course catalog with lesson previews (title, description, type, duration). Stripe checkout integration via create-checkout edge function and stripe-webhook handler. PurchaseGuard component for route-level access control. Courses priced at $49 each.
 
-### Issues Found & Enhancements Needed
+### 4. **features/lesson-system**
+6 lesson types: text, video, quiz, assignment, worksheet, activity. Each type has structured JSONB data (quiz_data, worksheet_data, activity_data). Dedicated viewer components: QuizPlayer, WorksheetPlayer, ActivityViewer, etc. Progress tracking via user_progress table with quiz scores, worksheet answers, activity scores, and admin override support.
 
-#### 1. Transcript Grade Calculation is Broken (Critical)
-**File**: `src/pages/Transcript.tsx` (lines 52-58)
-The transcript currently uses a **dummy grade** based purely on lesson completion percentage. The comment even says `"We don't have lesson data here easily"` and the filter always returns `false`. It should use the same `calculateCombinedGrade` function from `useGradebook.ts` that the admin gradebook uses, pulling actual quiz, activity, worksheet, exam, and essay scores.
+### 5. **features/textbook-system**
+Interactive flip-book textbook viewer (HTMLFlipBook) with full-page layout. Chapters and pages stored in textbook_chapters/textbook_pages tables. Features: text highlights, bookmarks, inline comments, vocabulary glossary, flashcards with spaced repetition, embedded quizzes, text-to-speech, reading timer, reading milestones, "Explain This" AI panel, keyboard navigation help.
 
-**Fix**: Fetch lessons for each course, join with `user_progress` to get quiz/activity/worksheet scores, fetch exam attempts and essay submissions, then call `calculateCombinedGrade` for accurate letter grades and GPA.
+### 6. **features/assessment-and-grading**
+Final exams (course_final_exams) with multiple-choice questions, passing scores, and attempt tracking. Final essays (course_essays) with prompts, rubrics, and word limits. Practice labs with AI feedback. Admin gradebook with manual override scoring. Student grades page. Grade weights panel for admins.
 
-#### 2. Student-Facing Grades Page Missing
-Students can see their transcript with grades, but there's no dedicated **"My Grades"** page that gives them a detailed breakdown like the admin gradebook shows. Students should be able to see:
-- Per-course breakdown of quiz, activity, worksheet, exam, and essay scores
-- Combined grade with weight breakdown
-- What components are still missing/incomplete
+### 7. **features/gamification**
+XP system with GamificationProvider context. Streaks (current/longest) tracked in user_gamification table. Badges display. Leaderboard via get-leaderboard edge function. XP notifications on actions. Confetti hook for celebrations.
 
-**Fix**: Create a new `src/pages/StudentGrades.tsx` page accessible via sidebar, showing the student's own detailed grade breakdown per course.
+### 8. **features/certificates-and-portfolio**
+Certificate generation on course completion with verification codes. Public verification page (/verify/:code). Certificate themes. Portfolio assembler with entries per course (executive summary, narrative, deliverables). Transcript page showing academic record.
 
-#### 3. Sidebar Missing "Notifications" Link
-The `AppSidebar.tsx` nav items don't include a link to `/notifications` — students can only access notifications via the bell icon (if implemented in the header). Adding it to the sidebar improves discoverability.
+### 9. **features/discussion-board**
+Threaded discussions per course with CRUD. Nested comments. Upvoting system with per-user tracking. Real-time updates via Supabase subscriptions. Purchase-gated access. Admin moderation. Pagination. Email notifications on replies via notify-discussion-reply edge function.
 
-#### 4. Admin Sidebar Missing Analytics & Content Generator Links
-The admin sidebar section only shows: Admin Panel, Gradebook, Exams & Essays, AI Settings. Missing quick links to:
-- **Analytics** (`/admin/analytics`)
-- **Content Generator** (`/admin/content-generator`)
+### 10. **features/ai-capabilities**
+AI tutor chat (ai-tutor edge function) with session persistence. Content generation for courses, lessons, quizzes, worksheets, activities, textbooks, and exams. Bulk generation tools (lessons, assessments, supplemental, textbooks). "Explain This" text selection feature. Practice and project feedback via AI. Image, video, and voice generation. AI gateway with retry logic (aiGateway.ts shared helper).
 
-These are accessible from the admin dashboard cards but not from the sidebar directly.
+### 11. **features/admin-suite**
+Admin dashboard with course/lesson management. Course editor, lesson editor with Markdown preview and auto-save. Quiz, worksheet, activity, textbook, and milestone editors. Bulk content generation buttons. Asset/document/video upload. Analytics page. Gradebook. Exam/essay management. AI settings with API key management. Content generator page with smart prompts.
 
-#### 5. Course Detail Lesson Type Icons Incomplete
-`CourseDetail.tsx` (lines 369-374) only shows icons for `video` and `quiz` lesson types. Activity, worksheet, and assignment type badges should also be shown so students can scan what type of lesson each is before entering.
+### 12. **features/email-system**
+Custom auth email hook with branded templates (signup, recovery, invite, magic-link, etc.). Transactional email system with queue processing. Email send log and rate limiting. Suppressed emails tracking. Unsubscribe token management. Contact form submissions via edge function.
 
-#### 6. Dashboard "Your Roadmap" Not Showing Lesson Types
-The dashboard roadmap section (right sidebar) shows all 10 courses but doesn't indicate how many of each lesson type exists per course. Adding small type counts (e.g., "3 quizzes, 2 activities") would help students understand what to expect.
+### 13. **features/ui-and-ux**
+Cyberpunk/neon design theme with nebula background, star field, floating particles. Dark mode default with theme toggle. Mobile-responsive sidebar navigation. Global search. Breadcrumb navigation. Skip links for accessibility. Error boundaries (global + per-route). Loading skeletons. Toast notifications (dual system: shadcn + sonner). Notepad widget. Continue-later bookmarking. Reading progress bar.
 
----
+### 14. **features/student-tools**
+Student notepad widget with drag/resize. Continue-later bookmarking per course. Reading time tracking (reading_sessions table). Learning objectives tracking (user_objective_progress). Assignment submission system. Keyboard navigation support. AI tutor chat per lesson. Notification bell with read/unread state.
 
-### Implementation Plan
+### 15. **security/rls-policies**
+All tables have RLS enabled. Key patterns: user_id = auth.uid() for self-access; has_role() security definer function for admin checks; has_purchased_course() for purchase-gated content; has_completed_course() for certificate creation. Purchases table is fully locked (insert/update/delete = false for users, only service_role via webhooks). Admin API keys hidden from students.
 
-**Task 1: Fix Transcript Grade Calculation**
-- Fetch `lessons` table to map lesson_id → course_id
-- Fetch quiz/activity/worksheet scores from `user_progress` for the current user
-- Fetch exam attempts from `student_exam_attempts`
-- Fetch essay submissions from `student_essay_submissions`
-- Use `calculateCombinedGrade` with grade settings for accurate grades
-- Update GPA calculation to use real weighted grades
-
-**Task 2: Create Student Grades Page**
-- New page at `/grades` showing per-course detailed grade breakdowns
-- Columns: Quiz avg, Activity avg, Worksheet avg, Exam score, Essay score, Combined
-- Reuse grade calculation logic from `useGradebook.ts`
-- Add route to `App.tsx` and sidebar link to `AppSidebar.tsx`
-
-**Task 3: Enhance Sidebar Navigation**
-- Add "Notifications" with Bell icon to student nav items
-- Add "Analytics" and "Content Generator" to admin sidebar section
-
-**Task 4: Add Lesson Type Icons to Course Detail**
-- Show activity, worksheet, and assignment icons alongside video/quiz on the lesson list in `CourseDetail.tsx`
-
-**Task 5: Minor UX Polish**
-- Add lesson type counts to dashboard roadmap cards
-- Ensure all "coming soon" placeholders have consistent styling
-
----
-
-### Technical Details
-
-**Transcript fix** requires a new custom hook (e.g., `useStudentGrades`) that fetches:
-```text
-1. lessons → SELECT id, course_id, type FROM lessons WHERE course_id IN (purchased courses)
-2. user_progress → existing query already available
-3. student_exam_attempts → JOIN with course_final_exams for course mapping
-4. student_essay_submissions → JOIN with course_essays for course mapping
-5. grade_settings → already available via useGradeSettings
-```
-This hook aggregates data into the same shape expected by `calculateCombinedGrade`.
-
-**Student Grades page** reuses `calculateCombinedGrade` and `getWeightsForCourse` from existing hooks, keeping all grade logic centralized.
-
-**No database changes needed** — all required tables and data exist.
+## Technical Details
+- **Database**: 30+ tables with comprehensive RLS policies
+- **Edge Functions**: 29 deployed functions covering AI, payments, email, content generation
+- **Shared Utilities**: AI gateway with retry/backoff, CORS handler, rate limiter, email templates
+- **Testing**: Vitest setup with example tests for hooks and utilities
+- **SEO**: react-helmet-async with PageMeta component and siteMeta config
+- **Deployment**: Vercel config (vercel.json) with SPA rewrites
 
