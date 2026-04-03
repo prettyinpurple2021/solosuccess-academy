@@ -16,17 +16,23 @@ The platform delivers a structured, 10-course curriculum across three progressiv
 | **Phase 2 – Orchestration** | Building the Machine | Courses 4–7 |
 | **Phase 3 – Launch Sequence** | Sales & Future | Courses 8–10 |
 
-Each course combines video lessons, interactive textbooks, AI-assisted learning, hands-on assignments, spaced-repetition flashcards, graded quizzes, community discussions, and a verified certificate of completion.
+Each course combines six lesson types (text, video, quiz, assignment, worksheet, activity), interactive textbooks, AI-assisted learning, practice labs, capstone projects, final exams/essays, spaced-repetition flashcards, community discussions, and a verified certificate of completion.
 
 ---
 
 ## Platform Highlights
 
-- 🧠 **AI Tutor** — Personalized, on-demand learning support
+- 🧠 **AI Tutor** — Personalized, on-demand learning support on every lesson
 - 📚 **10-Course Curriculum** — A full entrepreneurial journey from zero to launch
+- 📖 **Interactive Textbooks** — Full-page flip-book with highlights, comments, flashcards, TTS, and "Explain This" AI
 - 🏆 **Gamification** — XP, streaks, badges, and a live leaderboard
-- 📜 **Verifiable Certificates** — Auto-generated and cryptographically verifiable
+- 📜 **Verifiable Certificates** — Auto-generated PDF with public verification
+- 📋 **Portfolio Assembler** — Professional portfolio from course projects
+- 🎯 **Final Exams & Essays** — Server-side graded assessments
+- 🔬 **Practice Labs** — Hands-on labs with AI feedback
+- 💬 **Discussion Forums** — Threaded conversations with upvoting
 - 🔒 **Private & Secure** — Row-level security on all data; your progress is yours
+- 🔍 **Google Sign-In** — One-click login with Google OAuth
 
 ---
 
