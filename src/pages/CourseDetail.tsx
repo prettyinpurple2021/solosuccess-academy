@@ -582,7 +582,6 @@ export default function CourseDetail() {
         </section>
       </main>
 
-      <Footer />
     </div>
   );
 }
