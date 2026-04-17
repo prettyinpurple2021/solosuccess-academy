@@ -269,6 +269,17 @@ export default function Auth() {
                       'Sign In'
                     )}
                   </Button>
+
+                  {/* Account recovery link — for users who lost email access */}
+                  <p className="text-center text-xs text-muted-foreground pt-2">
+                    Lost access to your email?{' '}
+                    <a
+                      href="/account-recovery"
+                      className="text-primary hover:underline font-medium"
+                    >
+                      Recover your account
+                    </a>
+                  </p>
                 </form>
               </TabsContent>
 

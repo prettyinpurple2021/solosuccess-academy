@@ -84,6 +84,7 @@ const Certificates = lazy(() => import("./pages/Certificates"));
 const VerifyCertificate = lazy(() => import("./pages/VerifyCertificate"));
 const Leaderboard = lazy(() => import("./pages/Leaderboard"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const AccountRecovery = lazy(() => import("./pages/AccountRecovery"));
 const FinalExam = lazy(() => import("./pages/FinalExam"));
 const FinalEssay = lazy(() => import("./pages/FinalEssay"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
@@ -182,6 +183,9 @@ const App = () => (
 
               {/* Password Reset — public standalone page, user arrives via email link */}
               <Route path="/reset-password" element={<RouteErrorBoundary><ResetPassword /></RouteErrorBoundary>} />
+
+              {/* Account Recovery — public standalone page for users who lost email access */}
+              <Route path="/account-recovery" element={<RouteErrorBoundary><AccountRecovery /></RouteErrorBoundary>} />
 
               {/* Email Unsubscribe — public standalone page */}
               <Route path="/unsubscribe" element={<RouteErrorBoundary><Unsubscribe /></RouteErrorBoundary>} />
