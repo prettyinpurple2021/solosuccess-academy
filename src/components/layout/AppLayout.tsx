@@ -32,6 +32,7 @@ import { Button } from '@/components/ui/button';
 import { NotepadWidget } from '@/components/notepad/NotepadWidget';
 import { NebulaBackground } from '@/components/landing/NebulaBackground';
 import { StarField } from '@/components/landing/StarField';
+import { PendingDeletionBanner } from '@/components/settings/PendingDeletionBanner';
 
 export function AppLayout() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -76,6 +77,9 @@ export function AppLayout() {
             <SidebarTrigger />
           </header>
           
+          {/* Sitewide banner shown only if user has scheduled account deletion */}
+          <PendingDeletionBanner />
+
           {/* Main content area — <Outlet /> renders the matched child route */}
           <main id="main-content" tabIndex={-1} className="flex-1 relative z-10">
             <Outlet />
