@@ -37,6 +37,8 @@ export function FloatingParticles({ count = 30 }: { count?: number }) {
     }));
   }, [count]);
 
+  if (reducedMotion) return null;
+
   return (
     <div className="fixed inset-0 pointer-events-none z-[1] overflow-hidden" aria-hidden="true">
       {particles.map((p) => (
