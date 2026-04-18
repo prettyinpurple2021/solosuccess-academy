@@ -23,6 +23,7 @@ import { ChangePasswordCard } from '@/components/settings/ChangePasswordCard';
 import { ConnectedAccountsCard } from '@/components/settings/ConnectedAccountsCard';
 import { SessionsCard } from '@/components/settings/SessionsCard';
 import { DeleteAccountCard } from '@/components/settings/DeleteAccountCard';
+import { AccessibilityCard } from '@/components/settings/AccessibilityCard';
 
 export default function Settings() {
   const { user, isLoading: authLoading, resetPassword } = useAuth();
@@ -239,6 +240,10 @@ export default function Settings() {
 
           <ConnectedAccountsCard />
           <SessionsCard />
+
+          {/* Accessibility — motion preferences (auto-respects OS setting) */}
+          <AccessibilityCard />
+
 
           {/* Danger zone */}
           <div className="pt-4">

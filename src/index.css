@@ -1719,3 +1719,34 @@
     border-radius: 0.5rem 0.5rem 0 0;
   }
 }
+
+/* ════════════════════════════════════════════════════════════════════
+   ACCESSIBILITY — REDUCED MOTION
+   ════════════════════════════════════════════════════════════════════
+   Activated by `useReducedMotion()` hook which sets the attribute on
+   <html> based on:
+     1. The OS-level `prefers-reduced-motion` media query, AND
+     2. The user's manual override saved in Settings → Accessibility
+   Decorative components (NebulaBackground, StarField, FloatingParticles)
+   already short-circuit to `null` when reduced — these CSS rules are a
+   safety net that also tames any other ambient motion that slipped
+   through (cyber-grid pulses, scan lines, infinite glows, etc.).
+   ════════════════════════════════════════════════════════════════════ */
+html[data-reduce-motion='true'] *,
+html[data-reduce-motion='true'] *::before,
+html[data-reduce-motion='true'] *::after {
+  /* Cap any infinite animation to a single frame so it visually stops
+     without breaking JS that listens for animationend / iterationcount. */
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  animation-delay: 0ms !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* Hide always-decorative ambient surfaces entirely so we don't pay
+   their paint/composite cost on low-power devices. */
+html[data-reduce-motion='true'] .nebula-cloud,
+html[data-reduce-motion='true'] .cyber-grid::after {
+  display: none !important;
+}

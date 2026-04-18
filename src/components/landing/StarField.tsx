@@ -6,6 +6,7 @@
  * Pure CSS — no JS runtime cost after initial render.
  */
 import { useMemo } from 'react';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
 
 interface Star {
   id: number;
@@ -18,6 +19,7 @@ interface Star {
 }
 
 export function StarField({ count = 40 }: { count?: number }) {
+  const reducedMotion = useReducedMotion();
   const stars = useMemo<Star[]>(() => {
     return Array.from({ length: count }, (_, i) => ({
       id: i,
@@ -29,6 +31,11 @@ export function StarField({ count = 40 }: { count?: number }) {
       hue: [270, 185, 320, 220, 0][Math.floor(Math.random() * 5)], // purple/cyan/pink/blue/white
     }));
   }, [count]);
+
+  // Skip rendering entirely when reduced motion is requested — the field
+  // is decorative only and twinkling can be distracting.
+  if (reducedMotion) return null;
+
 
   return (
     <div className="fixed inset-0 pointer-events-none z-[0] overflow-hidden" aria-hidden="true">
