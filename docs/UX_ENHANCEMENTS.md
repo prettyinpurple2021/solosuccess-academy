@@ -76,24 +76,82 @@ or finding the nav button.
 
 ---
 
-## 🚧 Batch 2 — Engagement (in progress)
+## ✅ Batch 2 — Engagement (shipped 2026-04-21)
 
 ### 3. Mobile bottom tab bar
-- Plan: persistent bottom nav with 4 tabs (Dashboard, Courses, Search, Profile).
-  Replaces hamburger trigger on `< md` viewports per user choice.
-- File targets: new `src/components/layout/MobileBottomNav.tsx`, edits to
-  `AppLayout.tsx` (hide mobile sticky header that currently only holds the
-  hamburger; add bottom nav).
 
-### 4. Streak goals + reminders (lessons + minutes)
-- Plan: extend `user_gamification` (or add a separate `daily_goals` table)
-  to store `daily_lesson_goal` + `daily_minute_goal`. Show progress ring on
-  Dashboard. Toast reminder if streak is at risk and goal not met by 7pm
-  local time.
+**Goal:** Replace the hamburger-only mobile nav with a persistent bottom
+tab bar so primary destinations are always one tap away.
+
+**Implementation**
+- New component `src/components/layout/MobileBottomNav.tsx`. Five slots:
+  Home (Dashboard) · Courses · Search · Profile · More.
+- Search slot opens the existing `<GlobalSearch />` command palette
+  (the same one bound to ⌘K on desktop).
+- "More" opens a right-side `<Sheet>` listing every other destination
+  (Grades, Leaderboard, Certificates, Transcript, Notifications,
+  Settings, Help) plus a full Admin section gated by `useIsAdmin`,
+  ending with Sign Out.
+- `src/components/layout/AppLayout.tsx` now:
+  - Hides the desktop `<AppSidebar />` on mobile via `hidden md:flex`.
+  - Removes the old mobile-only sticky top header that only held the
+    hamburger trigger.
+  - Adds `pb-[calc(64px+env(safe-area-inset-bottom))]` to `<main>` so
+    bottom-nav doesn't cover content (incl. iOS home indicator).
+  - Mounts `<MobileBottomNav />` (which renders `null` above `md`).
+
+**Notes**
+- Bottom nav uses semantic tokens (`bg-background/85`, `border-primary/20`,
+  `drop-shadow` on the active icon) — no hardcoded colors.
+- `aria-current="page"` is set on the active tab; each tab is min-height
+  56px to satisfy WCAG 2.5.5 (target size 44×44 minimum).
+- The `NotepadWidget` floats above the bottom nav by stacking order;
+  if it ever overlaps on small screens we can add `bottom-20 md:bottom-4`
+  to its draggable default position (deferred — does not currently clash).
 
 ---
 
-## 📋 Batch 3 — Trust & Account
+### 4. Daily study goals (lessons + minutes)
+
+**Goal:** Per-user daily targets (lessons completed AND active minutes)
+with a progress card on the dashboard, helping students protect their
+streaks intentionally instead of guessing what counts.
+
+**Implementation**
+- New hook `src/hooks/useDailyGoals.ts`:
+  - `useDailyGoalsConfig(userId)` — reads/writes targets to
+    `localStorage` keyed per user (`ssa.dailyGoals.<uid>`).
+    Defaults: 1 lesson, 20 minutes, `configured: false`.
+  - `useDailyProgress(userId)` — counts today's `user_progress` rows
+    where `completed = true AND completed_at >= midnight local` and
+    sums `reading_sessions.duration_seconds` for today.
+- New dashboard widget `src/components/gamification/DailyGoalCard.tsx`
+  shows two stacked progress bars (lessons + minutes), success-tinted
+  when met, with a "Goal smashed!" line when both active goals complete.
+  Renders nothing if both targets are 0.
+- Mounted in `src/pages/Dashboard.tsx` as the first item in the right
+  sidebar, above "Your Roadmap".
+- New settings card `src/components/settings/DailyGoalsCard.tsx` — two
+  sliders (0–10 lessons, 0–120 minutes). Setting either to 0 turns
+  that goal off; both at 0 hides the dashboard card entirely.
+
+**Notes / known limits**
+- Targets are **not yet synced across devices** — they live in
+  `localStorage` to ship fast without a migration. Documented as a
+  follow-up: add a `user_study_goals` table.
+- "Active minutes" currently counts only textbook reading time
+  (`reading_sessions`). Lesson-watch minutes will be added when we
+  introduce a `lesson_sessions` tracker analogous to reading sessions.
+- Progress query has `staleTime: 60_000`; lessons completed via the
+  toast flow won't visibly update the card for up to a minute. We
+  could `invalidateQueries(['daily-progress', userId])` from the
+  lesson-completion mutation later — flagged.
+
+---
+
+## 🚧 Batch 3 — Trust & Account (planned)
+
+---
 
 ### 5. Two-factor authentication (TOTP only)
 - Plan: enrollment flow in Settings (QR + secret), 6-digit verification on
