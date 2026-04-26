@@ -2069,6 +2069,7 @@ export type Database = {
         Args: { _page_id: string; _selected_answer: number }
         Returns: Json
       }
+      confirm_mfa_recovery_code: { Args: { _code: string }; Returns: Json }
       consume_mfa_recovery_code: { Args: { _code: string }; Returns: boolean }
       delete_email: {
         Args: { message_id: number; queue_name: string }
