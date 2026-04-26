@@ -34,6 +34,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Eye, EyeOff, Sparkles, MailCheck } from 'lucide-react';
 import { PageMeta } from '@/components/layout/PageMeta';
+import { MfaChallengeForm } from '@/components/auth/MfaChallengeForm';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function Auth() {
   const [searchParams] = useSearchParams();
@@ -48,6 +50,8 @@ export default function Auth() {
 
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  // 2FA challenge state — true when password sign-in succeeded but AAL2 is required
+  const [needsMfa, setNeedsMfa] = useState(false);
 
   // Sign In Form State
   const [signInEmail, setSignInEmail] = useState('');
@@ -64,6 +68,12 @@ export default function Auth() {
 
     try {
       await signIn(signInEmail, signInPassword);
+      // Check if this account has 2FA enrolled and needs to step up to AAL2
+      const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+      if (aal?.currentLevel === 'aal1' && aal?.nextLevel === 'aal2') {
+        setNeedsMfa(true);
+        return;
+      }
       toast({
         title: 'Welcome back!',
         description: 'You have successfully signed in.',
@@ -138,6 +148,26 @@ export default function Auth() {
               Back to Sign In
             </Button>
           </Card>
+        </div>
+      </div>
+    );
+  }
+
+  // 2FA challenge screen — appears after password sign-in if AAL2 is required
+  if (needsMfa) {
+    return (
+      <div className="flex-1 flex items-center justify-center py-12 px-4 relative">
+        <PageMeta title="Two-Factor Verification" description="Verify your identity with your authenticator app." path="/auth" noIndex />
+        <div className="cyber-grid" />
+        <div className="w-full max-w-md relative z-10">
+          <div className="absolute -top-20 -left-20 w-64 h-64 rounded-full blur-3xl animate-orb-glow-primary" />
+          <MfaChallengeForm
+            onSuccess={() => navigate(from, { replace: true })}
+            onCancel={async () => {
+              await supabase.auth.signOut();
+              setNeedsMfa(false);
+            }}
+          />
         </div>
       </div>
     );
@@ -269,6 +299,17 @@ export default function Auth() {
                       'Sign In'
                     )}
                   </Button>
+
+                  {/* Account recovery link — for users who lost email access */}
+                  <p className="text-center text-xs text-muted-foreground pt-2">
+                    Lost access to your email?{' '}
+                    <a
+                      href="/account-recovery"
+                      className="text-primary hover:underline font-medium"
+                    >
+                      Recover your account
+                    </a>
+                  </p>
                 </form>
               </TabsContent>
 

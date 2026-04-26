@@ -40,6 +40,7 @@ import { useCourseProgress, useMarkLessonComplete, useSubmitQuizScore, useUpdate
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { useToast } from '@/hooks/use-toast';
+import { toast as sonnerToast } from 'sonner';
 import { LessonContent } from '@/components/lesson/LessonContent';
 import { LessonSidebar } from '@/components/lesson/LessonSidebar';
 import { AITutorChat } from '@/components/lesson/AITutorChat';
@@ -119,8 +120,20 @@ export default function LessonViewer() {
     try {
       await submitQuizScore.mutateAsync({ userId: user.id, lessonId, score, passingScore });
       if (score >= passingScore) {
-        toast({ title: '🎉 Quiz Passed!', description: `You scored ${score}%. Lesson marked complete!` });
-        // Check for new badges
+        // Sonner toast with action button → instantly jump to next lesson
+        sonnerToast.success(`🎉 Quiz Passed — ${score}%`, {
+          description: nextLesson
+            ? 'Lesson marked complete. Ready for the next one?'
+            : 'Lesson marked complete!',
+          action: nextLesson
+            ? {
+                label: 'Next lesson →',
+                onClick: () =>
+                  navigate(`/courses/${courseId}/lessons/${nextLesson.id}`),
+              }
+            : undefined,
+          duration: 6000,
+        });
         await awardXP('LESSON_COMPLETE');
         setTimeout(() => checkAndAwardBadges(), 1000);
       } else {
@@ -137,7 +150,19 @@ export default function LessonViewer() {
     try {
       await submitActivityScore.mutateAsync({ userId: user.id, lessonId, score });
       if (score === 100) {
-        toast({ title: '🎉 Activity Complete!', description: 'All steps completed. Great work!' });
+        sonnerToast.success('🎉 Activity Complete!', {
+          description: nextLesson
+            ? 'All steps done. Keep the momentum going.'
+            : 'All steps done. Great work!',
+          action: nextLesson
+            ? {
+                label: 'Next lesson →',
+                onClick: () =>
+                  navigate(`/courses/${courseId}/lessons/${nextLesson.id}`),
+              }
+            : undefined,
+          duration: 6000,
+        });
         await awardXP('LESSON_COMPLETE');
         setTimeout(() => checkAndAwardBadges(), 1000);
       }
@@ -209,14 +234,25 @@ export default function LessonViewer() {
           title: '🎉 Course Completed!',
           description: `Congratulations! You've finished all lessons in ${course?.title}!`,
         });
+      } else if (!isCompleted) {
+        // Just-completed a lesson (not the whole course) — offer one-click "Next lesson"
+        sonnerToast.success('Lesson completed!', {
+          description: nextLesson
+            ? 'Great work! Keep your streak going.'
+            : 'Congratulations on completing this lesson!',
+          action: nextLesson
+            ? {
+                label: 'Next lesson →',
+                onClick: () =>
+                  navigate(`/courses/${courseId}/lessons/${nextLesson.id}`),
+              }
+            : undefined,
+          duration: 6000,
+        });
       } else {
         toast({
-          title: isCompleted ? 'Marked as incomplete' : 'Lesson completed!',
-          description: isCompleted 
-            ? 'Progress updated' 
-            : nextLesson 
-              ? 'Great work! Ready for the next lesson?' 
-              : 'Congratulations on completing this lesson!',
+          title: 'Marked as incomplete',
+          description: 'Progress updated',
         });
       }
     } catch (error) {

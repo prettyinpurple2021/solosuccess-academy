@@ -1,5 +1,11 @@
 import { sendLovableEmail } from 'npm:@lovable.dev/email-js'
-import { createClient } from 'npm:@supabase/supabase-js@2'
+// deno-lint-ignore no-explicit-any
+import { createClient as createClientRaw } from 'npm:@supabase/supabase-js@2'
+
+// Cast away the strict generated row types — this function uses dynamic
+// table names + RPC calls that aren't part of the generated Database type.
+// deno-lint-ignore no-explicit-any
+const createClient = createClientRaw as unknown as (url: string, key: string) => any
 
 const MAX_RETRIES = 5
 const DEFAULT_BATCH_SIZE = 10
@@ -53,8 +59,9 @@ function parseJwtClaims(token: string): Record<string, unknown> | null {
 }
 
 // Move a message to the dead letter queue and log the reason.
+// deno-lint-ignore no-explicit-any
 async function moveToDlq(
-  supabase: ReturnType<typeof createClient>,
+  supabase: any,
   queue: string,
   msg: { msg_id: number; message: Record<string, unknown> },
   reason: string
@@ -156,12 +163,13 @@ Deno.serve(async (req) => {
     const messageIds = Array.from(
       new Set(
         messages
-          .map((msg) =>
+          // deno-lint-ignore no-explicit-any
+          .map((msg: any) =>
             msg?.message?.message_id && typeof msg.message.message_id === 'string'
-              ? msg.message.message_id
+              ? (msg.message.message_id as string)
               : null
           )
-          .filter((id): id is string => Boolean(id))
+          .filter((id: string | null): id is string => Boolean(id))
       )
     )
     const failedAttemptsByMessageId = new Map<string, number>()

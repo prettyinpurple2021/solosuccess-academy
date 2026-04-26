@@ -20,6 +20,13 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
+import { initReducedMotion } from "./lib/initReducedMotion";
+
+// Set data-reduce-motion on <html> BEFORE React mounts so decorative
+// backgrounds (nebula, starfield) never flash in for users who prefer
+// reduced motion. See src/hooks/useReducedMotion.ts for the runtime hook.
+initReducedMotion();
+
 
 createRoot(document.getElementById("root")!).render(
   <React.StrictMode>

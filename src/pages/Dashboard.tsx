@@ -53,6 +53,7 @@ import {
 import { PageMeta } from '@/components/layout/PageMeta';
 import { ErrorView } from '@/components/ui/error-view';
 import { DashboardSkeleton } from '@/components/skeletons/DashboardSkeleton';
+import { DailyGoalCard } from '@/components/gamification/DailyGoalCard';
 
 export default function Dashboard() {
   const { user, profile } = useAuth();
@@ -455,6 +456,9 @@ export default function Dashboard() {
 
           {/* Sidebar */}
           <div className="space-y-6">
+            {/* Today's study goal */}
+            <DailyGoalCard />
+
             {/* Course Roadmap */}
             <Card className="glass-card">
               <CardHeader>

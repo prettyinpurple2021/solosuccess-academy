@@ -6,7 +6,9 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
-    "noImplicitAny": true
+    "noImplicitAny": true,
+    "lib": ["esnext", "dom", "dom.iterable"],
+    "types": []
   },
   "include": ["**/*.ts", "deno.d.ts"]
 }

@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { useTheme } from 'next-themes';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -9,17 +8,24 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile, useUpdateNotificationPreferences } from '@/hooks/useProfile';
 import { useToast } from '@/hooks/use-toast';
-import { 
-  Loader2, 
-  Moon, 
-  Sun, 
+import {
+  Loader2,
+  Moon,
+  Sun,
   Monitor,
-  Mail,
   Bell,
   Shield,
-  KeyRound
+  KeyRound,
 } from 'lucide-react';
 import { NeonSpinner } from '@/components/ui/neon-spinner';
+import { ChangeEmailCard } from '@/components/settings/ChangeEmailCard';
+import { ChangePasswordCard } from '@/components/settings/ChangePasswordCard';
+import { ConnectedAccountsCard } from '@/components/settings/ConnectedAccountsCard';
+import { SessionsCard } from '@/components/settings/SessionsCard';
+import { DeleteAccountCard } from '@/components/settings/DeleteAccountCard';
+import { AccessibilityCard } from '@/components/settings/AccessibilityCard';
+import { DailyGoalsCard } from '@/components/settings/DailyGoalsCard';
+import { TwoFactorCard } from '@/components/settings/TwoFactorCard';
 
 export default function Settings() {
   const { user, isLoading: authLoading, resetPassword } = useAuth();
@@ -203,55 +209,55 @@ export default function Settings() {
             </CardContent>
           </Card>
 
-          {/* Account & Security */}
-          <Card className="glass-card border-accent/30 hover:border-accent/50 hover:shadow-[0_0_30px_hsl(var(--accent)/0.15)] transition-all duration-300">
+          {/* Account section header */}
+          <div className="flex items-center gap-2 pt-4">
+            <Shield className="h-5 w-5 text-accent drop-shadow-[0_0_8px_hsl(var(--accent)/0.5)]" />
+            <h2 className="text-2xl font-display font-bold neon-text">Account & Security</h2>
+          </div>
+
+          <ChangeEmailCard currentEmail={user?.email} />
+          <ChangePasswordCard email={user?.email} />
+
+          {/* Forgot-password reset email */}
+          <Card className="glass-card border-accent/30">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 font-display">
-                <Shield className="h-5 w-5 text-accent drop-shadow-[0_0_8px_hsl(var(--accent)/0.5)]" />
-                Account & Security
+                <KeyRound className="h-5 w-5 text-accent" />
+                Forgot Your Current Password?
               </CardTitle>
               <CardDescription>
-                Manage your account settings and security
+                We'll email you a secure link to reset your password without needing the old one
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <Label className="text-foreground/80">Email Address</Label>
-                <div className="flex items-center gap-2 p-3 rounded-lg bg-black/40 border border-accent/20">
-                  <Mail className="h-4 w-4 text-accent" />
-                  <span className="text-sm">{user?.email}</span>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Contact support to change your email address
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-foreground/80">Password</Label>
-                <Button
-                  variant="outline"
-                  onClick={handlePasswordReset}
-                  disabled={isResettingPassword}
-                  className="w-full sm:w-auto border-accent/30 hover:bg-accent/10 hover:border-accent/50 hover:shadow-[0_0_15px_hsl(var(--accent)/0.3)] transition-all duration-300"
-                >
-                  {isResettingPassword ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Sending...
-                    </>
-                  ) : (
-                    <>
-                      <KeyRound className="mr-2 h-4 w-4" />
-                      Reset Password
-                    </>
-                  )}
-                </Button>
-                <p className="text-xs text-muted-foreground">
-                  We'll send a password reset link to your email
-                </p>
-              </div>
+            <CardContent>
+              <Button variant="outline" onClick={handlePasswordReset} disabled={isResettingPassword}>
+                {isResettingPassword ? (
+                  <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Sending...</>
+                ) : (
+                  'Send Reset Email'
+                )}
+              </Button>
             </CardContent>
           </Card>
+
+          <ConnectedAccountsCard />
+          <SessionsCard />
+
+          {/* Two-factor authentication (TOTP + recovery codes) */}
+          <TwoFactorCard />
+
+          {/* Accessibility — motion preferences (auto-respects OS setting) */}
+          <AccessibilityCard />
+
+          {/* Daily study goals — lessons + active minutes */}
+          <DailyGoalsCard />
+
+
+          {/* Danger zone */}
+          <div className="pt-4">
+            <h2 className="text-2xl font-display font-bold mb-4 text-destructive">Danger Zone</h2>
+            {user && <DeleteAccountCard userId={user.id} />}
+          </div>
         </div>
       </div>
     </div>

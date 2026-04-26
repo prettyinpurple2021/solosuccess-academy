@@ -5,7 +5,7 @@
  * and copyright notice. Used in PublicLayout for all public pages.
  */
 import { Link } from 'react-router-dom';
-import { Zap, Twitter, Github, Youtube } from 'lucide-react';
+import { Zap, Twitter, Mail } from 'lucide-react';
 
 export function Footer() {
   return (
@@ -103,6 +103,11 @@ export function Footer() {
                   Refund Policy
                 </Link>
               </li>
+              <li>
+                <Link to="/billing" className="text-muted-foreground hover:text-accent transition-colors font-mono">
+                  Billing
+                </Link>
+              </li>
             </ul>
           </div>
         </div>
@@ -113,7 +118,7 @@ export function Footer() {
             &copy; {new Date().getFullYear()} SoloSuccess Academy. All rights reserved.
           </p>
           
-          {/* Social links — point to real platform pages until actual social accounts are created */}
+            {/* Social links — only real, claimed accounts */}
           <div className="flex items-center gap-4">
             <a 
               href="https://x.com/SoloSuccessAcad"
@@ -124,24 +129,13 @@ export function Footer() {
             >
               <Twitter className="h-4 w-4" />
             </a>
-            <a 
-              href="https://github.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="View our GitHub"
-              className="h-10 w-10 rounded-lg bg-muted/50 border border-primary/20 flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary/40 hover:shadow-[0_0_15px_hsl(270_80%_60%/0.3)] transition-all"
-            >
-              <Github className="h-4 w-4" />
-            </a>
-            <a 
-              href="https://youtube.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Watch on YouTube"
-              className="h-10 w-10 rounded-lg bg-muted/50 border border-primary/20 flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary/40 hover:shadow-[0_0_15px_hsl(270_80%_60%/0.3)] transition-all"
-            >
-              <Youtube className="h-4 w-4" />
-            </a>
+              <Link
+                to="/contact"
+                aria-label="Contact us"
+                className="h-10 w-10 rounded-lg bg-muted/50 border border-primary/20 flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary/40 hover:shadow-[0_0_15px_hsl(270_80%_60%/0.3)] transition-all"
+              >
+                <Mail className="h-4 w-4" />
+              </Link>
           </div>
         </div>
       </div>

@@ -24,14 +24,14 @@
  */
 import { Navigate, Outlet, useLocation, useParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
+import { SidebarProvider } from '@/components/ui/sidebar';
 import { AppSidebar } from './AppSidebar';
 import { NeonSpinner } from '@/components/ui/neon-spinner';
-import { Menu } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { NotepadWidget } from '@/components/notepad/NotepadWidget';
 import { NebulaBackground } from '@/components/landing/NebulaBackground';
 import { StarField } from '@/components/landing/StarField';
+import { PendingDeletionBanner } from '@/components/settings/PendingDeletionBanner';
+import { MobileBottomNav } from './MobileBottomNav';
 
 export function AppLayout() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -67,20 +67,27 @@ export function AppLayout() {
         <NebulaBackground />
         <StarField count={20} />
         
-        {/* Sidebar navigation — see AppSidebar.tsx for menu items */}
-        <AppSidebar />
+        {/* Sidebar navigation — desktop only (hidden on mobile via Tailwind) */}
+        <div className="hidden md:flex">
+          <AppSidebar />
+        </div>
         
         <div className="flex-1 flex flex-col relative min-w-0">
-          {/* Mobile-only top bar — matches cyberpunk header-glass */}
-          <header className="sticky top-0 z-[80] h-14 mobile-header-glass flex items-center px-4 md:hidden">
-            <SidebarTrigger />
-          </header>
-          
+          {/* Sitewide banner shown only if user has scheduled account deletion */}
+          <PendingDeletionBanner />
+
           {/* Main content area — <Outlet /> renders the matched child route */}
-          <main id="main-content" tabIndex={-1} className="flex-1 relative z-10">
+          <main
+            id="main-content"
+            tabIndex={-1}
+            className="flex-1 relative z-10 pb-[calc(64px+env(safe-area-inset-bottom))] md:pb-0"
+          >
             <Outlet />
           </main>
         </div>
+
+        {/* Mobile-only persistent bottom tab bar */}
+        <MobileBottomNav />
 
         {/* Floating notepad widget — available on all authenticated pages */}
         <NotepadWidget courseId={null} />

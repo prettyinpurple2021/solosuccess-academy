@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      account_deletion_requests: {
+        Row: {
+          cancelled_at: string | null
+          created_at: string
+          delete_content: boolean
+          email: string
+          id: string
+          purged_at: string | null
+          requested_at: string
+          scheduled_purge_at: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          cancelled_at?: string | null
+          created_at?: string
+          delete_content?: boolean
+          email: string
+          id?: string
+          purged_at?: string | null
+          requested_at?: string
+          scheduled_purge_at?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          cancelled_at?: string | null
+          created_at?: string
+          delete_content?: boolean
+          email?: string
+          id?: string
+          purged_at?: string | null
+          requested_at?: string
+          scheduled_purge_at?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       achievement_badges: {
         Row: {
           category: string
@@ -797,6 +836,30 @@ export type Database = {
           },
         ]
       }
+      mfa_recovery_codes: {
+        Row: {
+          code_hash: string
+          created_at: string
+          id: string
+          used_at: string | null
+          user_id: string
+        }
+        Insert: {
+          code_hash: string
+          created_at?: string
+          id?: string
+          used_at?: string | null
+          user_id: string
+        }
+        Update: {
+          code_hash?: string
+          created_at?: string
+          id?: string
+          used_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
@@ -1187,6 +1250,8 @@ export type Database = {
           course_id: string
           id: string
           purchased_at: string
+          refund_amount_cents: number | null
+          refunded_at: string | null
           stripe_checkout_session_id: string | null
           stripe_payment_intent_id: string | null
           user_id: string
@@ -1196,6 +1261,8 @@ export type Database = {
           course_id: string
           id?: string
           purchased_at?: string
+          refund_amount_cents?: number | null
+          refunded_at?: string | null
           stripe_checkout_session_id?: string | null
           stripe_payment_intent_id?: string | null
           user_id: string
@@ -1205,6 +1272,8 @@ export type Database = {
           course_id?: string
           id?: string
           purchased_at?: string
+          refund_amount_cents?: number | null
+          refunded_at?: string | null
           stripe_checkout_session_id?: string | null
           stripe_payment_intent_id?: string | null
           user_id?: string
@@ -1256,6 +1325,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      stripe_webhook_events: {
+        Row: {
+          error_message: string | null
+          event_type: string
+          id: string
+          payload: Json | null
+          processed_at: string
+          status: string
+          stripe_event_id: string
+        }
+        Insert: {
+          error_message?: string | null
+          event_type: string
+          id?: string
+          payload?: Json | null
+          processed_at?: string
+          status?: string
+          stripe_event_id: string
+        }
+        Update: {
+          error_message?: string | null
+          event_type?: string
+          id?: string
+          payload?: Json | null
+          processed_at?: string
+          status?: string
+          stripe_event_id?: string
+        }
+        Relationships: []
       }
       student_essay_submissions: {
         Row: {
@@ -2001,10 +2100,13 @@ export type Database = {
         Args: { _action?: string; _user_id: string; _xp_amount: number }
         Returns: Json
       }
+      cancel_account_deletion: { Args: never; Returns: Json }
       check_textbook_quiz_answer: {
         Args: { _page_id: string; _selected_answer: number }
         Returns: Json
       }
+      confirm_mfa_recovery_code: { Args: { _code: string }; Returns: Json }
+      consume_mfa_recovery_code: { Args: { _code: string }; Returns: boolean }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
@@ -2013,7 +2115,9 @@ export type Database = {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      generate_mfa_recovery_codes: { Args: never; Returns: Json }
       get_exam_for_student: { Args: { _course_id: string }; Returns: Json }
+      get_my_deletion_request: { Args: never; Returns: Json }
       get_overall_progress: { Args: { _user_id: string }; Returns: Json }
       get_textbook_pages_for_student: {
         Args: { _course_id: string }
@@ -2054,6 +2158,10 @@ export type Database = {
           msg_id: number
           read_ct: number
         }[]
+      }
+      request_account_deletion: {
+        Args: { _delete_content?: boolean }
+        Returns: Json
       }
       verify_certificate_by_code: {
         Args: { code: string }

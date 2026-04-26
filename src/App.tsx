@@ -84,6 +84,7 @@ const Certificates = lazy(() => import("./pages/Certificates"));
 const VerifyCertificate = lazy(() => import("./pages/VerifyCertificate"));
 const Leaderboard = lazy(() => import("./pages/Leaderboard"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const AccountRecovery = lazy(() => import("./pages/AccountRecovery"));
 const FinalExam = lazy(() => import("./pages/FinalExam"));
 const FinalEssay = lazy(() => import("./pages/FinalEssay"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
@@ -96,6 +97,7 @@ const NotificationsPage = lazy(() => import("./pages/Notifications"));
 const TranscriptPage = lazy(() => import("./pages/Transcript"));
 const StudentGrades = lazy(() => import("./pages/StudentGrades"));
 const Unsubscribe = lazy(() => import("./pages/Unsubscribe"));
+const Billing = lazy(() => import("./pages/Billing"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 /**
@@ -183,6 +185,9 @@ const App = () => (
               {/* Password Reset — public standalone page, user arrives via email link */}
               <Route path="/reset-password" element={<RouteErrorBoundary><ResetPassword /></RouteErrorBoundary>} />
 
+              {/* Account Recovery — public standalone page for users who lost email access */}
+              <Route path="/account-recovery" element={<RouteErrorBoundary><AccountRecovery /></RouteErrorBoundary>} />
+
               {/* Email Unsubscribe — public standalone page */}
               <Route path="/unsubscribe" element={<RouteErrorBoundary><Unsubscribe /></RouteErrorBoundary>} />
 
@@ -223,6 +228,7 @@ const App = () => (
                 <Route path="/notifications" element={<RouteErrorBoundary><NotificationsPage /></RouteErrorBoundary>} />
                 <Route path="/transcript" element={<RouteErrorBoundary><TranscriptPage /></RouteErrorBoundary>} />
                 <Route path="/grades" element={<RouteErrorBoundary><StudentGrades /></RouteErrorBoundary>} />
+                <Route path="/billing" element={<RouteErrorBoundary><Billing /></RouteErrorBoundary>} />
               </Route>
 
                 {/* 404 catch-all — shows friendly "not found" page */}
