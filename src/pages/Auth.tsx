@@ -153,6 +153,26 @@ export default function Auth() {
     );
   }
 
+  // 2FA challenge screen — appears after password sign-in if AAL2 is required
+  if (needsMfa) {
+    return (
+      <div className="flex-1 flex items-center justify-center py-12 px-4 relative">
+        <PageMeta title="Two-Factor Verification" description="Verify your identity with your authenticator app." path="/auth" noIndex />
+        <div className="cyber-grid" />
+        <div className="w-full max-w-md relative z-10">
+          <div className="absolute -top-20 -left-20 w-64 h-64 rounded-full blur-3xl animate-orb-glow-primary" />
+          <MfaChallengeForm
+            onSuccess={() => navigate(from, { replace: true })}
+            onCancel={async () => {
+              await supabase.auth.signOut();
+              setNeedsMfa(false);
+            }}
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex-1 flex items-center justify-center py-12 px-4 relative">
       <PageMeta
