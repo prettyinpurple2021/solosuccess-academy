@@ -7,7 +7,7 @@
  */
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Play, Terminal, Cpu } from 'lucide-react';
+import { ArrowRight, Play, Terminal, Cpu, Shield } from 'lucide-react';
 import { UIFrame } from '@/components/landing/UIFrame';
 
 export function HeroSection() {
@@ -34,20 +34,29 @@ export function HeroSection() {
           {/* Terminal-style badge */}
           <div className="mb-6 md:mb-8 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-mono border border-secondary/40 bg-secondary/10 rounded-full inline-flex items-center shadow-[0_0_20px_hsl(185_100%_55%/0.2)] animate-pulse-glow">
             <Terminal className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-secondary" />
-            <span className="text-secondary">&gt;</span> AI-Powered Learning for Solo Founders
+            <span className="text-secondary">&gt;</span> The complete academy for solo founders
           </div>
 
-          {/* H1 with neon glow animation — responsive sizing */}
+          {/* H1 — outcome-driven, specific */}
           <h1 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-display font-black tracking-tight mb-6 md:mb-8 leading-[1.1]">
-            <span className="text-foreground animate-neon-glow inline-block">BUILD YOUR</span>
+            <span className="text-foreground animate-neon-glow inline-block">LAUNCH YOUR</span>
             <br />
-            <span className="text-nebula animate-flicker">DREAM BUSINESS</span>
+            <span className="text-nebula animate-flicker">SOLO BUSINESS</span>
+            <br />
+            <span className="text-foreground/90 text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-display font-bold">in 6&ndash;12 months</span>
           </h1>
 
-          <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-8 md:mb-10 leading-relaxed font-sans px-2">
-            10 comprehensive courses designed for solo founders. From mindset to market to money—
-            graduate with a professional portfolio and investor-ready pitch.
+          <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-6 md:mb-8 leading-relaxed font-sans px-2">
+            10 hands-on courses. AI tutor on every lesson. Real projects you keep.
+            Graduate with a working business, a professional portfolio, and an
+            investor-ready pitch &mdash; not just a stack of notes.
           </p>
+
+          {/* Risk-reversal microcopy */}
+          <div className="inline-flex items-center gap-2 mb-8 md:mb-10 text-xs sm:text-sm text-success font-mono">
+            <Shield className="h-4 w-4" aria-hidden />
+            30-day money-back guarantee &middot; lifetime access &middot; cancel anytime
+          </div>
 
           {/* CTA Buttons with UI Frame */}
           <UIFrame className="inline-block p-4 sm:p-6" scanline color="secondary">

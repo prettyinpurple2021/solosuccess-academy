@@ -12,6 +12,9 @@ import { FeaturesSection } from '@/components/landing/FeaturesSection';
 import { PricingSection } from '@/components/landing/PricingSection';
 import { CourseJourneySection } from '@/components/landing/CourseJourneySection';
 import { CTASection } from '@/components/landing/CTASection';
+import { TrustBandSection } from '@/components/landing/TrustBandSection';
+import { FounderNoteSection } from '@/components/landing/FounderNoteSection';
+import { FAQSection } from '@/components/landing/FAQSection';
 
 export default function Index() {
   const { data: courses, isLoading, isError, error, refetch } = useCourses();
@@ -34,9 +37,12 @@ export default function Index() {
     <div className="flex-1 relative z-10">
       <PageMeta path="/" />
       <HeroSection />
+      <TrustBandSection />
       <FeaturesSection />
-      <PricingSection />
+      <FounderNoteSection />
       <CourseJourneySection courses={courses} isLoading={isLoading} />
+      <PricingSection />
+      <FAQSection />
       <CTASection />
     </div>
   );
