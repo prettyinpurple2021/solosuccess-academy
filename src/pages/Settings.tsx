@@ -25,6 +25,7 @@ import { SessionsCard } from '@/components/settings/SessionsCard';
 import { DeleteAccountCard } from '@/components/settings/DeleteAccountCard';
 import { AccessibilityCard } from '@/components/settings/AccessibilityCard';
 import { DailyGoalsCard } from '@/components/settings/DailyGoalsCard';
+import { TwoFactorCard } from '@/components/settings/TwoFactorCard';
 
 export default function Settings() {
   const { user, isLoading: authLoading, resetPassword } = useAuth();
@@ -241,6 +242,9 @@ export default function Settings() {
 
           <ConnectedAccountsCard />
           <SessionsCard />
+
+          {/* Two-factor authentication (TOTP + recovery codes) */}
+          <TwoFactorCard />
 
           {/* Accessibility — motion preferences (auto-respects OS setting) */}
           <AccessibilityCard />

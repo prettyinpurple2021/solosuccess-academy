@@ -836,6 +836,30 @@ export type Database = {
           },
         ]
       }
+      mfa_recovery_codes: {
+        Row: {
+          code_hash: string
+          created_at: string
+          id: string
+          used_at: string | null
+          user_id: string
+        }
+        Insert: {
+          code_hash: string
+          created_at?: string
+          id?: string
+          used_at?: string | null
+          user_id: string
+        }
+        Update: {
+          code_hash?: string
+          created_at?: string
+          id?: string
+          used_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
@@ -2045,6 +2069,7 @@ export type Database = {
         Args: { _page_id: string; _selected_answer: number }
         Returns: Json
       }
+      consume_mfa_recovery_code: { Args: { _code: string }; Returns: boolean }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
@@ -2053,6 +2078,7 @@ export type Database = {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      generate_mfa_recovery_codes: { Args: never; Returns: Json }
       get_exam_for_student: { Args: { _course_id: string }; Returns: Json }
       get_my_deletion_request: { Args: never; Returns: Json }
       get_overall_progress: { Args: { _user_id: string }; Returns: Json }

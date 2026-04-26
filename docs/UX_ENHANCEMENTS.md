@@ -179,3 +179,70 @@ The following items are intentionally deferred until after the top-5 ship:
 20–21 (PWA / offline),
 22–23 (notification granularity & push),
 25–26 (login activity log, GDPR export).
+
+---
+
+## ✅ Batch 3 — Two-Factor Authentication (shipped 2026-04-26)
+
+### 5. TOTP-only 2FA with recovery codes
+
+**Goal:** Production-grade account security via authenticator-app (TOTP)
+two-factor authentication, plus 10 one-time recovery codes for users who
+lose access to their authenticator. SMS/Twilio intentionally skipped to
+honor the $0-budget constraint.
+
+**Implementation**
+
+Database (`mfa_recovery_codes`):
+- New table `public.mfa_recovery_codes` with `user_id`, `code_hash` (SHA-256),
+  `used_at`, `created_at`. RLS allows users to *read* their own metadata
+  but blocks all direct writes — codes can only be created/consumed via
+  `SECURITY DEFINER` functions.
+- `generate_mfa_recovery_codes()` — wipes prior codes, mints 10 fresh
+  `xxxxx-xxxxx` plaintext codes, stores only hashes, returns plaintext
+  *once* in the JSON response.
+- `consume_mfa_recovery_code(_code)` — hashes the input, marks the matching
+  unused row as used, returns `true`/`false`.
+
+Frontend:
+- New hook `src/hooks/useMfa.ts` — wraps `supabase.auth.mfa.*` (enroll,
+  challenge, verify, listFactors, unenroll, getAuthenticatorAssuranceLevel)
+  and the two recovery-code RPCs.
+- New `src/components/settings/TwoFactorCard.tsx` — three-stage flow:
+  *idle* (enable/disable) → *enrolling* (QR code from Supabase + manual
+  secret + 6-digit verify) → *showing-recovery* (10 codes with
+  copy/download). Mounted in `src/pages/Settings.tsx` after `SessionsCard`.
+  Includes "Regenerate Recovery Codes" for already-enrolled users.
+- New `src/components/auth/MfaChallengeForm.tsx` — step-up prompt rendered
+  by `src/pages/Auth.tsx` when password sign-in succeeds at AAL1 but the
+  account requires AAL2. Supports either a 6-digit TOTP code OR a recovery
+  code (recovery path also unenrolls the lost factor so the user can
+  re-enroll a fresh authenticator afterwards).
+
+**Why these choices**
+- **TOTP via Supabase native MFA** — zero ongoing cost, industry-standard,
+  works with every authenticator app. Supabase returns the QR as an SVG
+  data URL so we don't need the `qrcode` npm package.
+- **Hashed recovery codes** — even a database leak can't reveal codes;
+  we only store SHA-256 hashes via `pgcrypto.digest`.
+- **`SECURITY DEFINER` + blocked direct writes** — prevents privilege
+  escalation; users can never insert codes for themselves or others.
+
+**Notes / things to keep an eye on**
+- We don't yet enforce AAL2 on sensitive routes (e.g., delete account,
+  change password). Right now, MFA only gates initial sign-in. A future
+  pass should re-challenge for high-impact actions.
+- Recovery codes table uses `ON DELETE CASCADE` from `auth.users`, so
+  account deletion automatically purges codes.
+- `MfaChallengeForm` cancel signs the user out — we don't keep half-
+  authenticated sessions hanging around.
+- Pre-existing Supabase linter warning about a public storage bucket
+  (`course-assets`) remains; unrelated to this batch and intentional.
+
+---
+
+## All five high-ROI enhancements complete
+
+Batches 1 + 2 + 3 cover items #1, 2, 3, 4, 5 from the original 26-item
+list. Remaining items (6–26) are queued for follow-up sessions per the
+priority breakdown at the top of this document.
