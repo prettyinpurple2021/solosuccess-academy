@@ -1,18 +1,12 @@
 /// <reference path="../deno.d.ts" />
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+// deno-lint-ignore no-explicit-any
+import { createClient as createClientRaw } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
-/** Minimal type for Supabase client used in this function (avoids URL-import type gaps in IDE). */
-interface SupabaseClientLike {
-  auth: {
-    getUser(token: string): Promise<{ data: { user?: { id: string } }; error: unknown }>;
-    admin: { getUserById(id: string): Promise<{ data?: { user?: { email?: string } }; error?: unknown }> };
-  };
-  from(table: string): {
-    select(cols: string): { eq(a: string, b: unknown): { eq(a: string, b: unknown): { single(): Promise<{ data: unknown; error: unknown }> }; single(): Promise<{ data: unknown; error: unknown }> }; eq(a: string, b: unknown): { single(): Promise<{ data: unknown; error: unknown }> } };
-    insert(row: unknown): Promise<{ error?: unknown }>;
-  };
-}
+// Cast to a permissive `any`-returning factory: this function uses dynamic
+// queries and the auth admin API that the strict generated types don't model.
+// deno-lint-ignore no-explicit-any
+const createClient = createClientRaw as unknown as (url: string, key: string, opts?: any) => any;
 
 import { getCorsHeaders, corsResponse } from "../_shared/cors.ts";
 
@@ -94,7 +88,7 @@ serve(async (req: Request): Promise<Response> => {
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-    ) as SupabaseClientLike;
+    );
 
     // Verify caller identity using getUser
     const supabaseAuth = createClient(
