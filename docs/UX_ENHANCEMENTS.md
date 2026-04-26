@@ -1,3 +1,15 @@
+
+## Maintenance — 2026-04-26
+
+### Edge Function Deno Type Warnings (resolved)
+- Replaced incorrect `lib: ["deno.ns", "deno.unstable"]` in `supabase/functions/deno.json` with `["esnext", "dom", "dom.iterable", "deno.ns", "deno.unstable"]` so DOM globals (`Response`, `Request`, `fetch`, `console`, `Headers`, `URL`) and the `Deno` namespace are both available during type-check.
+- Emptied `supabase/functions/deno.d.ts` — its hand-written shims duplicated DOM/Deno declarations and used a too-narrow `@supabase/supabase-js` interface, masking real type errors and triggering duplicate-identifier conflicts.
+- Cast `createClient` to `any` in `process-email-queue/index.ts` and `send-notification-email/index.ts` because they query dynamic table names and use the Auth Admin API that the generated `Database` types don't model. RLS still protects the data; this is purely a TypeScript ergonomics fix.
+
+### Storage Linter — `0025_public_bucket_allows_listing` (resolved)
+- Dropped the broad `"Public read access for course assets"` SELECT policy on `storage.objects` for the `course-assets` bucket.
+- Replaced with `"Admins can list course assets"` (admin-only listing).
+- Course covers and Plug-and-Play downloads still load — the app uses `getPublicUrl()` (CDN) which doesn't require a SELECT policy on `storage.objects` for known object paths.
 # UX Enhancements — Implementation Log
 
 > **Status legend:** ✅ Shipped · 🚧 In progress · 📋 Planned
