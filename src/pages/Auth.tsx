@@ -34,6 +34,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Eye, EyeOff, Sparkles, MailCheck } from 'lucide-react';
 import { PageMeta } from '@/components/layout/PageMeta';
+import { MfaChallengeForm } from '@/components/auth/MfaChallengeForm';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function Auth() {
   const [searchParams] = useSearchParams();
@@ -48,6 +50,8 @@ export default function Auth() {
 
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  // 2FA challenge state — true when password sign-in succeeded but AAL2 is required
+  const [needsMfa, setNeedsMfa] = useState(false);
 
   // Sign In Form State
   const [signInEmail, setSignInEmail] = useState('');
@@ -64,6 +68,12 @@ export default function Auth() {
 
     try {
       await signIn(signInEmail, signInPassword);
+      // Check if this account has 2FA enrolled and needs to step up to AAL2
+      const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+      if (aal?.currentLevel === 'aal1' && aal?.nextLevel === 'aal2') {
+        setNeedsMfa(true);
+        return;
+      }
       toast({
         title: 'Welcome back!',
         description: 'You have successfully signed in.',
