@@ -7,6 +7,7 @@
 import { Outlet } from 'react-router-dom';
 import { PublicHeader } from './PublicHeader';
 import { Footer } from './Footer';
+import { CookieBanner } from './CookieBanner';
 import { FloatingParticles } from '@/components/landing/FloatingParticles';
 import { NebulaBackground } from '@/components/landing/NebulaBackground';
 import { StarField } from '@/components/landing/StarField';
@@ -34,6 +35,9 @@ export function PublicLayout() {
       
       {/* Site footer */}
       <Footer />
+
+      {/* Essential-cookies disclosure (dismissible, localStorage) */}
+      <CookieBanner />
     </div>
   );
 }
