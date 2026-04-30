@@ -78,10 +78,10 @@ export function DocumentUpload({
         }
         
         setParseProgress(70);
-        // Extract text from XML - simple regex extraction
+        // Extract text from XML and neutralize any remaining HTML-significant characters
         const textMatches = docXml.match(/<w:t[^>]*>([^<]*)<\/w:t>/g) || [];
         content = textMatches
-          .map(match => match.replace(/<[^>]+>/g, ''))
+          .map(match => match.replace(/<[^>]+>/g, '').replace(/[<>]/g, ''))
           .join(' ')
           .replace(/\s+/g, ' ')
           .trim();
