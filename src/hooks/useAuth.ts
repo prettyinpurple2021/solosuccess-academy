@@ -158,6 +158,12 @@ export function useAuth() {
 
         if (session?.user) {
           setTimeout(() => fetchProfile(session.user.id), 0);
+          // Fire welcome email on first verified sign-in. The lifecycle
+          // ledger's UNIQUE (user_id, course_id, kind) constraint makes
+          // this safe to call repeatedly — only the first one wins.
+          if (event === 'SIGNED_IN') {
+            setTimeout(() => sendWelcomeEmailOnce(session.user), 0);
+          }
         } else {
           setProfile(null);
         }
