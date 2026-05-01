@@ -161,14 +161,19 @@ serve(async (req) => {
 
     // Always 200 to Stripe for events we accepted into the ledger; otherwise
     // Stripe will keep retrying forever and we'd build up a flood.
-    return new Response(JSON.stringify({ received: true, error: processingError }), {
-      status: 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({
+        received: true,
+        error: processingError ? "processing_failed" : null,
+      }),
+      {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
   } catch (error: unknown) {
     console.error("[stripe-webhook] Unhandled error:", error);
-    const message = error instanceof Error ? error.message : "Unknown error";
-    return new Response(JSON.stringify({ error: message }), {
+    return new Response(JSON.stringify({ error: "Invalid webhook request" }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 400,
     });
