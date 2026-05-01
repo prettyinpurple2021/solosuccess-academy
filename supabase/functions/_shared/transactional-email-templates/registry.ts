@@ -17,8 +17,14 @@ export interface TemplateEntry {
 
 import { template as contactConfirmation } from './contact-confirmation.tsx'
 import { template as purchaseReceipt } from './purchase-receipt.tsx'
+import { template as welcome } from './welcome.tsx'
+import { template as lifecycleDay3Nudge } from './lifecycle-day3-nudge.tsx'
+import { template as lifecycleDay7Resume } from './lifecycle-day7-resume.tsx'
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'contact-confirmation': contactConfirmation,
   'purchase-receipt': purchaseReceipt,
+  'welcome': welcome,
+  'lifecycle-day3-nudge': lifecycleDay3Nudge,
+  'lifecycle-day7-resume': lifecycleDay7Resume,
 }
