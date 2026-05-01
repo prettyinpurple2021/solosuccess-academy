@@ -22,7 +22,7 @@ import {
 
 export default function Welcome() {
   const { courseId } = useParams<{ courseId: string }>();
-  const { user, profile, loading: authLoading } = useAuth();
+  const { user, profile, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [marking, setMarking] = useState(false);
 
