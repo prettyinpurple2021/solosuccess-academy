@@ -836,6 +836,41 @@ export type Database = {
           },
         ]
       }
+      lifecycle_emails_sent: {
+        Row: {
+          course_id: string | null
+          id: string
+          kind: string
+          metadata: Json | null
+          sent_at: string
+          user_id: string
+        }
+        Insert: {
+          course_id?: string | null
+          id?: string
+          kind: string
+          metadata?: Json | null
+          sent_at?: string
+          user_id: string
+        }
+        Update: {
+          course_id?: string | null
+          id?: string
+          kind?: string
+          metadata?: Json | null
+          sent_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lifecycle_emails_sent_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mfa_recovery_codes: {
         Row: {
           code_hash: string
@@ -1047,6 +1082,7 @@ export type Database = {
           display_name: string | null
           email_notifications: boolean
           id: string
+          onboarding_completed_courses: string[]
           updated_at: string
         }
         Insert: {
@@ -1058,6 +1094,7 @@ export type Database = {
           display_name?: string | null
           email_notifications?: boolean
           id: string
+          onboarding_completed_courses?: string[]
           updated_at?: string
         }
         Update: {
@@ -1069,6 +1106,7 @@ export type Database = {
           display_name?: string | null
           email_notifications?: boolean
           id?: string
+          onboarding_completed_courses?: string[]
           updated_at?: string
         }
         Relationships: []
@@ -2141,6 +2179,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      mark_onboarding_complete: {
+        Args: { _course_id: string }
+        Returns: undefined
       }
       move_to_dlq: {
         Args: {

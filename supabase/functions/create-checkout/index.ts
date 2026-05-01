@@ -143,7 +143,9 @@ serve(async (req) => {
         },
       ],
       mode: "payment",
-      success_url: `${req.headers.get("origin")}/courses/${courseId}?purchased=true`,
+      // Redirect to the post-purchase onboarding screen, which validates
+      // ownership server-side and walks the student through 3 quick steps.
+      success_url: `${req.headers.get("origin")}/welcome/${courseId}?purchased=true`,
       cancel_url: `${req.headers.get("origin")}/courses/${courseId}?canceled=true`,
       metadata: {
         userId: user.id,

@@ -48,6 +48,39 @@ export interface Profile {
 /** Timeout duration: 30 minutes of inactivity (in ms) */
 const SESSION_TIMEOUT_MS = 30 * 60 * 1000;
 
+/**
+ * Fire the welcome email exactly once per user. Idempotency is enforced
+ * server-side by the lifecycle_emails_sent unique constraint
+ * (user_id, course_id NULL, kind='welcome'). Calling this multiple times
+ * is safe — only the first attempt actually sends.
+ */
+async function sendWelcomeEmailOnce(user: User) {
+  if (!user?.email) return;
+  try {
+    // Try to claim the welcome slot. If it already exists (23505), bail out
+    // silently — another tab/device already handled it.
+    const { error: claimErr } = await supabase
+      .from('lifecycle_emails_sent')
+      .insert({ user_id: user.id, course_id: null, kind: 'welcome' });
+    if (claimErr) return; // unique violation or RLS — either way, don't send
+
+    // Look up display name (best-effort)
+    const { data: profile } = await supabase
+      .from('profiles').select('display_name').eq('id', user.id).maybeSingle();
+
+    await supabase.functions.invoke('send-transactional-email', {
+      body: {
+        templateName: 'welcome',
+        recipientEmail: user.email,
+        idempotencyKey: `welcome-${user.id}`,
+        templateData: { studentName: profile?.display_name ?? undefined },
+      },
+    });
+  } catch (err) {
+    console.warn('[useAuth] welcome email failed (non-fatal):', err);
+  }
+}
+
 /** Warning before timeout: show toast 1 minute before logout */
 const SESSION_WARNING_MS = SESSION_TIMEOUT_MS - 60 * 1000;
 
@@ -158,6 +191,12 @@ export function useAuth() {
 
         if (session?.user) {
           setTimeout(() => fetchProfile(session.user.id), 0);
+          // Fire welcome email on first verified sign-in. The lifecycle
+          // ledger's UNIQUE (user_id, course_id, kind) constraint makes
+          // this safe to call repeatedly — only the first one wins.
+          if (event === 'SIGNED_IN') {
+            setTimeout(() => sendWelcomeEmailOnce(session.user), 0);
+          }
         } else {
           setProfile(null);
         }

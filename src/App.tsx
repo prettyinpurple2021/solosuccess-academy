@@ -98,6 +98,7 @@ const TranscriptPage = lazy(() => import("./pages/Transcript"));
 const StudentGrades = lazy(() => import("./pages/StudentGrades"));
 const Unsubscribe = lazy(() => import("./pages/Unsubscribe"));
 const Billing = lazy(() => import("./pages/Billing"));
+const Welcome = lazy(() => import("./pages/Welcome"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 /**
@@ -229,6 +230,7 @@ const App = () => (
                 <Route path="/transcript" element={<RouteErrorBoundary><TranscriptPage /></RouteErrorBoundary>} />
                 <Route path="/grades" element={<RouteErrorBoundary><StudentGrades /></RouteErrorBoundary>} />
                 <Route path="/billing" element={<RouteErrorBoundary><Billing /></RouteErrorBoundary>} />
+                <Route path="/welcome/:courseId" element={<RouteErrorBoundary><Welcome /></RouteErrorBoundary>} />
               </Route>
 
                 {/* 404 catch-all — shows friendly "not found" page */}
