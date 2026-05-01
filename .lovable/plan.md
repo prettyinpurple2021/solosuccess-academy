@@ -1,61 +1,80 @@
 
+# Next Batch: Retention (Onboarding + Email Lifecycle)
 
-# Project Knowledge Generation — SoloSuccess Academy T=0
+The Revenue & Trust batch is shipped (landing audit, Stripe receipt, billing portal, cookie banner, production legal). The biggest remaining leak is **what happens after signup and after purchase** — students sign up, hit a generic dashboard, and we never re-engage them if they drift.
 
-I'll create knowledge entries documenting the current state of all implemented features across the platform.
+This batch fixes that with three coordinated pieces.
 
-## Knowledge Entries to Create
+---
 
-### 1. **architecture/overview**
-Project architecture: React 18 + Vite 5 + Tailwind v3 + TypeScript 5 frontend with Lovable Cloud (Supabase) backend. Three route groups (Public, Protected, Admin) with code-splitting via React.lazy. Provider hierarchy: QueryClient > ErrorBoundary > Helmet > Theme > Gamification > Router. 37 pages, 29 edge functions, 57 migrations.
+## 1. Branded welcome email (signup)
 
-### 2. **features/authentication**
-Email/password auth with email verification via Supabase Auth. Session timeout after 30 min inactivity with warning toast at 29 min. Auto-created profile row on signup via DB trigger. Password reset flow via email link (/reset-password). Email unsubscribe support (/unsubscribe). Protected routes via AppLayout auth check.
+A new transactional template `welcome` that sends once when `handle_new_user` fires (or on first auth session). It greets the new student, sets expectations (free preview content, where to start, how billing works), and links to:
+- Course catalog (`/courses`)
+- The free first lesson of Course 1 (Initialization phase)
+- Help Center (`/help`)
+- Billing/refund policy
 
-### 3. **features/course-catalog-and-purchasing**
-10 courses across 3 phases (Initialization, Orchestration, Launch) with 78 lessons total. Public course catalog with lesson previews (title, description, type, duration). Stripe checkout integration via create-checkout edge function and stripe-webhook handler. PurchaseGuard component for route-level access control. Courses priced at $49 each.
+Styled to match the existing `purchase-receipt` and `contact-confirmation` templates (Rajdhani heading, cyan accent, dark surface).
 
-### 4. **features/lesson-system**
-6 lesson types: text, video, quiz, assignment, worksheet, activity. Each type has structured JSONB data (quiz_data, worksheet_data, activity_data). Dedicated viewer components: QuizPlayer, WorksheetPlayer, ActivityViewer, etc. Progress tracking via user_progress table with quiz scores, worksheet answers, activity scores, and admin override support.
+**Trigger:** Add a small enqueue call inside `handle_new_user` (via the existing `enqueue_email` RPC + `process-email-queue` worker) so it's reliable even if the client tab closes.
 
-### 5. **features/textbook-system**
-Interactive flip-book textbook viewer (HTMLFlipBook) with full-page layout. Chapters and pages stored in textbook_chapters/textbook_pages tables. Features: text highlights, bookmarks, inline comments, vocabulary glossary, flashcards with spaced repetition, embedded quizzes, text-to-speech, reading timer, reading milestones, "Explain This" AI panel, keyboard navigation help.
+## 2. Post-purchase onboarding screen
 
-### 6. **features/assessment-and-grading**
-Final exams (course_final_exams) with multiple-choice questions, passing scores, and attempt tracking. Final essays (course_essays) with prompts, rubrics, and word limits. Practice labs with AI feedback. Admin gradebook with manual override scoring. Student grades page. Grade weights panel for admins.
+After Stripe checkout success, users currently land on `/dashboard` with no orientation. We'll add a lightweight **`/welcome/:courseId`** route that:
 
-### 7. **features/gamification**
-XP system with GamificationProvider context. Streaks (current/longest) tracked in user_gamification table. Badges display. Leaderboard via get-leaderboard edge function. XP notifications on actions. Confetti hook for celebrations.
+- Confirms the purchase ("You own [Course Title] for life")
+- Shows a 3-step "Get started in 5 minutes" checklist:
+  1. Open your first lesson (deep link)
+  2. Set a daily goal (links to existing `DailyGoalCard` settings)
+  3. Join the course discussion (deep link to `/discussions/:courseId`)
+- One-time only — sets a flag in `profiles.onboarding_completed_courses jsonb` (array of course IDs already onboarded). If the user revisits, they go straight to the course.
 
-### 8. **features/certificates-and-portfolio**
-Certificate generation on course completion with verification codes. Public verification page (/verify/:code). Certificate themes. Portfolio assembler with entries per course (executive summary, narrative, deliverables). Transcript page showing academic record.
+Stripe webhook's existing redirect (`success_url`) gets pointed at `/welcome/:courseId` instead of `/dashboard`.
 
-### 9. **features/discussion-board**
-Threaded discussions per course with CRUD. Nested comments. Upvoting system with per-user tracking. Real-time updates via Supabase subscriptions. Purchase-gated access. Admin moderation. Pagination. Email notifications on replies via notify-discussion-reply edge function.
+## 3. Lifecycle nudges (Day 3 + Day 7 inactivity)
 
-### 10. **features/ai-capabilities**
-AI tutor chat (ai-tutor edge function) with session persistence. Content generation for courses, lessons, quizzes, worksheets, activities, textbooks, and exams. Bulk generation tools (lessons, assessments, supplemental, textbooks). "Explain This" text selection feature. Practice and project feedback via AI. Image, video, and voice generation. AI gateway with retry logic (aiGateway.ts shared helper).
+Extend the existing `check-student-progress` cron (already runs daily 9 AM UTC per memory) to also detect:
 
-### 11. **features/admin-suite**
-Admin dashboard with course/lesson management. Course editor, lesson editor with Markdown preview and auto-save. Quiz, worksheet, activity, textbook, and milestone editors. Bulk content generation buttons. Asset/document/video upload. Analytics page. Gradebook. Exam/essay management. AI settings with API key management. Content generator page with smart prompts.
+- **Day 3 nudge** — purchased ≥3 days ago, 0 lessons completed → "Your first lesson is waiting" email with a one-click resume link.
+- **Day 7 nudge** — last activity ≥7 days ago, course not yet complete → "Pick up where you left off" email using `continue_later` data so we deep-link to the exact lesson/page they last viewed.
 
-### 12. **features/email-system**
-Custom auth email hook with branded templates (signup, recovery, invite, magic-link, etc.). Transactional email system with queue processing. Email send log and rate limiting. Suppressed emails tracking. Unsubscribe token management. Contact form submissions via edge function.
+Both use **idempotency**: a new `lifecycle_emails_sent` table (`user_id`, `course_id`, `kind`, `sent_at`, unique on the triple) so we never double-send. Each email respects the existing unsubscribe flow (`handle-email-unsubscribe`).
 
-### 13. **features/ui-and-ux**
-Cyberpunk/neon design theme with nebula background, star field, floating particles. Dark mode default with theme toggle. Mobile-responsive sidebar navigation. Global search. Breadcrumb navigation. Skip links for accessibility. Error boundaries (global + per-route). Loading skeletons. Toast notifications (dual system: shadcn + sonner). Notepad widget. Continue-later bookmarking. Reading progress bar.
+Two new transactional templates: `lifecycle-day3-nudge` and `lifecycle-day7-resume`.
 
-### 14. **features/student-tools**
-Student notepad widget with drag/resize. Continue-later bookmarking per course. Reading time tracking (reading_sessions table). Learning objectives tracking (user_objective_progress). Assignment submission system. Keyboard navigation support. AI tutor chat per lesson. Notification bell with read/unread state.
-
-### 15. **security/rls-policies**
-All tables have RLS enabled. Key patterns: user_id = auth.uid() for self-access; has_role() security definer function for admin checks; has_purchased_course() for purchase-gated content; has_completed_course() for certificate creation. Purchases table is fully locked (insert/update/delete = false for users, only service_role via webhooks). Admin API keys hidden from students.
+---
 
 ## Technical Details
-- **Database**: 30+ tables with comprehensive RLS policies
-- **Edge Functions**: 29 deployed functions covering AI, payments, email, content generation
-- **Shared Utilities**: AI gateway with retry/backoff, CORS handler, rate limiter, email templates
-- **Testing**: Vitest setup with example tests for hooks and utilities
-- **SEO**: react-helmet-async with PageMeta component and siteMeta config
-- **Deployment**: Vercel config (vercel.json) with SPA rewrites
 
+**Files created**
+- `supabase/functions/_shared/transactional-email-templates/welcome.tsx`
+- `supabase/functions/_shared/transactional-email-templates/lifecycle-day3-nudge.tsx`
+- `supabase/functions/_shared/transactional-email-templates/lifecycle-day7-resume.tsx`
+- `src/pages/Welcome.tsx` (post-purchase onboarding screen)
+
+**Files edited**
+- `supabase/functions/_shared/transactional-email-templates/registry.ts` — register 3 new templates
+- `supabase/functions/stripe-webhook/index.ts` — change `success_url` to `/welcome/:courseId`
+- `supabase/functions/check-student-progress/index.ts` — add Day 3 + Day 7 detection and enqueue logic
+- `supabase/functions/create-checkout/index.ts` — pass `courseId` through so `success_url` can include it
+- `src/App.tsx` — register `/welcome/:courseId` route inside `AppLayout` (auth-required)
+
+**Database migration**
+- `lifecycle_emails_sent` table with RLS (admin-only read; service role writes via cron)
+- Add `onboarding_completed_courses uuid[]` column to `profiles` (default `'{}'`)
+- Update `handle_new_user` to enqueue the welcome email via `pgmq.send`
+
+**Security & integrity**
+- All three email templates render server-side only (no client invocation paths)
+- Lifecycle worker runs under service role, respects `email_unsubscribes` table
+- `/welcome/:courseId` validates ownership via `has_purchased_course` before rendering — non-owners get redirected to `/courses`
+
+---
+
+## Out of scope for this batch (future)
+- Drip campaign for unpurchased signups (Day 1, 7, 14 cart-abandonment style)
+- Re-engagement for users who completed a course but haven't bought the next phase
+- In-app notification mirrors of the lifecycle emails
+
+Approve and I'll build all three pieces in one pass.
