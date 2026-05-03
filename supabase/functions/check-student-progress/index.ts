@@ -88,7 +88,7 @@ serve(async (req: Request): Promise<Response> => {
     // ── Fetch base data in parallel ────────────────────────────────
     const [purchasesRes, coursesRes, lessonsRes] = await Promise.all([
       supabase.from("purchases").select("user_id, course_id, purchased_at"),
-      supabase.from("courses").select("id, title"),
+      supabase.from("courses").select("id, title, order_number"),
       supabase.from("lessons")
         .select("id, course_id, title, order_number, is_published")
         .eq("is_published", true),
