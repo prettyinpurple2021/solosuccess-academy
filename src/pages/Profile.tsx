@@ -16,6 +16,9 @@ import { useCourses } from '@/hooks/useCourses';
 import { useUserCertificates } from '@/hooks/useCertificates';
 import { NeonSpinner } from '@/components/ui/neon-spinner';
 import { TrendingUp, BookOpen, Award, ArrowRight } from 'lucide-react';
+import { TestimonialForm } from '@/components/testimonials/TestimonialForm';
+import { useEffect, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 
 export default function Profile() {
   const { user, isLoading: authLoading } = useAuth();
@@ -24,6 +27,13 @@ export default function Profile() {
   const { data: overallProgress, isLoading: progressLoading } = useOverallProgress(user?.id);
   const { data: allCourses } = useCourses();
   const { data: certificates } = useUserCertificates(user?.id);
+  const [params] = useSearchParams();
+  const testimonialRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (params.get('testimonial') === '1' && testimonialRef.current) {
+      testimonialRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [params]);
 
   const isLoading = authLoading || profileLoading;
 
