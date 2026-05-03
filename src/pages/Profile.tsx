@@ -203,6 +203,10 @@ export default function Profile() {
             isLoading={achievementsLoading} 
           />
         </div>
+
+        <div className="mt-8" ref={testimonialRef}>
+          <TestimonialForm defaultName={profile?.display_name ?? undefined} />
+        </div>
       </div>
     </div>
   );
