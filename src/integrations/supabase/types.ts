@@ -1654,6 +1654,51 @@ export type Database = {
         }
         Relationships: []
       }
+      testimonials: {
+        Row: {
+          admin_notes: string | null
+          approved_at: string | null
+          author_name: string
+          author_role: string | null
+          course_id: string | null
+          created_at: string
+          id: string
+          quote: string
+          rating: number
+          status: Database["public"]["Enums"]["testimonial_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          approved_at?: string | null
+          author_name: string
+          author_role?: string | null
+          course_id?: string | null
+          created_at?: string
+          id?: string
+          quote: string
+          rating: number
+          status?: Database["public"]["Enums"]["testimonial_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          approved_at?: string | null
+          author_name?: string
+          author_role?: string | null
+          course_id?: string | null
+          created_at?: string
+          id?: string
+          quote?: string
+          rating?: number
+          status?: Database["public"]["Enums"]["testimonial_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       textbook_chapter_objectives: {
         Row: {
           chapter_id: string
@@ -2302,6 +2347,7 @@ export type Database = {
         | "worksheet"
         | "activity"
       project_status: "draft" | "submitted" | "reviewed"
+      testimonial_status: "pending" | "approved" | "rejected"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2441,6 +2487,7 @@ export const Constants = {
         "activity",
       ],
       project_status: ["draft", "submitted", "reviewed"],
+      testimonial_status: ["pending", "approved", "rejected"],
     },
   },
 } as const
