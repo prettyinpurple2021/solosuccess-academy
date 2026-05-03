@@ -100,6 +100,7 @@ const Unsubscribe = lazy(() => import("./pages/Unsubscribe"));
 const Billing = lazy(() => import("./pages/Billing"));
 const Welcome = lazy(() => import("./pages/Welcome"));
 const AdminAnnouncements = lazy(() => import("./pages/AdminAnnouncements"));
+const AdminTestimonials = lazy(() => import("./pages/AdminTestimonials"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 /**
@@ -213,6 +214,7 @@ const App = () => (
                   <Route path="gradebook" element={<RouteErrorBoundary><Gradebook /></RouteErrorBoundary>} />
                   <Route path="exam-essay" element={<RouteErrorBoundary><AdminExamEssay /></RouteErrorBoundary>} />
                   <Route path="announcements" element={<RouteErrorBoundary><AdminAnnouncements /></RouteErrorBoundary>} />
+                  <Route path="testimonials" element={<RouteErrorBoundary><AdminTestimonials /></RouteErrorBoundary>} />
                 </Route>
                 
                 {/* ─── STUDENT LEARNING ROUTES ────────────
