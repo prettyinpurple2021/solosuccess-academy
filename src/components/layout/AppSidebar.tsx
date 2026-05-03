@@ -38,6 +38,7 @@ import {
   BarChart3,
   Wand2,
   Megaphone,
+  MessageSquareQuote,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
