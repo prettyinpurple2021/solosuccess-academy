@@ -92,6 +92,7 @@ const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 const RefundPolicy = lazy(() => import("./pages/RefundPolicy"));
 const Legal = lazy(() => import("./pages/Legal"));
 const LegalDocument = lazy(() => import("./pages/LegalDocument"));
+const VerifyLanding = lazy(() => import("./pages/VerifyLanding"));
 const HelpCenter = lazy(() => import("./pages/HelpCenter"));
 const AboutPage = lazy(() => import("./pages/About"));
 const ContactPage = lazy(() => import("./pages/Contact"));
@@ -187,6 +188,7 @@ const App = () => (
               </Route>
 
               {/* Public Certificate Verification — standalone page, no layout */}
+              <Route path="/verify" element={<RouteErrorBoundary><VerifyLanding /></RouteErrorBoundary>} />
               <Route path="/verify/:verificationCode" element={<RouteErrorBoundary><VerifyCertificate /></RouteErrorBoundary>} />
 
               {/* Password Reset — public standalone page, user arrives via email link */}
