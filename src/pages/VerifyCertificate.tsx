@@ -164,7 +164,11 @@ export default function VerifyCertificate() {
               {/* Footer */}
               <CardContent className="bg-muted/50 py-4">
                 <p className="text-xs text-center text-muted-foreground">
-                  This certificate was issued by SoloSuccess Academy and can be independently verified.
+                  This certificate was issued by SoloSuccess Academy and can be independently verified.{' '}
+                  <Link to="/legal/certificate-verification" className="text-primary hover:underline">
+                    Read the verification policy
+                  </Link>
+                  .
                 </p>
               </CardContent>
             </Card>
