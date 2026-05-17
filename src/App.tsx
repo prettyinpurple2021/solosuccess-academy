@@ -90,6 +90,8 @@ const FinalEssay = lazy(() => import("./pages/FinalEssay"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 const RefundPolicy = lazy(() => import("./pages/RefundPolicy"));
+const Legal = lazy(() => import("./pages/Legal"));
+const LegalDocument = lazy(() => import("./pages/LegalDocument"));
 const HelpCenter = lazy(() => import("./pages/HelpCenter"));
 const AboutPage = lazy(() => import("./pages/About"));
 const ContactPage = lazy(() => import("./pages/Contact"));
@@ -177,6 +179,8 @@ const App = () => (
                 <Route path="/privacy" element={<RouteErrorBoundary><PrivacyPolicy /></RouteErrorBoundary>} />
                 <Route path="/terms" element={<RouteErrorBoundary><TermsOfService /></RouteErrorBoundary>} />
                 <Route path="/refund" element={<RouteErrorBoundary><RefundPolicy /></RouteErrorBoundary>} />
+                <Route path="/legal" element={<RouteErrorBoundary><Legal /></RouteErrorBoundary>} />
+                <Route path="/legal/:slug" element={<RouteErrorBoundary><LegalDocument /></RouteErrorBoundary>} />
                 <Route path="/help" element={<RouteErrorBoundary><HelpCenter /></RouteErrorBoundary>} />
                 <Route path="/about" element={<RouteErrorBoundary><AboutPage /></RouteErrorBoundary>} />
                 <Route path="/contact" element={<RouteErrorBoundary><ContactPage /></RouteErrorBoundary>} />

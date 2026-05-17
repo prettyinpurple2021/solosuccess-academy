@@ -108,6 +108,11 @@ export function Footer() {
                   Billing
                 </Link>
               </li>
+              <li>
+                <Link to="/legal" className="text-muted-foreground hover:text-accent transition-colors font-mono font-semibold">
+                  All Legal Documents →
+                </Link>
+              </li>
             </ul>
           </div>
         </div>
