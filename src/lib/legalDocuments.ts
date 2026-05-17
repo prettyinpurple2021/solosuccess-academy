@@ -91,6 +91,14 @@ export const LEGAL_DOCUMENTS: LegalDocument[] = [
     version: '1.0',
     effectiveDate: '2026-05-17',
   },
+  {
+    slug: 'certificate-verification',
+    title: 'Certificate Verification Policy',
+    description: 'How SoloSuccess Academy issues, verifies, and revokes certificates of completion.',
+    file: 'Certificate_Verification_Policy.pdf',
+    version: '1.0',
+    effectiveDate: '2026-05-17',
+  },
 ];
 
 export function getLegalDocBySlug(slug: string): LegalDocument | undefined {
