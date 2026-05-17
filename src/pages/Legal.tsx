@@ -17,7 +17,6 @@ export default function Legal() {
       <PageMeta
         title="Legal Center | SoloSuccess Academy"
         description="All SoloSuccess Academy legal documents in one place: terms, privacy, refund, DMCA, and more."
-        canonical="/legal"
       />
       <div className="container max-w-5xl py-16">
         <header className="mb-12 text-center">
