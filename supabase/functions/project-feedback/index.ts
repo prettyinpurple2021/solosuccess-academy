@@ -8,12 +8,8 @@ import { z } from "https://esm.sh/zod@3.25.76";
 import { checkRateLimit, rateLimitResponse } from "../_shared/rateLimit.ts";
 import { getCorsHeaders, corsResponse } from "../_shared/cors.ts";
 
-// Rate limit: 10 requests per hour per user (project feedback is expensive)
-const RATE_LIMIT_CONFIG = {
-  endpoint: "project-feedback",
-  maxRequests: 10,
-  windowMinutes: 60,
-};
+import { getRateLimit } from "../_shared/rateLimitConfig.ts";
+const RATE_LIMIT_CONFIG = getRateLimit("project-feedback");
 
 // --- Zod schema: validates the request body has a valid UUID project ID ---
 const projectFeedbackRequestSchema = z.object({
