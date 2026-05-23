@@ -266,24 +266,30 @@ export type Database = {
           created_at: string
           endpoint: string
           id: string
+          identifier: string
+          identifier_type: string
           request_count: number
-          user_id: string
+          user_id: string | null
           window_start: string
         }
         Insert: {
           created_at?: string
           endpoint: string
           id?: string
+          identifier: string
+          identifier_type: string
           request_count?: number
-          user_id: string
+          user_id?: string | null
           window_start?: string
         }
         Update: {
           created_at?: string
           endpoint?: string
           id?: string
+          identifier?: string
+          identifier_type?: string
           request_count?: number
-          user_id?: string
+          user_id?: string | null
           window_start?: string
         }
         Relationships: []
@@ -2259,6 +2265,7 @@ export type Database = {
         Args: { _page_id: string; _selected_answer: number }
         Returns: Json
       }
+      cleanup_expired_rate_limits: { Args: never; Returns: number }
       confirm_mfa_recovery_code: { Args: { _code: string }; Returns: Json }
       consume_mfa_recovery_code: { Args: { _code: string }; Returns: boolean }
       delete_email: {
