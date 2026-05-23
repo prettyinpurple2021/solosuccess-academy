@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -18,12 +19,17 @@ import {
 } from 'lucide-react';
 import { PageMeta } from '@/components/layout/PageMeta';
 import { ErrorView } from '@/components/ui/error-view';
+import { TurnstileWidget } from '@/components/security/TurnstileWidget';
 
 export default function VerifyCertificate() {
   const { verificationCode } = useParams<{ verificationCode: string }>();
-  const { data: certificate, isLoading, error, refetch } = useVerifyCertificate(verificationCode);
+  const [turnstileToken, setTurnstileToken] = useState<string | undefined>(undefined);
+  const { data: certificate, isLoading, error, refetch } = useVerifyCertificate(
+    verificationCode,
+    turnstileToken,
+  );
 
-  if (isLoading) {
+  if (turnstileToken && isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center cyber-bg">
         <div className="cyber-grid" />
@@ -90,7 +96,28 @@ export default function VerifyCertificate() {
             </p>
           </div>
 
-          {certificate ? (
+          {!turnstileToken ? (
+            /* Challenge gate */
+            <Card className="glass-card border-primary/20">
+              <CardContent className="py-10 text-center space-y-6">
+                <div className="space-y-2">
+                  <Shield className="h-10 w-10 mx-auto text-primary" />
+                  <h2 className="font-display font-semibold text-xl">
+                    Quick security check
+                  </h2>
+                  <p className="text-sm text-muted-foreground max-w-md mx-auto">
+                    Confirm you're human to look up this certificate. This helps
+                    us prevent automated abuse of public verification.
+                  </p>
+                </div>
+                <TurnstileWidget
+                  onVerify={(token) => setTurnstileToken(token)}
+                  onExpire={() => setTurnstileToken(undefined)}
+                  onError={() => setTurnstileToken(undefined)}
+                />
+              </CardContent>
+            </Card>
+          ) : certificate ? (
             /* Valid Certificate */
             <Card className="glass-card border-success/30 overflow-hidden">
               {/* Success Banner */}
