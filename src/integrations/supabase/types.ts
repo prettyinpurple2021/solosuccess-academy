@@ -2268,6 +2268,16 @@ export type Database = {
       cleanup_expired_rate_limits: { Args: never; Returns: number }
       confirm_mfa_recovery_code: { Args: { _code: string }; Returns: Json }
       consume_mfa_recovery_code: { Args: { _code: string }; Returns: boolean }
+      consume_rate_limit: {
+        Args: {
+          _endpoint: string
+          _identifier: string
+          _identifier_type: string
+          _max_requests: number
+          _window_minutes: number
+        }
+        Returns: Json
+      }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
