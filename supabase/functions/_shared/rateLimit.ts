@@ -110,72 +110,36 @@ async function runCheck(opts: CheckRateLimitOptions): Promise<RateLimitResult> {
   }
 
   const supabaseAdmin = getAdminClient();
+  const defaultResetAt = new Date(Date.now() + windowMinutes * 60 * 1000);
 
-  const now = new Date();
-  const windowCutoff = new Date(now.getTime() - windowMinutes * 60 * 1000);
-  const defaultResetAt = new Date(now.getTime() + windowMinutes * 60 * 1000);
+  // Single atomic round-trip: increment-or-insert and return current state.
+  // The RPC is service-role only and uses a unique index on
+  // (identifier, endpoint, window_start) to prevent burst bypass.
+  const { data, error } = await supabaseAdmin.rpc("consume_rate_limit", {
+    _identifier: identifier,
+    _identifier_type: identifierType,
+    _endpoint: endpoint,
+    _max_requests: maxRequests,
+    _window_minutes: windowMinutes,
+  });
 
-  // Find the latest counter row that still falls inside the window
-  const { data: rows, error: fetchError } = await supabaseAdmin
-    .from("api_rate_limits")
-    .select("id, request_count, window_start")
-    .eq("identifier", identifier)
-    .eq("endpoint", endpoint)
-    .gte("window_start", windowCutoff.toISOString())
-    .order("window_start", { ascending: false })
-    .limit(1);
-
-  if (fetchError) {
-    console.error("[rateLimit] fetch error", fetchError);
+  if (error || !data) {
+    // Fail-open on infrastructure errors so a DB hiccup doesn't lock users out.
+    // Callers that must fail-closed should check `error` themselves via a wrapper.
+    console.error("[rateLimit] consume_rate_limit error", error);
     return { allowed: true, remaining: maxRequests, resetAt: defaultResetAt };
   }
 
-  if (rows && rows.length > 0) {
-    const row = rows[0];
-    const currentCount = row.request_count;
-    const windowResetAt = new Date(
-      new Date(row.window_start).getTime() + windowMinutes * 60 * 1000,
-    );
-
-    if (currentCount >= maxRequests) {
-      return { allowed: false, remaining: 0, resetAt: windowResetAt };
-    }
-
-    const { error: updateError } = await supabaseAdmin
-      .from("api_rate_limits")
-      .update({ request_count: currentCount + 1 })
-      .eq("id", row.id);
-
-    if (updateError) console.error("[rateLimit] update error", updateError);
-
-    return {
-      allowed: true,
-      remaining: Math.max(0, maxRequests - currentCount - 1),
-      resetAt: windowResetAt,
-    };
-  }
-
-  // No active window — start a new one. user_id is only set when the
-  // identifier represents an authenticated user (table constraint).
-  const insertPayload: Record<string, unknown> = {
-    identifier,
-    identifier_type: identifierType,
-    endpoint,
-    request_count: 1,
-    window_start: now.toISOString(),
-    user_id: identifierType === "user" ? identifier : null,
+  const payload = data as {
+    allowed: boolean;
+    remaining: number;
+    reset_at: string;
   };
 
-  const { error: insertError } = await supabaseAdmin
-    .from("api_rate_limits")
-    .insert(insertPayload);
-
-  if (insertError) console.error("[rateLimit] insert error", insertError);
-
   return {
-    allowed: true,
-    remaining: Math.max(0, maxRequests - 1),
-    resetAt: defaultResetAt,
+    allowed: payload.allowed,
+    remaining: payload.remaining ?? 0,
+    resetAt: new Date(payload.reset_at),
   };
 }
 
