@@ -17,11 +17,8 @@ import { z } from "https://esm.sh/zod@3.25.76";
 import { checkRateLimit, rateLimitResponse } from "../_shared/rateLimit.ts";
 import { getCorsHeaders, corsResponse } from "../_shared/cors.ts";
 
-const RATE_LIMIT_CONFIG = {
-  endpoint: "milestone-feedback",
-  maxRequests: 20,
-  windowMinutes: 60,
-};
+import { getRateLimit } from "../_shared/rateLimitConfig.ts";
+const RATE_LIMIT_CONFIG = getRateLimit("milestone-feedback");
 
 const requestSchema = z.object({
   submissionId: z.string().uuid("submissionId must be a valid UUID"),
