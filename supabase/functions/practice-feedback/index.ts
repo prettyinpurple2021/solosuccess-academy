@@ -8,12 +8,8 @@ import { z } from "https://esm.sh/zod@3.25.76";
 import { checkRateLimit, rateLimitResponse } from "../_shared/rateLimit.ts";
 import { getCorsHeaders, corsResponse } from "../_shared/cors.ts";
 
-// Rate limit: 20 requests per hour per user
-const RATE_LIMIT_CONFIG = {
-  endpoint: "practice-feedback",
-  maxRequests: 20,
-  windowMinutes: 60,
-};
+import { getRateLimit } from "../_shared/rateLimitConfig.ts";
+const RATE_LIMIT_CONFIG = getRateLimit("practice-feedback");
 
 const requestSchema = z.object({
   submissionId: z

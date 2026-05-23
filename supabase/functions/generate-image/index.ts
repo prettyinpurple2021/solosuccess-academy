@@ -10,12 +10,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { checkRateLimit, rateLimitResponse } from "../_shared/rateLimit.ts";
 import { getCorsHeaders, corsResponse } from "../_shared/cors.ts";
 
-// Rate limit: 10 image generations per hour (expensive operation)
-const RATE_LIMIT_CONFIG = {
-  endpoint: "generate-image",
-  maxRequests: 10,
-  windowMinutes: 60,
-};
+import { getRateLimit } from "../_shared/rateLimitConfig.ts";
+const RATE_LIMIT_CONFIG = getRateLimit("generate-image");
 
 serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);

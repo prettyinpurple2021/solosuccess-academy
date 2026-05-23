@@ -12,12 +12,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 import { checkRateLimit, rateLimitResponse } from "../_shared/rateLimit.ts";
 import { getCorsHeaders, corsResponse } from "../_shared/cors.ts";
 
-// Rate limit: 30 explain requests per hour (same as ai-tutor)
-const RATE_LIMIT_CONFIG = {
-  endpoint: "explain-text",
-  maxRequests: 30,
-  windowMinutes: 60,
-};
+import { getRateLimit } from "../_shared/rateLimitConfig.ts";
+const RATE_LIMIT_CONFIG = getRateLimit("explain-text");
 
 serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);

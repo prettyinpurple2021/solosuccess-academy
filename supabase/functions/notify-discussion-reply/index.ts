@@ -10,12 +10,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { checkRateLimit, rateLimitResponse } from "../_shared/rateLimit.ts";
 import { getCorsHeaders, corsResponse } from "../_shared/cors.ts";
 
-// Rate limit: 50 notification requests per hour (prevents email spam)
-const RATE_LIMIT_CONFIG = {
-  endpoint: "notify-discussion-reply",
-  maxRequests: 50,
-  windowMinutes: 60,
-};
+import { getRateLimit } from "../_shared/rateLimitConfig.ts";
+const RATE_LIMIT_CONFIG = getRateLimit("notify-discussion-reply");
 
 async function sendEmail(to: string, subject: string, html: string): Promise<void> {
   const smtpHost = Deno.env.get("SMTP_HOST");
