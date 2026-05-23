@@ -20,6 +20,10 @@ const ALLOWED_ORIGINS: string[] = [
   "https://indie-blossom-lab.lovable.app", // Published URL
   "https://id-preview--0ca92332-de07-43b7-a7ba-31271ca1363b.lovable.app", // Legacy preview URL
   "https://0ca92332-de07-43b7-a7ba-31271ca1363b.lovableproject.com", // Current preview origin
+  "https://solosuccessacademy.cloud",
+  "https://www.solosuccessacademy.cloud",
+  "https://solosuccessacademy.app",
+  "https://www.solosuccessacademy.app",
 ];
 
 // Allow current/future Lovable preview hostnames without manual redeploys
