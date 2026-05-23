@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { invokeEdgeFunction } from '@/lib/edgeFunctions';
 
 export type ImageContextType = 'textbook_illustration' | 'lesson_thumbnail' | 'concept_diagram' | 'general';
 
@@ -25,52 +26,21 @@ export function useImageGenerator() {
   ): Promise<GeneratedImage | null> => {
     setIsGenerating(true);
 
-    try {
-      const { data, error } = await supabase.functions.invoke('generate-image', {
-        body: { prompt, context, model },
-      });
+    const { data, error } = await invokeEdgeFunction<{
+      imageUrl: string;
+      description?: string;
+    }>('generate-image', { body: { prompt, context, model } });
 
-      if (error) {
-        throw new Error(error.message || 'Failed to generate image');
-      }
+    setIsGenerating(false);
 
-      if (data?.error) {
-        throw new Error(data.error);
-      }
+    if (error || !data) return null;
 
-      toast({
-        title: 'Image generated!',
-        description: 'AI has created your image.',
-      });
+    toast({
+      title: 'Image generated!',
+      description: 'AI has created your image.',
+    });
 
-      return {
-        imageUrl: data.imageUrl,
-        description: data.description,
-      };
-    } catch (error: any) {
-      console.error('Image generation error:', error);
-
-      let errorMessage = 'Failed to generate image';
-      if (error.message?.includes('Rate limit')) {
-        errorMessage = 'Rate limit exceeded. Please wait a moment and try again.';
-      } else if (error.message?.includes('Usage limit') || error.message?.includes('402')) {
-        errorMessage = 'Usage limit reached. Please add credits to continue.';
-      } else if (error.message?.includes('Admin access')) {
-        errorMessage = 'Admin access required to generate images.';
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-
-      toast({
-        title: 'Image generation failed',
-        description: errorMessage,
-        variant: 'destructive',
-      });
-
-      return null;
-    } finally {
-      setIsGenerating(false);
-    }
+    return { imageUrl: data.imageUrl, description: data.description };
   };
 
   const uploadGeneratedImage = async (

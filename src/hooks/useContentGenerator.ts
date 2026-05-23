@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { invokeEdgeFunction } from '@/lib/edgeFunctions';
 
 export type ContentType = 'course_outline' | 'lesson_content' | 'quiz' | 'worksheet' | 'activity' | 'exam' | 'textbook_chapter' | 'textbook_page' | 'bulk_curriculum' | 'practice_lab';
 
@@ -139,47 +139,23 @@ export function useContentGenerator() {
   ): Promise<T | null> => {
     setIsGenerating(true);
 
-    try {
-      const { data, error } = await supabase.functions.invoke('generate-content', {
-        body: { type, context, customPrompt },
-      });
+    // invokeEdgeFunction auto-toasts on 429 / 402 / 403, so we only need
+    // to surface the success toast here.
+    const { data, error } = await invokeEdgeFunction<{ content: T }>(
+      'generate-content',
+      { body: { type, context, customPrompt } },
+    );
 
-      if (error) {
-        throw new Error(error.message || 'Failed to generate content');
-      }
+    setIsGenerating(false);
 
-      if (data?.error) {
-        throw new Error(data.error);
-      }
+    if (error) return null;
 
-      toast({
-        title: 'Content generated!',
-        description: 'AI has created your content. Review and edit as needed.',
-      });
+    toast({
+      title: 'Content generated!',
+      description: 'AI has created your content. Review and edit as needed.',
+    });
 
-      return data.content as T;
-    } catch (error: any) {
-      console.error('Content generation error:', error);
-      
-      let errorMessage = 'Failed to generate content';
-      if (error.message?.includes('Rate limit')) {
-        errorMessage = 'Rate limit exceeded. Please wait a moment and try again.';
-      } else if (error.message?.includes('Admin access')) {
-        errorMessage = 'Admin access required to generate content.';
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-
-      toast({
-        title: 'Generation failed',
-        description: errorMessage,
-        variant: 'destructive',
-      });
-
-      return null;
-    } finally {
-      setIsGenerating(false);
-    }
+    return (data?.content ?? null) as T | null;
   };
 
   return {
