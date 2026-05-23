@@ -91,17 +91,15 @@ export function useCourseLessons(courseId: string | undefined) {
     queryFn: async (): Promise<Lesson[]> => {
       if (!courseId) return [];
 
-      // Only fetch metadata columns needed for the course detail page.
-      // Content, quiz_data, etc. are fetched separately on the lesson viewer.
-      // This keeps the catalog page lightweight and avoids leaking full content.
+      // Use SECURITY DEFINER RPC so anonymous catalog visitors can see lesson
+      // metadata without RLS-granting them access to quiz/worksheet/activity
+      // content. Full lesson content (with answers) is fetched separately by
+      // purchased users via the direct lessons table query (gated by RLS).
       const { data, error } = await supabase
-        .from('lessons')
-        .select('id, title, description, type, order_number, duration_minutes, course_id, is_published, created_at, updated_at, video_url')
-        .eq('course_id', courseId)
-        .order('order_number', { ascending: true });
+        .rpc('get_course_lesson_outline', { _course_id: courseId });
 
       if (error) throw error;
-      return data as Lesson[];
+      return (data || []) as Lesson[];
     },
     enabled: !!courseId,
   });
