@@ -52,12 +52,8 @@ serve(async (req) => {
       );
     }
 
-    // Rate limiting - 20 requests per 60 minutes per user
-    const rateLimitResult = await checkRateLimit(userId, {
-      endpoint: "generate-voice",
-      maxRequests: 20,
-      windowMinutes: 60,
-    });
+    // Rate limiting — tier defined in _shared/rateLimitConfig.ts
+    const rateLimitResult = await checkRateLimit(userId, getRateLimit("generate-voice"));
 
     if (!rateLimitResult.allowed) {
       return rateLimitResponse(rateLimitResult, corsHeaders);
