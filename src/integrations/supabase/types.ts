@@ -2270,6 +2270,21 @@ export type Database = {
         Returns: number
       }
       generate_mfa_recovery_codes: { Args: never; Returns: Json }
+      get_course_lesson_outline: {
+        Args: { _course_id: string }
+        Returns: {
+          course_id: string
+          created_at: string
+          description: string
+          duration_minutes: number
+          id: string
+          is_published: boolean
+          order_number: number
+          title: string
+          type: Database["public"]["Enums"]["lesson_type"]
+          updated_at: string
+        }[]
+      }
       get_exam_for_student: { Args: { _course_id: string }; Returns: Json }
       get_my_deletion_request: { Args: never; Returns: Json }
       get_overall_progress: { Args: { _user_id: string }; Returns: Json }
