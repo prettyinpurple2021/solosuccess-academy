@@ -1,28 +1,15 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 import { checkRateLimit, rateLimitResponse } from "../_shared/rateLimit.ts";
+import { getRateLimit } from "../_shared/rateLimitConfig.ts";
 import { getCorsHeaders, corsResponse } from "../_shared/cors.ts";
 
-// Rate limits are split by generation type so long-running admin bulk tools
-// can use a larger bucket without weakening limits for everything else.
-const DEFAULT_RATE_LIMIT_CONFIG = {
-  endpoint: "generate-content",
-  maxRequests: 20,
-  windowMinutes: 60,
-};
-
+// Rate limits live in _shared/rateLimitConfig.ts. Practice labs use a larger
+// bucket because admin batches can hit up to 78 lessons at once.
 function getRateLimitConfig(type: GenerateRequest["type"]) {
-  // Practice labs are generated in large admin batches (up to 78 lessons),
-  // so they need their own higher per-hour allowance.
-  if (type === "practice_lab") {
-    return {
-      endpoint: "generate-content:practice_lab",
-      maxRequests: 120,
-      windowMinutes: 60,
-    };
-  }
-
-  return DEFAULT_RATE_LIMIT_CONFIG;
+  return type === "practice_lab"
+    ? getRateLimit("generate-content:practice_lab")
+    : getRateLimit("generate-content");
 }
 
 interface GenerateRequest {
