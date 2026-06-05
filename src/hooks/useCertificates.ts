@@ -87,24 +87,27 @@ export function useCourseCertificate(userId: string | undefined, courseId: strin
   });
 }
 
-// Verify a certificate by code (public) - uses RPC function for security
-export function useVerifyCertificate(verificationCode: string | undefined) {
+// Verify a certificate by code (public) — goes through the Turnstile-gated
+// edge function so anonymous abusers can't enumerate codes.
+export function useVerifyCertificate(
+  verificationCode: string | undefined,
+  turnstileToken: string | undefined,
+) {
   return useQuery({
-    queryKey: ['verify-certificate', verificationCode],
+    queryKey: ['verify-certificate', verificationCode, turnstileToken],
     queryFn: async () => {
-      if (!verificationCode) return null;
-      
-      // Use the secure RPC function to prevent full table enumeration
-      const { data, error } = await supabase
-        .rpc('verify_certificate_by_code', { code: verificationCode });
-      
+      if (!verificationCode || !turnstileToken) return null;
+
+      const { data, error } = await supabase.functions.invoke('verify-certificate', {
+        body: { code: verificationCode, turnstileToken },
+      });
+
       if (error) throw error;
-      
-      // RPC returns an array, get the first result
-      const certificate = Array.isArray(data) && data.length > 0 ? data[0] : null;
-      return certificate as Certificate | null;
+      return (data?.certificate ?? null) as Certificate | null;
     },
-    enabled: !!verificationCode,
+    enabled: !!verificationCode && !!turnstileToken,
+    retry: false,
+    staleTime: 5 * 60 * 1000,
   });
 }
 

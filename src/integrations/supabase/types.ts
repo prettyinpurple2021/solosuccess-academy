@@ -266,24 +266,30 @@ export type Database = {
           created_at: string
           endpoint: string
           id: string
+          identifier: string
+          identifier_type: string
           request_count: number
-          user_id: string
+          user_id: string | null
           window_start: string
         }
         Insert: {
           created_at?: string
           endpoint: string
           id?: string
+          identifier: string
+          identifier_type: string
           request_count?: number
-          user_id: string
+          user_id?: string | null
           window_start?: string
         }
         Update: {
           created_at?: string
           endpoint?: string
           id?: string
+          identifier?: string
+          identifier_type?: string
           request_count?: number
-          user_id?: string
+          user_id?: string | null
           window_start?: string
         }
         Relationships: []
@@ -2259,8 +2265,19 @@ export type Database = {
         Args: { _page_id: string; _selected_answer: number }
         Returns: Json
       }
+      cleanup_expired_rate_limits: { Args: never; Returns: number }
       confirm_mfa_recovery_code: { Args: { _code: string }; Returns: Json }
       consume_mfa_recovery_code: { Args: { _code: string }; Returns: boolean }
+      consume_rate_limit: {
+        Args: {
+          _endpoint: string
+          _identifier: string
+          _identifier_type: string
+          _max_requests: number
+          _window_minutes: number
+        }
+        Returns: Json
+      }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
@@ -2270,6 +2287,21 @@ export type Database = {
         Returns: number
       }
       generate_mfa_recovery_codes: { Args: never; Returns: Json }
+      get_course_lesson_outline: {
+        Args: { _course_id: string }
+        Returns: {
+          course_id: string
+          created_at: string
+          description: string
+          duration_minutes: number
+          id: string
+          is_published: boolean
+          order_number: number
+          title: string
+          type: Database["public"]["Enums"]["lesson_type"]
+          updated_at: string
+        }[]
+      }
       get_exam_for_student: { Args: { _course_id: string }; Returns: Json }
       get_my_deletion_request: { Args: never; Returns: Json }
       get_overall_progress: { Args: { _user_id: string }; Returns: Json }
