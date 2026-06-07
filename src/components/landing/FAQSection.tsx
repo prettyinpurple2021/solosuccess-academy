@@ -8,7 +8,7 @@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { HelpCircle } from 'lucide-react';
 
-const faqs = [
+export const faqs = [
   {
     q: 'Is this for complete beginners or experienced founders?',
     a: 'Both. Phase 1 (Initialization) starts from absolute zero — no prior business experience needed. Phases 2 and 3 dive into harder topics (operations, marketing, sales, fundraising) that experienced indie hackers will appreciate. You can take individual courses or the full path.',

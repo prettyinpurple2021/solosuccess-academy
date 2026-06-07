@@ -36,6 +36,7 @@ import {
 import { PageMeta } from '@/components/layout/PageMeta';
 import { ErrorView } from '@/components/ui/error-view';
 import { CourseDetailSkeleton } from '@/components/skeletons/CourseDetailSkeleton';
+import { getSiteUrl } from '@/lib/siteMeta';
 
 export default function CourseDetail() {
   const { courseId } = useParams<{ courseId: string }>();
@@ -164,6 +165,20 @@ export default function CourseDetail() {
         title={course.title}
         description={course.description ?? undefined}
         path={`/courses/${course.id}`}
+        jsonLd={{
+          "@type": "Course",
+          name: course.title,
+          description: course.description ?? `Course ${course.order_number} from SoloSuccess Academy`,
+          provider: {
+            "@type": "Organization",
+            name: "SoloSuccess Academy",
+            sameAs: "https://solosuccessacademy.app",
+          },
+          courseCode: `Course ${course.order_number}`,
+          numberOfLessons: lessons?.length ?? 0,
+          url: `${getSiteUrl()}/courses/${course.id}`,
+          educationalLevel: "Beginner to Advanced",
+        }}
       />
       
       

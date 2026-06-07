@@ -1,6 +1,6 @@
 /**
  * @file Index.tsx — Landing Page
- * 
+ *
  * Composed from modular section components for maintainability.
  * Each section handles its own layout and presentation.
  */
@@ -14,11 +14,23 @@ import { CourseJourneySection } from '@/components/landing/CourseJourneySection'
 import { CTASection } from '@/components/landing/CTASection';
 import { TrustBandSection } from '@/components/landing/TrustBandSection';
 import { FounderNoteSection } from '@/components/landing/FounderNoteSection';
-import { FAQSection } from '@/components/landing/FAQSection';
+import { FAQSection, faqs } from '@/components/landing/FAQSection';
 import { TestimonialsSection } from '@/components/landing/TestimonialsSection';
 
 export default function Index() {
   const { data: courses, isLoading, isError, error, refetch } = useCourses();
+
+  const faqJsonLd = {
+    "@type": "FAQPage",
+    mainEntity: faqs.map((item) => ({
+      "@type": "Question",
+      name: item.q,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: item.a,
+      },
+    })),
+  };
 
   if (isError) {
     return (
@@ -36,7 +48,7 @@ export default function Index() {
 
   return (
     <div className="flex-1 relative z-10">
-      <PageMeta path="/" />
+      <PageMeta path="/" jsonLd={faqJsonLd} />
       <HeroSection />
       <TrustBandSection />
       <FeaturesSection />

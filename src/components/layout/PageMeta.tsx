@@ -20,6 +20,8 @@ export interface PageMetaProps {
   ogImagePath?: string;
   /** Set to true for pages that should not be indexed (e.g. auth, dashboard). */
   noIndex?: boolean;
+  /** Optional JSON-LD structured data objects to inject as <script type="application/ld+json"> */
+  jsonLd?: Record<string, unknown> | Record<string, unknown>[];
 }
 
 /**
@@ -33,10 +35,21 @@ export function PageMeta({
   path,
   ogImagePath,
   noIndex = false,
+  jsonLd,
 }: PageMetaProps) {
   const resolvedTitle = fullTitle ?? (title ? `${title} | ${SITE_NAME}` : DEFAULT_TITLE);
   const canonicalUrl = path ? `${getSiteUrl()}${path.startsWith("/") ? path : `/${path}`}` : undefined;
   const ogImage = getOgImageUrl(ogImagePath);
+
+  const ldScripts = jsonLd
+    ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]).map(
+        (obj, i) => (
+          <script key={`ld-${i}`} type="application/ld+json">
+            {JSON.stringify({ "@context": "https://schema.org", ...obj })}
+          </script>
+        )
+      )
+    : null;
 
   return (
     <Helmet>
@@ -55,6 +68,7 @@ export function PageMeta({
       <meta name="twitter:title" content={resolvedTitle} />
       <meta name="twitter:description" content={description} />
       <meta name="twitter:image" content={ogImage} />
+      {ldScripts}
     </Helmet>
   );
 }
