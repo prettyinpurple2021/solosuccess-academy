@@ -182,9 +182,9 @@ serve(async (req: Request): Promise<Response> => {
                 <h1>💬 New reply on your discussion</h1>
               </div>
               <div class="content">
-                <p>Hi ${authorName},</p>
-                <p><strong>${commenterName}</strong> replied to your discussion <strong>${discussion.title}</strong>.</p>
-                <div class="quote">${preview}${preview.length >= 120 ? "…" : ""}</div>
+                <p>Hi ${escHtml(authorName)},</p>
+                <p><strong>${escHtml(commenterName)}</strong> replied to your discussion <strong>${escHtml(discussion.title)}</strong>.</p>
+                <div class="quote">${escHtml(preview)}${preview.length >= 120 ? "…" : ""}</div>
                 <a href="${Deno.env.get("SITE_URL") || "https://solosuccess.academy"}${link}" class="button">View reply</a>
               </div>
             </div>
