@@ -128,6 +128,22 @@ Deno.serve(async (req) => {
     )
   }
 
+  // Look up template early — we need it inside the auth gate to know the
+  // effective recipient before allowing the request through.
+  const template = TEMPLATES[templateName]
+  if (!template) {
+    console.error('Template not found in registry', { templateName })
+    return new Response(
+      JSON.stringify({
+        error: `Template '${templateName}' not found. Available: ${Object.keys(TEMPLATES).join(', ')}`,
+      }),
+      {
+        status: 404,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      }
+    )
+  }
+
   // --- Caller authorization gate ---
   const authHeader = req.headers.get('Authorization')
   const callerRole = decodeJwtRole(authHeader)
@@ -195,22 +211,6 @@ Deno.serve(async (req) => {
         )
       }
     }
-  }
-
-  // 1. Look up template from registry (early — needed to resolve recipient)
-  const template = TEMPLATES[templateName]
-
-  if (!template) {
-    console.error('Template not found in registry', { templateName })
-    return new Response(
-      JSON.stringify({
-        error: `Template '${templateName}' not found. Available: ${Object.keys(TEMPLATES).join(', ')}`,
-      }),
-      {
-        status: 404,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      }
-    )
   }
 
   // Resolve effective recipient: template-level `to` takes precedence over
