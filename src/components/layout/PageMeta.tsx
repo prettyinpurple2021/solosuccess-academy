@@ -20,6 +20,8 @@ export interface PageMetaProps {
   ogImagePath?: string;
   /** Set to true for pages that should not be indexed (e.g. auth, dashboard). */
   noIndex?: boolean;
+  /** Optional JSON-LD structured data objects to inject as <script type="application/ld+json"> */
+  jsonLd?: Record<string, unknown> | Record<string, unknown>[];
 }
 
 /**
