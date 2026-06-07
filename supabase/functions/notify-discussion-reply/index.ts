@@ -13,6 +13,17 @@ import { getCorsHeaders, corsResponse } from "../_shared/cors.ts";
 import { getRateLimit } from "../_shared/rateLimitConfig.ts";
 const RATE_LIMIT_CONFIG = getRateLimit("notify-discussion-reply");
 
+// Escape user-controlled content before interpolating into HTML email bodies.
+// Prevents HTML injection / phishing via crafted comment content or titles.
+function escHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 async function sendEmail(to: string, subject: string, html: string): Promise<void> {
   const smtpHost = Deno.env.get("SMTP_HOST");
   const smtpPort = parseInt(Deno.env.get("SMTP_PORT") || "465");
@@ -171,9 +182,9 @@ serve(async (req: Request): Promise<Response> => {
                 <h1>💬 New reply on your discussion</h1>
               </div>
               <div class="content">
-                <p>Hi ${authorName},</p>
-                <p><strong>${commenterName}</strong> replied to your discussion <strong>${discussion.title}</strong>.</p>
-                <div class="quote">${preview}${preview.length >= 120 ? "…" : ""}</div>
+                <p>Hi ${escHtml(authorName)},</p>
+                <p><strong>${escHtml(commenterName)}</strong> replied to your discussion <strong>${escHtml(discussion.title)}</strong>.</p>
+                <div class="quote">${escHtml(preview)}${preview.length >= 120 ? "…" : ""}</div>
                 <a href="${Deno.env.get("SITE_URL") || "https://solosuccess.academy"}${link}" class="button">View reply</a>
               </div>
             </div>
