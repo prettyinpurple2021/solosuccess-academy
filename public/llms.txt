@@ -1,0 +1,22 @@
+# SoloSuccess Academy
+
+> An online educational platform designed to help solo entrepreneurs, founders, side hustlers, and career changers build successful businesses from scratch. The platform offers 10 structured courses, hands-on practice labs, AI tutoring, flashcards, community discussions, and portfolio graduation projects.
+
+SoloSuccess Academy provides a comprehensive curriculum covering business initialization, orchestration, and launch strategies. Students progress through interactive lessons, complete hands-on practice labs, take AI-assisted quizzes, and work toward a final graduation project that assembles a professional business portfolio. The platform features gamification with XP, badges, and leaderboards, plus certificates of completion with LinkedIn integration.
+
+## Pages
+
+- [Home](/): Overview of the academy, course offerings, pricing tiers, and featured content for prospective students.
+- [Courses](/courses): Full course catalog with 10 structured courses covering solo entrepreneurship from idea to launch.
+- [About](/about): Mission, story, and team behind SoloSuccess Academy.
+- [Contact](/contact): Support and inquiry form for prospective and current students.
+- [Help Center](/help): FAQs, platform guides, and troubleshooting for students.
+- [Privacy Policy](/privacy): Data collection, usage, and student privacy practices.
+- [Terms of Service](/terms): Platform terms, acceptable use, and legal agreements.
+- [Refund Policy](/refund): Refund eligibility, process, and timeframe details.
+- [Verify Certificate](/verify-certificate): Public certificate verification tool to validate SoloSuccess Academy credentials.
+
+## Optional
+
+- [Sitemap](/sitemap.xml): Structured list of all public pages on the site.
+- [Robots](/robots.txt): Crawler directives and access permissions for search engines.
