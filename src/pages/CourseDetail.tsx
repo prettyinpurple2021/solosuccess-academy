@@ -36,6 +36,7 @@ import {
 import { PageMeta } from '@/components/layout/PageMeta';
 import { ErrorView } from '@/components/ui/error-view';
 import { CourseDetailSkeleton } from '@/components/skeletons/CourseDetailSkeleton';
+import { getSiteUrl } from '@/lib/siteMeta';
 
 export default function CourseDetail() {
   const { courseId } = useParams<{ courseId: string }>();
