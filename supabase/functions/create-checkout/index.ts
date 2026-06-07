@@ -133,6 +133,26 @@ serve(async (req) => {
     }
 
     // 6. Create checkout session — priceId comes from server lookup, NOT from client
+    // SECURITY: Never reflect the Origin header into Stripe redirect URLs — an
+    // attacker can spoof Origin (CORS is browser-only) and craft a checkout
+    // session that redirects victims to a phishing domain post-payment.
+    // We validate Origin against an allowlist and otherwise fall back to SITE_URL.
+    const ALLOWED_ORIGINS = new Set<string>([
+      "https://solosuccessacademy.app",
+      "https://www.solosuccessacademy.app",
+      "https://solosuccessacademy.cloud",
+      "https://www.solosuccessacademy.cloud",
+      "https://indie-blossom-lab.lovable.app",
+    ]);
+    const requestOrigin = req.headers.get("origin") ?? "";
+    const fallbackOrigin =
+      Deno.env.get("SITE_URL") ?? "https://solosuccessacademy.app";
+    const isLovablePreview = /^https:\/\/[a-z0-9-]+\.lovable\.app$/.test(requestOrigin);
+    const safeOrigin =
+      ALLOWED_ORIGINS.has(requestOrigin) || isLovablePreview
+        ? requestOrigin
+        : fallbackOrigin;
+
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
@@ -145,8 +165,8 @@ serve(async (req) => {
       mode: "payment",
       // Redirect to the post-purchase onboarding screen, which validates
       // ownership server-side and walks the student through 3 quick steps.
-      success_url: `${req.headers.get("origin")}/welcome/${courseId}?purchased=true`,
-      cancel_url: `${req.headers.get("origin")}/courses/${courseId}?canceled=true`,
+      success_url: `${safeOrigin}/welcome/${courseId}?purchased=true`,
+      cancel_url: `${safeOrigin}/courses/${courseId}?canceled=true`,
       metadata: {
         userId: user.id,
         courseId: courseId,
