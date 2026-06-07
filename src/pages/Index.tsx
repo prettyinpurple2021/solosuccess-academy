@@ -16,7 +16,6 @@ import { TrustBandSection } from '@/components/landing/TrustBandSection';
 import { FounderNoteSection } from '@/components/landing/FounderNoteSection';
 import { FAQSection, faqs } from '@/components/landing/FAQSection';
 import { TestimonialsSection } from '@/components/landing/TestimonialsSection';
-import { getSiteUrl } from '@/lib/siteMeta';
 
 export default function Index() {
   const { data: courses, isLoading, isError, error, refetch } = useCourses();
