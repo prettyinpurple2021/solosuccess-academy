@@ -2,6 +2,7 @@ import * as React from 'npm:react@18.3.1'
 import { renderAsync } from 'npm:@react-email/components@0.0.22'
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { TEMPLATES } from '../_shared/transactional-email-templates/registry.ts'
+import { checkRateLimit, hashIp, rateLimitResponse } from '../_shared/rateLimit.ts'
 
 // Configuration baked in at scaffold time — do NOT change these manually.
 // To update, re-run the email domain setup flow.
@@ -30,9 +31,47 @@ function generateToken(): string {
     .join('')
 }
 
-// Auth note: this function uses verify_jwt = true in config.toml, so Supabase's
-// gateway validates the caller's JWT (anon or service_role) before the request
-// reaches this code. No in-function auth check is needed.
+// SECURITY: verify_jwt = true only proves the caller has SOME signed Supabase
+// JWT — the public anon key satisfies that check. Without further restrictions,
+// any internet user could send arbitrary emails (any template, any recipient)
+// through this function. We therefore enforce:
+//   • service_role callers (internal server-to-server) → full access
+//   • anon / authenticated user callers → restricted template allowlist,
+//     forced recipient matching, and per-IP / per-user rate limiting.
+const PUBLIC_TEMPLATE_ALLOWLIST = new Set<string>([
+  'welcome',
+  'contact-confirmation',
+])
+
+function decodeJwtRole(authHeader: string | null): string | null {
+  if (!authHeader?.startsWith('Bearer ')) return null
+  const token = authHeader.slice(7)
+  const parts = token.split('.')
+  if (parts.length !== 3) return null
+  try {
+    const payload = JSON.parse(
+      atob(parts[1].replace(/-/g, '+').replace(/_/g, '/'))
+    )
+    return typeof payload?.role === 'string' ? payload.role : null
+  } catch {
+    return null
+  }
+}
+
+function decodeJwtSub(authHeader: string | null): string | null {
+  if (!authHeader?.startsWith('Bearer ')) return null
+  const token = authHeader.slice(7)
+  const parts = token.split('.')
+  if (parts.length !== 3) return null
+  try {
+    const payload = JSON.parse(
+      atob(parts[1].replace(/-/g, '+').replace(/_/g, '/'))
+    )
+    return typeof payload?.sub === 'string' ? payload.sub : null
+  } catch {
+    return null
+  }
+}
 
 Deno.serve(async (req) => {
   // Handle CORS preflight
@@ -87,6 +126,75 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     )
+  }
+
+  // --- Caller authorization gate ---
+  const authHeader = req.headers.get('Authorization')
+  const callerRole = decodeJwtRole(authHeader)
+  const callerUserId = decodeJwtSub(authHeader)
+  const isService = callerRole === 'service_role'
+
+  if (!isService) {
+    // 1. Restrict to safe, user-facing templates only.
+    if (!PUBLIC_TEMPLATE_ALLOWLIST.has(templateName)) {
+      console.warn('Blocked non-service caller from restricted template', {
+        templateName,
+        callerRole,
+      })
+      return new Response(
+        JSON.stringify({ error: 'Template not available' }),
+        {
+          status: 403,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      )
+    }
+
+    // 2. Rate limit by hashed IP to prevent mass-mail abuse.
+    const ip =
+      req.headers.get('cf-connecting-ip') ||
+      req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+      'unknown'
+    const ipHash = await hashIp(ip)
+    const ipLimit = await checkRateLimit({
+      identifier: ipHash,
+      identifierType: 'ip',
+      endpoint: 'send-transactional-email',
+      maxRequests: 5,
+      windowMinutes: 60,
+    })
+    if (!ipLimit.allowed) {
+      return rateLimitResponse(ipLimit, corsHeaders)
+    }
+
+    // 3. For authenticated callers, also enforce the recipient is THEIR
+    //    email (looked up via the auth admin API) — prevents an authenticated
+    //    user from sending welcome/recovery emails to arbitrary victims.
+    if (callerRole === 'authenticated' && callerUserId) {
+      const adminClient = createClient(supabaseUrl, supabaseServiceKey)
+      const { data: callerUser } = await adminClient.auth.admin.getUserById(
+        callerUserId
+      )
+      const callerEmail = callerUser?.user?.email?.toLowerCase() ?? null
+      const requestedRecipient = (
+        template?.to || recipientEmail || ''
+      ).toLowerCase()
+      if (
+        !callerEmail ||
+        !requestedRecipient ||
+        callerEmail !== requestedRecipient
+      ) {
+        return new Response(
+          JSON.stringify({
+            error: 'Recipient must match the authenticated user',
+          }),
+          {
+            status: 403,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          }
+        )
+      }
+    }
   }
 
   // 1. Look up template from registry (early — needed to resolve recipient)
