@@ -564,6 +564,7 @@ export type Database = {
           project_title: string | null
           stripe_price_id: string | null
           stripe_product_id: string | null
+          subtitle: string | null
           title: string
           updated_at: string
         }
@@ -582,6 +583,7 @@ export type Database = {
           project_title?: string | null
           stripe_price_id?: string | null
           stripe_product_id?: string | null
+          subtitle?: string | null
           title: string
           updated_at?: string
         }
@@ -600,6 +602,7 @@ export type Database = {
           project_title?: string | null
           stripe_price_id?: string | null
           stripe_product_id?: string | null
+          subtitle?: string | null
           title?: string
           updated_at?: string
         }
