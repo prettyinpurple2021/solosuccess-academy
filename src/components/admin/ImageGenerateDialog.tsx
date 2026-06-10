@@ -162,7 +162,7 @@ export function ImageGenerateDialog({ topic, onImageGenerated, trigger }: ImageG
               <div className="relative rounded-lg border border-border overflow-hidden bg-muted/20">
                 <img
                   src={generatedImage}
-                  alt="Generated"
+                  alt="AI-generated image preview"
                   className="w-full h-auto max-h-64 object-contain"
                 />
                 <Button
@@ -170,6 +170,7 @@ export function ImageGenerateDialog({ topic, onImageGenerated, trigger }: ImageG
                   size="icon"
                   className="absolute top-2 right-2 bg-background/80 hover:bg-background"
                   onClick={() => setGeneratedImage(null)}
+                  aria-label="Clear generated image"
                 >
                   <X className="h-4 w-4" />
                 </Button>

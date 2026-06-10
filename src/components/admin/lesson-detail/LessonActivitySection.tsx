@@ -259,7 +259,7 @@ export function LessonActivitySection({
                                     className="flex-1"
                                   />
                                 </div>
-                                <Button variant="ghost" size="icon" onClick={() => removeStep(aIndex, sIndex)} className="text-destructive hover:text-destructive">
+                                <Button variant="ghost" size="icon" onClick={() => removeStep(aIndex, sIndex)} className="text-destructive hover:text-destructive" aria-label="Remove step">
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
                               </div>
