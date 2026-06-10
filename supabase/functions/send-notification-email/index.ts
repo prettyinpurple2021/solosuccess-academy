@@ -107,6 +107,16 @@ serve(async (req: Request): Promise<Response> => {
 
     const callerId = authUserData.user.id;
 
+    // Escape user/admin-supplied data before interpolating into HTML emails
+    // to prevent HTML injection (e.g., malicious display names).
+    const escHtml = (v: unknown): string =>
+      String(v ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+
     const { data: roleData } = await supabase
       .from("user_roles")
       .select("role")
@@ -160,7 +170,7 @@ serve(async (req: Request): Promise<Response> => {
     let html = "";
 
     if (type === "grade_review") {
-      subject = `Your ${data.lessonTitle} has been graded`;
+      subject = `Your ${data.lessonTitle ?? "lesson"} has been graded`;
       html = `
         <!DOCTYPE html>
         <html>
@@ -182,13 +192,13 @@ serve(async (req: Request): Promise<Response> => {
               <h1>📚 Grade Update</h1>
             </div>
             <div class="content">
-              <p>Hi ${studentName},</p>
-              <p>Your work on <strong>${data.lessonTitle}</strong> in <strong>${data.courseTitle}</strong> has been reviewed!</p>
-              <p>Your score: <span class="score">${data.score}%</span></p>
+              <p>Hi ${escHtml(studentName)},</p>
+              <p>Your work on <strong>${escHtml(data.lessonTitle)}</strong> in <strong>${escHtml(data.courseTitle)}</strong> has been reviewed!</p>
+              <p>Your score: <span class="score">${escHtml(data.score)}%</span></p>
               ${data.adminNotes ? `
                 <div class="notes">
                   <strong>Instructor Feedback:</strong>
-                  <p>${data.adminNotes}</p>
+                  <p>${escHtml(data.adminNotes)}</p>
                 </div>
               ` : ""}
               <p>Keep up the great work! 🎉</p>
@@ -219,9 +229,9 @@ serve(async (req: Request): Promise<Response> => {
               <h1>⏰ Time to Get Back on Track!</h1>
             </div>
             <div class="content">
-              <p>Hi ${studentName},</p>
-              <p>We noticed you haven't been active for <span class="stat">${data.daysInactive} days</span>.</p>
-              <p>You have <span class="stat">${data.incompleteCount} lessons</span> waiting for you in <strong>${data.courseTitle}</strong>.</p>
+              <p>Hi ${escHtml(studentName)},</p>
+              <p>We noticed you haven't been active for <span class="stat">${escHtml(data.daysInactive)} days</span>.</p>
+              <p>You have <span class="stat">${escHtml(data.incompleteCount)} lessons</span> waiting for you in <strong>${escHtml(data.courseTitle)}</strong>.</p>
               <p>Just a few minutes a day can help you reach your goals! 🚀</p>
             </div>
           </div>

@@ -54,7 +54,32 @@ serve(async (req) => {
       return rateLimitResponse(rateLimitResult, corsHeaders);
     }
 
-    const { selectedText, context } = await req.json();
+    const { selectedText, context, courseId } = await req.json();
+
+    // Require a courseId and verify the user has purchased that course
+    // (admins bypass via has_purchased_course). This prevents abuse of AI
+    // credits by users without paid access.
+    if (!courseId || typeof courseId !== "string") {
+      return new Response(
+        JSON.stringify({ error: "courseId is required" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const serviceClient = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    );
+    const { data: purchased, error: purchaseErr } = await serviceClient.rpc(
+      "has_purchased_course",
+      { _user_id: userId, _course_id: courseId }
+    );
+    if (purchaseErr || !purchased) {
+      return new Response(
+        JSON.stringify({ error: "You need to purchase this course to use AI explanations." }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     if (!selectedText || typeof selectedText !== "string" || selectedText.length < 3) {
       return new Response(
