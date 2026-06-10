@@ -49,6 +49,7 @@ interface CourseJourneySectionProps {
   courses: Array<{
     id: string;
     title: string;
+    subtitle?: string | null;
     description: string | null;
     phase: string;
     order_number: number;
@@ -119,6 +120,11 @@ export function CourseJourneySection({ courses, isLoading }: CourseJourneySectio
                         <h3 className="text-lg font-heading font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
                           {course.title}
                         </h3>
+                        {course.subtitle && (
+                          <p className="text-xs font-mono text-primary/80 mb-2 line-clamp-2">
+                            {course.subtitle}
+                          </p>
+                        )}
                         <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
                           {course.description}
                         </p>

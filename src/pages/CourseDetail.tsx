@@ -216,6 +216,12 @@ export default function CourseDetail() {
                   {course.title}
                 </h1>
 
+                {course.subtitle && (
+                  <p className="text-base sm:text-lg md:text-xl font-heading text-primary mb-3 sm:mb-4">
+                    {course.subtitle}
+                  </p>
+                )}
+
                 <p className="text-base sm:text-lg text-muted-foreground mb-4 sm:mb-6 leading-relaxed">
                   {course.description}
                 </p>
