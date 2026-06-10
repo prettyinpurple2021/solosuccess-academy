@@ -147,8 +147,9 @@ Deno.serve(async (req) => {
 
   // --- Caller authorization gate ---
   const authHeader = req.headers.get('Authorization')
-  const callerRole = decodeJwtRole(authHeader)
-  const callerUserId = decodeJwtSub(authHeader)
+  const caller = await verifyCaller(authHeader, supabaseUrl, supabaseServiceKey)
+  const callerRole = caller.role
+  const callerUserId = caller.userId
   const isService = callerRole === 'service_role'
 
   if (!isService) {
