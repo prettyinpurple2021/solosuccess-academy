@@ -265,7 +265,7 @@ export function LessonWorksheetSection({
                                   placeholder="Section title..."
                                   className="flex-1"
                                 />
-                                <Button variant="ghost" size="icon" onClick={() => removeSection(wIndex, sIndex)} className="text-destructive hover:text-destructive">
+                                <Button variant="ghost" size="icon" onClick={() => removeSection(wIndex, sIndex)} className="text-destructive hover:text-destructive" aria-label="Remove section">
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
                               </div>
