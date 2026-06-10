@@ -79,7 +79,7 @@ export default function Onboarding() {
 
   return (
     <>
-      <PageMeta title="Welcome — set your goal" description="Two quick questions to personalize your journey." />
+      <PageMeta title="Welcome — set your goal" description="Two quick questions to personalize your journey." path="/onboarding" />
       <div className="min-h-screen cyber-bg flex items-center justify-center px-4 py-10">
         <div className="w-full max-w-2xl">
           {/* Step indicator */}

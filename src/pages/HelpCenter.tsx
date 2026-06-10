@@ -209,6 +209,7 @@ export default function HelpCenter() {
       <PageMeta
         title="Help Center — SoloSuccess Academy"
         description="Find answers to frequently asked questions and get support for SoloSuccess Academy."
+        path="/help"
       />
 
       <div className="container py-12 md:py-20 space-y-16">

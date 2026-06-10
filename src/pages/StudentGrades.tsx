@@ -55,7 +55,7 @@ export default function StudentGrades() {
 
   return (
     <>
-      <PageMeta title="My Grades — SoloSuccess Academy" description="View your detailed grade breakdown." />
+      <PageMeta title="My Grades — SoloSuccess Academy" description="View your detailed grade breakdown." path="/grades" />
 
       <div className="container max-w-4xl py-8 md:py-12 space-y-6">
         {/* Header */}

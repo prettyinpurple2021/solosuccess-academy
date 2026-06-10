@@ -23,6 +23,7 @@ export default function About() {
       <PageMeta
         title="About Us — SoloSuccess Academy"
         description="Learn about SoloSuccess Academy's mission to empower solo entrepreneurs with AI-powered education."
+        path="/about"
       />
 
       <div className="container py-12 md:py-20 space-y-20">

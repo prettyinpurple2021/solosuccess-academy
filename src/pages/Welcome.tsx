@@ -135,6 +135,7 @@ export default function Welcome() {
       <PageMeta
         title={`Welcome — ${course.title}`}
         description="You just unlocked lifetime access. Here's how to get started in 5 minutes."
+        path={`/welcome/${courseId}`}
       />
       <div className="container mx-auto max-w-3xl px-4 py-10 md:py-16">
         {/* Hero */}

@@ -57,7 +57,7 @@ export default function Contact() {
 
   return (
     <>
-      <PageMeta title="Contact Us — SoloSuccess Academy" description="Get in touch with the SoloSuccess Academy team." />
+      <PageMeta title="Contact Us — SoloSuccess Academy" description="Get in touch with the SoloSuccess Academy team." path="/contact" />
 
       <div className="container py-12 md:py-20 space-y-16">
         {/* Hero */}

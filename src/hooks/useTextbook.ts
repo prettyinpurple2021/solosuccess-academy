@@ -345,40 +345,27 @@ export function useDeleteHighlight() {
   });
 }
 
-// Search textbook content
+// Search textbook content (student view — uses secure RPC that strips correctAnswer)
 export function useTextbookSearch(courseId: string | undefined, query: string) {
   return useQuery({
     queryKey: ['textbook-search', courseId, query],
     queryFn: async (): Promise<(TextbookPage & { chapter: TextbookChapter })[]> => {
       if (!courseId || !query.trim()) return [];
 
-      const { data: chapters, error: chaptersError } = await supabase
-        .from('textbook_chapters')
-        .select('*')
-        .eq('course_id', courseId);
+      // Use secure RPC that strips correctAnswer server-side
+      const { data, error } = await supabase
+        .rpc('search_textbook_pages_for_student', {
+          _course_id: courseId,
+          _query: query,
+        });
 
-      if (chaptersError) throw chaptersError;
-      if (!chapters?.length) return [];
+      if (error) throw error;
 
-      const chapterIds = chapters.map(c => c.id);
-      const { data: pages, error: pagesError } = await supabase
-        .from('textbook_pages')
-        .select('*')
-        .in('chapter_id', chapterIds)
-        .ilike('content', `%${query}%`);
-
-      if (pagesError) throw pagesError;
-
-      return (pages || []).map(page => {
-        // Strip correctAnswer from embedded_quiz for security
-        const quiz = page.embedded_quiz as unknown as EmbeddedQuiz | null;
-        const safeQuiz = quiz ? { question: quiz.question, options: quiz.options, explanation: quiz.explanation } as EmbeddedQuiz : null;
-        return {
-          ...page,
-          embedded_quiz: safeQuiz,
-          chapter: chapters.find(c => c.id === page.chapter_id)!,
-        };
-      });
+      const pages = (data as unknown as (TextbookPage & { chapter: TextbookChapter })[]) || [];
+      return pages.map(page => ({
+        ...page,
+        embedded_quiz: page.embedded_quiz as unknown as EmbeddedQuiz | null,
+      }));
     },
     enabled: !!courseId && query.trim().length >= 2,
   });
