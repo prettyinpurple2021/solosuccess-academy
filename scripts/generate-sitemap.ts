@@ -46,7 +46,14 @@ const courseEntries: SitemapEntry[] = curriculumCourses.map((c) => ({
   priority: "0.8",
 }));
 
-const entries: SitemapEntry[] = [...staticEntries, ...courseEntries];
+// Legal document pages pulled from the legal documents source of truth.
+const legalEntries: SitemapEntry[] = LEGAL_DOCUMENTS.map((doc) => ({
+  path: `/legal/${doc.slug}`,
+  changefreq: "yearly",
+  priority: "0.3",
+}));
+
+const entries: SitemapEntry[] = [...staticEntries, ...courseEntries, ...legalEntries];
 
 function generateSitemap(entries: SitemapEntry[]) {
   const urls = entries.map((e) =>
