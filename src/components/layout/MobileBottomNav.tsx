@@ -163,11 +163,11 @@ export function MobileBottomNav() {
               <button
                 type="button"
                 className="flex flex-1 flex-col items-center justify-center gap-1 px-2 py-1.5 min-h-[56px] rounded-md hover:bg-primary/5 active:bg-primary/10 transition-colors"
-                aria-label="More navigation"
+                aria-label="More options"
               >
                 <MoreHorizontal className="h-5 w-5 text-muted-foreground" />
                 <span className="text-[10px] font-heading tracking-wider uppercase text-muted-foreground">
-                  More
+                  More options
                 </span>
               </button>
             </SheetTrigger>

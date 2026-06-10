@@ -161,7 +161,7 @@ export function TwoFactorCard() {
               <Label className="text-xs text-muted-foreground">Manual entry secret</Label>
               <div className="flex gap-2">
                 <Input value={secret} readOnly className="font-mono text-xs" />
-                <Button type="button" variant="outline" size="icon" onClick={copySecret}>
+                <Button type="button" variant="outline" size="icon" onClick={copySecret} aria-label="Copy secret">
                   {secretCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                 </Button>
               </div>

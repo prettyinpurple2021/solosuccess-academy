@@ -170,7 +170,7 @@ export function ImageGenerateDialog({ topic, onImageGenerated, trigger }: ImageG
                   size="icon"
                   className="absolute top-2 right-2 bg-background/80 hover:bg-background"
                   onClick={() => setGeneratedImage(null)}
-                  aria-label="Clear generated image"
+                  aria-label="Remove image"
                 >
                   <X className="h-4 w-4" />
                 </Button>
