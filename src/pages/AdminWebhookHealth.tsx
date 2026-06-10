@@ -5,13 +5,15 @@
  */
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, RefreshCw, AlertTriangle, CheckCircle2, Activity } from 'lucide-react';
+import { ArrowLeft, RefreshCw, AlertTriangle, CheckCircle2, Activity, Mail } from 'lucide-react';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { NeonSpinner } from '@/components/ui/neon-spinner';
+import { useToast } from '@/hooks/use-toast';
+import { useState } from 'react';
 
 interface WebhookEvent {
   id: string;
@@ -23,6 +25,8 @@ interface WebhookEvent {
 }
 
 export default function AdminWebhookHealth() {
+  const { toast } = useToast();
+  const [running, setRunning] = useState(false);
   // Pull the last 500 webhook events. RLS restricts this to admins.
   const { data: events, isLoading, refetch, isFetching } = useQuery({
     queryKey: ['admin-webhook-events'],
@@ -45,6 +49,31 @@ export default function AdminWebhookHealth() {
   const failed = (events ?? []).filter(e => e.status === 'failed');
   const lastError = failed[0] ?? null;
 
+  // Manually trigger the monitor so admins can confirm alerts are wired.
+  const runCheckNow = async () => {
+    setRunning(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('check-webhook-health');
+      if (error) throw error;
+      const sent = data?.sent?.length ?? 0;
+      const triggered = data?.alertsTriggered?.length ?? 0;
+      toast({
+        title: triggered ? 'Alert triggered' : 'No alerts needed',
+        description: triggered
+          ? `Sent ${sent} email${sent === 1 ? '' : 's'} for: ${data.alertsTriggered.join(', ')}`
+          : 'Webhook health is within normal thresholds.',
+      });
+    } catch (err: any) {
+      toast({
+        title: 'Check failed',
+        description: err?.message ?? 'Unable to run webhook health check.',
+        variant: 'destructive',
+      });
+    } finally {
+      setRunning(false);
+    }
+  };
+
   // Per-type breakdown for the last 7 days
   const byType = last7d.reduce<Record<string, number>>((acc, e) => {
     acc[e.event_type] = (acc[e.event_type] || 0) + 1;
@@ -65,10 +94,16 @@ export default function AdminWebhookHealth() {
             </p>
           </div>
         </div>
-        <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching}>
-          <RefreshCw className={`mr-2 h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
-          Refresh
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={runCheckNow} disabled={running}>
+            <Mail className={`mr-2 h-4 w-4 ${running ? 'animate-pulse' : ''}`} />
+            Run check now
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching}>
+            <RefreshCw className={`mr-2 h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
+        </div>
       </div>
 
       {isLoading ? (

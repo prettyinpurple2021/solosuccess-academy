@@ -2209,6 +2209,30 @@ export type Database = {
           },
         ]
       }
+      webhook_alert_state: {
+        Row: {
+          alert_count: number
+          id: string
+          last_alert_at: string
+          last_summary: string | null
+          updated_at: string
+        }
+        Insert: {
+          alert_count?: number
+          id: string
+          last_alert_at?: string
+          last_summary?: string | null
+          updated_at?: string
+        }
+        Update: {
+          alert_count?: number
+          id?: string
+          last_alert_at?: string
+          last_summary?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       xp_config: {
         Row: {
           action_key: string
