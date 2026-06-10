@@ -33,6 +33,7 @@ import {
   GraduationCap,
   ArrowLeft,
   Target,
+  Activity,
 } from 'lucide-react';
 import { NeonSpinner } from '@/components/ui/neon-spinner';
 
@@ -275,6 +276,31 @@ export default function AdminDashboard() {
               </CardContent>
             </Card>
           </div>
+
+          {/* Webhook Health Link */}
+          <Card className="border-2 border-dashed border-primary/40 bg-primary/5 hover:border-primary/60 transition-all">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-primary/20">
+                    <Activity className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">Webhook Health</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Stripe events, errors & throughput
+                    </p>
+                  </div>
+                </div>
+                <Button asChild variant="outline">
+                  <Link to="/admin/webhook-health">
+                    <Activity className="mr-2 h-4 w-4" />
+                    Open
+                  </Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* AI Lesson Enricher */}
           <EnrichLessonsButton />
