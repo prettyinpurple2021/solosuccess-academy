@@ -33,6 +33,7 @@ import {
   GraduationCap,
   ArrowLeft,
   Target,
+  Activity,
 } from 'lucide-react';
 import { NeonSpinner } from '@/components/ui/neon-spinner';
 
