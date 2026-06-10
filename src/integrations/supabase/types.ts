@@ -94,7 +94,8 @@ export type Database = {
       }
       admin_api_keys: {
         Row: {
-          api_key_encrypted: string
+          api_key_ciphertext: string | null
+          api_key_encrypted: string | null
           created_at: string
           id: string
           is_enabled: boolean
@@ -102,7 +103,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          api_key_encrypted: string
+          api_key_ciphertext?: string | null
+          api_key_encrypted?: string | null
           created_at?: string
           id?: string
           is_enabled?: boolean
@@ -110,7 +112,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          api_key_encrypted?: string
+          api_key_ciphertext?: string | null
+          api_key_encrypted?: string | null
           created_at?: string
           id?: string
           is_enabled?: boolean
@@ -2364,6 +2367,15 @@ export type Database = {
         }
         Returns: boolean
       }
+      list_admin_api_keys: {
+        Args: { _passphrase: string }
+        Returns: {
+          is_enabled: boolean
+          key_preview: string
+          provider_id: string
+          updated_at: string
+        }[]
+      }
       mark_onboarding_complete: {
         Args: { _course_id: string }
         Returns: undefined
@@ -2392,6 +2404,19 @@ export type Database = {
       search_textbook_pages_for_student: {
         Args: { _course_id: string; _query: string }
         Returns: Json
+      }
+      set_admin_api_key: {
+        Args: {
+          _api_key: string
+          _is_enabled: boolean
+          _passphrase: string
+          _provider_id: string
+        }
+        Returns: undefined
+      }
+      set_admin_api_key_enabled: {
+        Args: { _is_enabled: boolean; _provider_id: string }
+        Returns: undefined
       }
       verify_certificate_by_code: {
         Args: { code: string }
