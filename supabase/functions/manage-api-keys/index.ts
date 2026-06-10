@@ -1,10 +1,12 @@
 // === manage-api-keys Edge Function ===
 // Allows admins to save, retrieve, and delete API keys for external AI providers.
-// Keys are stored in the admin_api_keys table (accessible only to admins via RLS).
 //
-// SECURITY: Only authenticated admin users can access this function.
-// The API keys are stored as-is in the database (RLS ensures only admins can read them).
-// For production self-hosting, consider adding encryption at rest.
+// SECURITY:
+//  - Only authenticated admin users can call this function (admin role enforced
+//    in code AND inside every RPC via has_role()).
+//  - Provider API keys are encrypted at rest with pgcrypto pgp_sym_encrypt
+//    using the API_KEYS_ENCRYPTION_KEY server-side secret. The plaintext key
+//    never leaves the edge function except as a masked preview on read.
 
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
@@ -63,27 +65,25 @@ serve(async (req) => {
     }
 
     // 3. Route by HTTP method
+    const encryptionKey = Deno.env.get("API_KEYS_ENCRYPTION_KEY") ?? "";
+    if (!encryptionKey || encryptionKey.length < 16) {
+      return new Response(
+        JSON.stringify({
+          error:
+            "Server is missing API_KEYS_ENCRYPTION_KEY (must be at least 16 chars). Add it in project secrets.",
+        }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     if (req.method === "GET") {
-      // Fetch all stored API keys (return provider_id and is_enabled, mask the key)
-      const { data, error } = await supabaseAdmin
-        .from("admin_api_keys")
-        .select("provider_id, is_enabled, updated_at, api_key_encrypted")
-        .order("provider_id");
-
+      // Fetch via RPC — decryption happens inside the security definer
+      // function and only a masked preview is returned over the wire.
+      const { data, error } = await supabaseAdmin.rpc("list_admin_api_keys", {
+        _passphrase: encryptionKey,
+      });
       if (error) throw error;
-
-      // Return keys with masked values so admin knows a key is set
-      const masked = (data || []).map((row) => ({
-        provider_id: row.provider_id,
-        is_enabled: row.is_enabled,
-        updated_at: row.updated_at,
-        // Show first 4 and last 4 chars, mask the rest
-        key_preview: row.api_key_encrypted.length > 8
-          ? row.api_key_encrypted.slice(0, 4) + "••••••••" + row.api_key_encrypted.slice(-4)
-          : "••••••••",
-      }));
-
-      return new Response(JSON.stringify({ keys: masked }), {
+      return new Response(JSON.stringify({ keys: data ?? [] }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -107,45 +107,22 @@ serve(async (req) => {
         );
       }
 
-      // Upsert: insert or update on conflict
-      const upsertData: Record<string, unknown> = {
-        provider_id,
-        is_enabled: is_enabled !== undefined ? is_enabled : true,
-      };
-
-      // Only update the key if a new one is provided
-      if (api_key) {
-        upsertData.api_key_encrypted = api_key.trim();
-      }
-
-      // Check if record exists
-      const { data: existing } = await supabaseAdmin
-        .from("admin_api_keys")
-        .select("id")
-        .eq("provider_id", provider_id)
-        .maybeSingle();
-
       let error;
-      if (existing) {
-        // Update existing — only update fields that were provided
-        const updates: Record<string, unknown> = { is_enabled: upsertData.is_enabled };
-        if (api_key) updates.api_key_encrypted = upsertData.api_key_encrypted;
-        ({ error } = await supabaseAdmin
-          .from("admin_api_keys")
-          .update(updates)
-          .eq("provider_id", provider_id));
+      if (api_key) {
+        // Encrypt + upsert via RPC.
+        ({ error } = await supabaseAdmin.rpc("set_admin_api_key", {
+          _provider_id: provider_id,
+          _api_key: api_key,
+          _is_enabled: is_enabled !== undefined ? is_enabled : true,
+          _passphrase: encryptionKey,
+        }));
       } else {
-        if (!api_key) {
-          return new Response(
-            JSON.stringify({ error: "API key is required for new providers" }),
-            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
-        }
-        ({ error } = await supabaseAdmin
-          .from("admin_api_keys")
-          .insert(upsertData));
+        // No new key supplied — only toggle is_enabled on an existing row.
+        ({ error } = await supabaseAdmin.rpc("set_admin_api_key_enabled", {
+          _provider_id: provider_id,
+          _is_enabled: is_enabled !== undefined ? is_enabled : true,
+        }));
       }
-
       if (error) throw error;
 
       return new Response(JSON.stringify({ success: true }), {
