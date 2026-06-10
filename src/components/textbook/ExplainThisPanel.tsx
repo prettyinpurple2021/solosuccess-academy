@@ -19,6 +19,8 @@ interface ExplainThisPanelProps {
   selectedText: string;
   /** Chapter title for additional context */
   chapterTitle?: string;
+  /** Course the text belongs to (required for purchase check) */
+  courseId: string;
   /** Called when panel is closed */
   onClose: () => void;
 }
@@ -35,7 +37,7 @@ function renderMarkdown(text: string): string {
   return DOMPurify.sanitize(html);
 }
 
-export function ExplainThisPanel({ selectedText, chapterTitle, onClose }: ExplainThisPanelProps) {
+export function ExplainThisPanel({ selectedText, chapterTitle, courseId, onClose }: ExplainThisPanelProps) {
   const [explanation, setExplanation] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [hasRequested, setHasRequested] = useState(false);
@@ -48,7 +50,7 @@ export function ExplainThisPanel({ selectedText, chapterTitle, onClose }: Explai
 
     try {
       const { data, error } = await supabase.functions.invoke('explain-text', {
-        body: { selectedText, context: chapterTitle },
+        body: { selectedText, context: chapterTitle, courseId },
       });
 
       if (error) throw error;
@@ -65,7 +67,7 @@ export function ExplainThisPanel({ selectedText, chapterTitle, onClose }: Explai
     } finally {
       setIsLoading(false);
     }
-  }, [selectedText, chapterTitle, toast]);
+  }, [selectedText, chapterTitle, courseId, toast]);
 
   // Auto-fetch on mount
   React.useEffect(() => {

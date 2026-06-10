@@ -800,6 +800,7 @@ export function TextbookViewer({ courseId, courseName }: TextbookViewerProps) {
         <ExplainThisPanel
           selectedText={explainText}
           chapterTitle={explainChapter}
+          courseId={courseId}
           onClose={() => {
             setExplainText(null);
             setExplainChapter(undefined);
