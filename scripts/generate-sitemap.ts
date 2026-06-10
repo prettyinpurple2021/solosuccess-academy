@@ -6,6 +6,7 @@
 import { writeFileSync } from "fs";
 import { resolve } from "path";
 import { curriculumCourses } from "../src/lib/curriculumData";
+import { LEGAL_DOCUMENTS } from "../src/lib/legalDocuments";
 
 const BASE_URL = "https://solosuccessacademy.app";
 
