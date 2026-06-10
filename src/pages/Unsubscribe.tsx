@@ -99,6 +99,7 @@ export default function Unsubscribe() {
       <PageMeta
         title="Unsubscribe — SoloSuccess Academy"
         description="Manage your email preferences."
+        path="/unsubscribe"
       />
 
       <div className="flex min-h-screen items-center justify-center p-4 bg-background">

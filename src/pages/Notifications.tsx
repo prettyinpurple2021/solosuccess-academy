@@ -130,7 +130,7 @@ export default function Notifications() {
 
   return (
     <>
-      <PageMeta title="Notifications — SoloSuccess Academy" description="View and manage your notifications." />
+      <PageMeta title="Notifications — SoloSuccess Academy" description="View and manage your notifications." path="/notifications" />
 
       <div className="container max-w-3xl py-8 md:py-12 space-y-6">
         {/* Header */}

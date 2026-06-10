@@ -21,6 +21,7 @@ export default function LegalDocument() {
       <PageMeta
         title={`${doc.title} | SoloSuccess Academy`}
         description={doc.description}
+        path={`/legal/${slug}`}
       />
       <div className="container max-w-5xl py-10">
         <div className="flex flex-wrap items-center justify-between gap-3 mb-6">

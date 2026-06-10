@@ -77,7 +77,7 @@ export default function Transcript() {
 
   return (
     <>
-      <PageMeta title="Transcript — SoloSuccess Academy" description="View your academic transcript and grades." />
+      <PageMeta title="Transcript — SoloSuccess Academy" description="View your academic transcript and grades." path="/transcript" />
 
       <div className="container max-w-4xl py-8 md:py-12 space-y-8">
         {/* Header */}
