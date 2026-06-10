@@ -79,6 +79,7 @@ const ContentGenerator = lazy(() => import("./pages/ContentGenerator"));
 const AISettings = lazy(() => import("./pages/AISettings"));
 const Gradebook = lazy(() => import("./pages/Gradebook"));
 const AdminExamEssay = lazy(() => import("./pages/AdminExamEssay"));
+const AdminWebhookHealth = lazy(() => import("./pages/AdminWebhookHealth"));
 const Textbook = lazy(() => import("./pages/Textbook"));
 const Certificates = lazy(() => import("./pages/Certificates"));
 const VerifyCertificate = lazy(() => import("./pages/VerifyCertificate"));
