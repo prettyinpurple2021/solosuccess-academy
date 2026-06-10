@@ -254,9 +254,11 @@ export default function HelpCenter() {
                 className="bg-card/50 backdrop-blur-sm border-primary/20 shadow-[0_0_20px_hsl(var(--primary)/0.05)]"
               >
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-3 text-lg font-display">
-                    <span className="text-primary">{category.icon}</span>
-                    {category.name}
+                  <CardTitle asChild>
+                    <h2 className="flex items-center gap-3 text-lg font-display">
+                      <span className="text-primary" aria-hidden="true">{category.icon}</span>
+                      {category.name}
+                    </h2>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>

@@ -127,6 +127,9 @@ export function PublicHeader() {
             size="icon"
             className="md:hidden"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={mobileMenuOpen}
+            aria-controls="mobile-nav"
           >
             {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </Button>
@@ -137,7 +140,7 @@ export function PublicHeader() {
       <div className={cn(
         "md:hidden absolute top-16 left-0 right-0 z-[79] header-glass transition-all duration-300",
         mobileMenuOpen ? "opacity-100 visible" : "opacity-0 invisible pointer-events-none"
-      )}>
+      )} id="mobile-nav">
         <nav className="container py-4 flex flex-col gap-3">
           {routeLinks.map((item) => (
             <Link

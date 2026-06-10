@@ -12,5 +12,11 @@ Allow: /
 
 User-agent: *
 Allow: /
+# Authenticated / token-only pages — intentionally excluded from search indexes.
+Disallow: /dashboard
+Disallow: /reset-password
+Disallow: /account-recovery
+Disallow: /unsubscribe
+Disallow: /verify/
 
 Sitemap: https://solosuccessacademy.app/sitemap.xml
