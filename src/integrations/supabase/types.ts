@@ -2389,6 +2389,10 @@ export type Database = {
         Args: { _delete_content?: boolean }
         Returns: Json
       }
+      search_textbook_pages_for_student: {
+        Args: { _course_id: string; _query: string }
+        Returns: Json
+      }
       verify_certificate_by_code: {
         Args: { code: string }
         Returns: {
