@@ -123,7 +123,7 @@ export default function ResetPassword() {
   if (isCheckingSession) {
     return (
       <div className="flex min-h-screen items-center justify-center cyber-bg">
-        <PageMeta title="Reset Password" description="Reset your SoloSuccess Academy password" />
+        <PageMeta title="Reset Password" description="Reset your SoloSuccess Academy password" path="/reset-password" noIndex />
         <p className="text-muted-foreground font-mono">Verifying reset link...</p>
       </div>
     );
@@ -133,7 +133,7 @@ export default function ResetPassword() {
   if (!isValidSession) {
     return (
       <div className="flex min-h-screen items-center justify-center cyber-bg p-4">
-        <PageMeta title="Reset Password" description="Reset your SoloSuccess Academy password" />
+        <PageMeta title="Reset Password" description="Reset your SoloSuccess Academy password" path="/reset-password" noIndex />
         <Card className="w-full max-w-md border-destructive/50">
           <CardHeader className="text-center">
             <CardTitle className="text-destructive">Invalid or Expired Link</CardTitle>
@@ -158,7 +158,7 @@ export default function ResetPassword() {
   if (isSuccess) {
     return (
       <div className="flex min-h-screen items-center justify-center cyber-bg p-4">
-        <PageMeta title="Password Reset" description="Your password has been reset" />
+        <PageMeta title="Password Reset" description="Your password has been reset" path="/reset-password" noIndex />
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <CheckCircle className="mx-auto h-12 w-12 text-primary mb-2" />
@@ -173,10 +173,10 @@ export default function ResetPassword() {
   }
 
   // Main reset form
-  return (
-    <div className="flex min-h-screen items-center justify-center cyber-bg p-4">
-      <PageMeta title="Reset Password" description="Set a new password for your SoloSuccess Academy account" />
-      <Card className="w-full max-w-md">
+    return (
+      <div className="flex min-h-screen items-center justify-center cyber-bg p-4">
+        <PageMeta title="Reset Password" description="Set a new password for your SoloSuccess Academy account" path="/reset-password" noIndex />
+        <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
             <Lock className="h-6 w-6 text-primary" />
