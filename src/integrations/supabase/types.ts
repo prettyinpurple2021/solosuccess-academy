@@ -1159,8 +1159,11 @@ export type Database = {
           display_name: string | null
           email_notifications: boolean
           id: string
+          onboarding_completed_at: string | null
           onboarding_completed_courses: string[]
+          primary_goal: string | null
           updated_at: string
+          weekly_commitment_hours: number | null
         }
         Insert: {
           avatar_url?: string | null
@@ -1171,8 +1174,11 @@ export type Database = {
           display_name?: string | null
           email_notifications?: boolean
           id: string
+          onboarding_completed_at?: string | null
           onboarding_completed_courses?: string[]
+          primary_goal?: string | null
           updated_at?: string
+          weekly_commitment_hours?: number | null
         }
         Update: {
           avatar_url?: string | null
@@ -1183,8 +1189,11 @@ export type Database = {
           display_name?: string | null
           email_notifications?: boolean
           id?: string
+          onboarding_completed_at?: string | null
           onboarding_completed_courses?: string[]
+          primary_goal?: string | null
           updated_at?: string
+          weekly_commitment_hours?: number | null
         }
         Relationships: []
       }
