@@ -43,33 +43,34 @@ const PUBLIC_TEMPLATE_ALLOWLIST = new Set<string>([
   'contact-confirmation',
 ])
 
-function decodeJwtRole(authHeader: string | null): string | null {
-  if (!authHeader?.startsWith('Bearer ')) return null
-  const token = authHeader.slice(7)
-  const parts = token.split('.')
-  if (parts.length !== 3) return null
-  try {
-    const payload = JSON.parse(
-      atob(parts[1].replace(/-/g, '+').replace(/_/g, '/'))
-    )
-    return typeof payload?.role === 'string' ? payload.role : null
-  } catch {
-    return null
-  }
-}
+// SECURITY: Verify the caller's JWT signature server-side. Never trust an
+// unverified `role` claim from the token payload — an attacker can craft
+// a token like `Header.{"role":"service_role"}.FakeSignature` that decodes
+// fine but is not signed by Supabase. We resolve the role two ways:
+//   1. Compare the raw bearer token to SUPABASE_SERVICE_ROLE_KEY (internal
+//      server-to-server calls).
+//   2. Otherwise call supabase.auth.getUser(token) which cryptographically
+//      verifies the signature against the project's JWT secret.
+async function verifyCaller(
+  authHeader: string | null,
+  supabaseUrl: string,
+  serviceKey: string,
+): Promise<{ role: 'service_role' | 'authenticated' | 'anon'; userId: string | null }> {
+  if (!authHeader?.startsWith('Bearer ')) return { role: 'anon', userId: null }
+  const token = authHeader.slice(7).trim()
+  if (!token) return { role: 'anon', userId: null }
 
-function decodeJwtSub(authHeader: string | null): string | null {
-  if (!authHeader?.startsWith('Bearer ')) return null
-  const token = authHeader.slice(7)
-  const parts = token.split('.')
-  if (parts.length !== 3) return null
+  // 1) Service-role check: only the real key (or a JWT signed with it) counts.
+  if (token === serviceKey) return { role: 'service_role', userId: null }
+
+  // 2) Verify signature via Supabase Auth.
   try {
-    const payload = JSON.parse(
-      atob(parts[1].replace(/-/g, '+').replace(/_/g, '/'))
-    )
-    return typeof payload?.sub === 'string' ? payload.sub : null
+    const client = createClient(supabaseUrl, serviceKey)
+    const { data, error } = await client.auth.getUser(token)
+    if (error || !data?.user) return { role: 'anon', userId: null }
+    return { role: 'authenticated', userId: data.user.id }
   } catch {
-    return null
+    return { role: 'anon', userId: null }
   }
 }
 
