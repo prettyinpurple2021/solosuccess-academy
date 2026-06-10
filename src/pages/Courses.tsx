@@ -202,10 +202,10 @@ export default function Courses() {
                   <section key={phase}>
                     {/* Phase Header */}
                     <div className="flex flex-wrap items-center gap-4 mb-10">
-                      <div className={`px-5 py-3 rounded-lg ${getPhaseClasses(phase)} border font-display text-lg shadow-[0_0_20px_currentColor/0.2]`}>
+                      <h2 className={`px-5 py-3 rounded-lg ${getPhaseClasses(phase)} border font-display text-lg shadow-[0_0_20px_currentColor/0.2] m-0`}>
                         <span className="text-2xl mr-2">{meta.icon}</span>
                         <span className="font-bold tracking-wide">{meta.label}</span>
-                      </div>
+                      </h2>
                       <span className="text-muted-foreground font-mono">{meta.description}</span>
                     </div>
 
