@@ -169,7 +169,7 @@ export function CourseEditor({ onClose }: CourseEditorProps) {
     <Card className="border-2 border-primary/20">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>New Course</CardTitle>
-        <Button variant="ghost" size="icon" onClick={onClose}>
+        <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close editor">
           <X className="h-4 w-4" />
         </Button>
       </CardHeader>
