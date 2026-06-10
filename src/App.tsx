@@ -102,6 +102,7 @@ const StudentGrades = lazy(() => import("./pages/StudentGrades"));
 const Unsubscribe = lazy(() => import("./pages/Unsubscribe"));
 const Billing = lazy(() => import("./pages/Billing"));
 const Welcome = lazy(() => import("./pages/Welcome"));
+const Onboarding = lazy(() => import("./pages/Onboarding"));
 const AdminAnnouncements = lazy(() => import("./pages/AdminAnnouncements"));
 const AdminTestimonials = lazy(() => import("./pages/AdminTestimonials"));
 const NotFound = lazy(() => import("./pages/NotFound"));
@@ -242,6 +243,9 @@ const App = () => (
                 <Route path="/billing" element={<RouteErrorBoundary><Billing /></RouteErrorBoundary>} />
                 <Route path="/welcome/:courseId" element={<RouteErrorBoundary><Welcome /></RouteErrorBoundary>} />
               </Route>
+
+              {/* First-run onboarding — standalone (no sidebar) but auth-gated */}
+              <Route path="/onboarding" element={<RouteErrorBoundary><Onboarding /></RouteErrorBoundary>} />
 
                 {/* 404 catch-all — shows friendly "not found" page */}
                 <Route path="*" element={<NotFound />} />

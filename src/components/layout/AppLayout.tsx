@@ -35,7 +35,7 @@ import { MobileBottomNav } from './MobileBottomNav';
 import { AnnouncementBanner } from './AnnouncementBanner';
 
 export function AppLayout() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, profile } = useAuth();
   const location = useLocation();
 
   // ── Loading state: Show spinner while checking auth ──
@@ -55,6 +55,14 @@ export function AppLayout() {
   // `state.from` allows redirecting back after successful login
   if (!isAuthenticated) {
     return <Navigate to="/auth" state={{ from: location }} replace />;
+  }
+
+  // ── First-run onboarding gate ──
+  // New signups must pick a goal + commitment before reaching the dashboard.
+  // Existing users were backfilled in the migration so they bypass this.
+  const onboardingDone = !!(profile as any)?.onboarding_completed_at;
+  if (profile && !onboardingDone && location.pathname !== '/onboarding') {
+    return <Navigate to="/onboarding" replace />;
   }
 
   // ── Authenticated layout: Sidebar + main content ──
