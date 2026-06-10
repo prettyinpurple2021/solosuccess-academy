@@ -117,7 +117,7 @@ export function ActivityEditor({ data, onChange }: ActivityEditorProps) {
                     />
                   </div>
                 </div>
-                <Button variant="ghost" size="icon" onClick={() => removeStep(index)} className="text-destructive">
+                <Button variant="ghost" size="icon" onClick={() => removeStep(index)} className="text-destructive" aria-label="Remove step">
                   <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
