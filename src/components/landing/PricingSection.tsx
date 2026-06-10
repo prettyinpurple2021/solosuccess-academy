@@ -57,18 +57,24 @@ export function PricingSection() {
             </div>
           </UIFrame>
 
-          {/* Full Academy */}
-          <div className="data-card p-6 sm:p-8 text-center">
+          {/* Full Academy — bundle tier */}
+          <div className="data-card p-6 sm:p-8 text-center relative">
+            <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-accent/20 text-accent border-accent/30">
+              Best Value · Save $93
+            </Badge>
             <div className="h-14 w-14 sm:h-16 sm:w-16 mx-auto rounded-full bg-accent/20 border border-accent/30 flex items-center justify-center mb-4">
               <Trophy className="h-7 w-7 sm:h-8 sm:w-8 text-accent" />
             </div>
             <h3 className="text-xl sm:text-2xl font-heading font-bold text-foreground mb-1">Full Academy</h3>
-            <p className="text-sm text-muted-foreground mb-3 sm:mb-4">All 10 courses</p>
-            <div className="text-3xl sm:text-4xl font-display font-bold text-accent mb-4">~$590</div>
-            <ul className="space-y-2 text-sm text-muted-foreground">
-              <li className="flex items-center gap-2 justify-center"><CheckCircle2 className="h-4 w-4 text-success flex-shrink-0" />Complete curriculum</li>
-              <li className="flex items-center gap-2 justify-center"><CheckCircle2 className="h-4 w-4 text-success flex-shrink-0" />Portfolio website</li>
-              <li className="flex items-center gap-2 justify-center"><CheckCircle2 className="h-4 w-4 text-success flex-shrink-0" />Pitch presentation</li>
+            <p className="text-sm text-muted-foreground mb-3 sm:mb-4">All 10 courses + extras</p>
+            <div className="text-3xl sm:text-4xl font-display font-bold text-accent mb-1">$497</div>
+            <div className="text-xs text-muted-foreground line-through mb-4">$590 if bought separately</div>
+            <ul className="space-y-2 text-sm text-muted-foreground text-left max-w-[14rem] mx-auto">
+              <li className="flex items-start gap-2"><CheckCircle2 className="h-4 w-4 text-success flex-shrink-0 mt-0.5" />All 10 courses, lifetime access</li>
+              <li className="flex items-start gap-2"><CheckCircle2 className="h-4 w-4 text-success flex-shrink-0 mt-0.5" />Private community access</li>
+              <li className="flex items-start gap-2"><CheckCircle2 className="h-4 w-4 text-success flex-shrink-0 mt-0.5" />Unlimited AI Coach (Tutor)</li>
+              <li className="flex items-start gap-2"><CheckCircle2 className="h-4 w-4 text-success flex-shrink-0 mt-0.5" />Portfolio website + pitch deck</li>
+              <li className="flex items-start gap-2"><CheckCircle2 className="h-4 w-4 text-success flex-shrink-0 mt-0.5" />Graduation certificate</li>
             </ul>
           </div>
         </div>
