@@ -31,6 +31,7 @@ export interface Course {
   id: string;
   order_number: number;
   title: string;
+  subtitle: string | null;                 // Plain-English SEO subtitle shown under the codename
   description: string | null;
   phase: CoursePhase;
   plug_and_play_asset: string | null;     // Downloadable resource URL
