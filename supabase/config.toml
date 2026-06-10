@@ -15,6 +15,8 @@ project_id = "fkqzwlpwdgdiwpsvhavt"
     verify_jwt = false
   [functions.check-student-progress]
     verify_jwt = false
+  [functions.check-webhook-health]
+    verify_jwt = false
   [functions.create-checkout]
     verify_jwt = false
   [functions.explain-text]
