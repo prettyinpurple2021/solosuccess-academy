@@ -113,7 +113,7 @@ export function WorksheetEditor({ data, onChange }: WorksheetEditorProps) {
                   placeholder="Section title..."
                   className="flex-1"
                 />
-                <Button variant="ghost" size="icon" onClick={() => removeSection(sIndex)} className="text-destructive">
+                <Button variant="ghost" size="icon" onClick={() => removeSection(sIndex)} className="text-destructive" aria-label="Remove section">
                   <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
@@ -131,7 +131,7 @@ export function WorksheetEditor({ data, onChange }: WorksheetEditorProps) {
                     className="flex-1"
                   />
                   {section.prompts.length > 1 && (
-                    <Button variant="ghost" size="icon" onClick={() => removePrompt(sIndex, pIndex)} className="text-destructive">
+                    <Button variant="ghost" size="icon" onClick={() => removePrompt(sIndex, pIndex)} className="text-destructive" aria-label="Remove prompt">
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   )}
