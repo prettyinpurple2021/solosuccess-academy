@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <!-- Public pages -->
   <url>
     <loc>https://solosuccessacademy.app/</loc>
     <changefreq>weekly</changefreq>
@@ -29,7 +28,17 @@
   <url>
     <loc>https://solosuccessacademy.app/help</loc>
     <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://solosuccessacademy.app/verify</loc>
+    <changefreq>monthly</changefreq>
     <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://solosuccessacademy.app/legal</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
   </url>
   <url>
     <loc>https://solosuccessacademy.app/privacy</loc>
@@ -45,5 +54,55 @@
     <loc>https://solosuccessacademy.app/refund</loc>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://solosuccessacademy.app/courses/c13d40f5-cb40-4e7a-9814-2936e690da51</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://solosuccessacademy.app/courses/6006c8d3-0af8-4725-bbc9-d8615036f987</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://solosuccessacademy.app/courses/55697b91-b21a-4574-8134-e252c914ae88</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://solosuccessacademy.app/courses/61ae9cd4-a735-44cc-ae7d-57be4546abac</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://solosuccessacademy.app/courses/e1ebab59-e163-4876-a51b-3288a140504e</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://solosuccessacademy.app/courses/3f9f583e-6166-4b36-9c13-4df137a94f2e</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://solosuccessacademy.app/courses/c7989fd2-afdb-410f-bd6d-15c8ff57d745</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://solosuccessacademy.app/courses/2cddde3a-77bc-4ced-9a23-dc06e4bff296</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://solosuccessacademy.app/courses/3f327e10-9968-4a0a-bcdc-bcd9a6dbb462</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://solosuccessacademy.app/courses/91192f0e-3f15-4880-bfda-38d7ebfa1362</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
   </url>
 </urlset>
