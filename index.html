@@ -18,10 +18,21 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:image" content="https://solosuccessacademy.app/og-image.png" />
 
-    <!-- Fonts - Added Orbitron for cyberpunk headings -->
+    <!-- Fonts — trimmed weights + non-blocking load for faster LCP. display=swap prevents FOIT/CLS from web fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Orbitron:wght@500;600;700;800;900&family=Rajdhani:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link
+      rel="preload"
+      as="style"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Orbitron:wght@700;900&family=Rajdhani:wght@500;700&family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@400&display=swap"
+      onload="this.onload=null;this.rel='stylesheet'"
+    />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Orbitron:wght@700;900&family=Rajdhani:wght@500;700&family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@400&display=swap"
+      />
+    </noscript>
     <meta property="og:title" content="SoloSuccess Academy - AI-Powered Learning for Solo Founders">
   <meta name="twitter:title" content="SoloSuccess Academy - AI-Powered Learning for Solo Founders">
   <meta property="og:description" content="Master entrepreneurship with 10 AI-powered courses designed for solo founders. From mindset to pitch, build your business one course at a time.">
