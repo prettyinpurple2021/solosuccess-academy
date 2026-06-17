@@ -306,6 +306,38 @@ function OnlineCoursesForEntrepreneursBody() {
 
 export const BLOG_POSTS: BlogPost[] = [
   {
+    slug: 'how-to-validate-a-business-idea',
+    title: 'How to Validate a Business Idea in 7 Days (Without Quitting Your Job)',
+    metaTitle: 'How to Validate a Business Idea in 7 Days (2026 Guide)',
+    description:
+      'A 7-day, evenings-and-weekends framework to validate a business idea before you build it. Real conversations, a fake-door test, and one paying pre-order — not a 40-page business plan.',
+    excerpt:
+      'Skip the 40-page business plan. Here is the exact 7-day framework solo founders use to validate an idea with real conversations, a fake-door test, and one paying pre-order — all in evenings and weekends.',
+    publishedAt: '2026-06-18',
+    readingMinutes: 9,
+    author: { name: 'The SoloSuccess Team', url: '/about' },
+    tags: ['validation', 'idea testing', 'solo founders'],
+    faq: [
+      {
+        q: 'How long does it take to validate a business idea?',
+        a: 'Most solo founders can run a meaningful validation sprint in 7 days of evenings and weekends — five customer conversations, a one-page landing test, and at least one signal of willingness to pay.',
+      },
+      {
+        q: 'What counts as validation?',
+        a: 'Strong signals of willingness to pay: a pre-order, a paid deposit, an LOI, or a waitlist with replies asking when they can buy. Survey "I would buy this" answers do not count.',
+      },
+      {
+        q: 'Do I need to build an MVP to validate?',
+        a: 'No. A fake-door landing page, a Figma click-through, or a manual concierge service is usually enough to test demand before writing a single line of product code.',
+      },
+      {
+        q: 'How much should I spend on validation?',
+        a: 'Under $100. A domain, a landing page builder (often free), and $20–$50 of ads to drive 200–500 visitors is enough to read a clear signal.',
+      },
+    ],
+    body: HowToValidateBusinessIdeaBody,
+  },
+  {
     slug: 'online-courses-for-entrepreneurs',
     title: '10 Online Courses for Entrepreneurs: An Honest Review (2026)',
     metaTitle: '10 Best Online Courses for Entrepreneurs (2026 Review)',
@@ -341,4 +373,219 @@ export const BLOG_POSTS: BlogPost[] = [
 
 export function getPostBySlug(slug: string): BlogPost | undefined {
   return BLOG_POSTS.find((p) => p.slug === slug);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   POST 2 — How to Validate a Business Idea in 7 Days
+   ───────────────────────────────────────────────────────────── */
+function HowToValidateBusinessIdeaBody() {
+  return (
+    <article className="max-w-3xl mx-auto">
+      <P>
+        Most "validation" advice tells you to write a 40-page business plan, run a SWOT analysis,
+        and forecast five-year revenue. That's not validation. That's procrastination dressed up as
+        rigor.
+      </P>
+      <P>
+        Real validation is one thing: <strong>evidence that strangers will give you money for what
+        you're proposing</strong> — before you've built it. Everything else is opinion.
+      </P>
+      <P>
+        This is the exact 7-day sprint we teach inside{' '}
+        <Link to="/courses" className="text-primary hover:underline">SoloSuccess Academy</Link>. It
+        runs on evenings and weekends, costs under $100, and ends with either a paying pre-order or
+        a clear "no" — so you can move on without spending six months building the wrong thing.
+      </P>
+
+      <H2 id="what-counts">First: what actually counts as validation?</H2>
+      <P>
+        Strong signals — what we're hunting for:
+      </P>
+      <ul className="list-disc pl-6 space-y-2 text-muted-foreground mb-4 marker:text-primary">
+        <li>A pre-order or paid deposit.</li>
+        <li>A signed letter of intent (B2B).</li>
+        <li>A waitlist with unsolicited "when can I buy?" replies.</li>
+        <li>Someone offering to pay you to do it manually, today.</li>
+      </ul>
+      <P>Weak signals — what doesn't count:</P>
+      <ul className="list-disc pl-6 space-y-2 text-muted-foreground mb-4 marker:text-muted">
+        <li>Survey answers of "yes, I'd buy this."</li>
+        <li>Friends and family saying "great idea!"</li>
+        <li>LinkedIn likes on your post about the idea.</li>
+        <li>Email signups with no follow-up engagement.</li>
+      </ul>
+      <P>
+        If you only get weak signals, you don't have validation — you have a polite audience.
+      </P>
+
+      <H2 id="day-by-day">The 7-day sprint</H2>
+
+      <H3>Day 1 — Write the one-sentence offer</H3>
+      <P>
+        Before you talk to anyone, force yourself to write your idea in a single sentence using this
+        template:
+      </P>
+      <p className="font-mono text-sm bg-card/60 border border-primary/20 rounded-md p-4 my-4 text-foreground">
+        I help <span className="text-primary">[specific person]</span> achieve{' '}
+        <span className="text-primary">[specific outcome]</span> by{' '}
+        <span className="text-primary">[specific mechanism]</span> for{' '}
+        <span className="text-primary">[specific price]</span>.
+      </p>
+      <P>
+        Example: <em>"I help freelance designers fill their pipeline by sending them 5 vetted
+        client leads per week for $99/month."</em> If you can't fill in all four blanks, you're not
+        ready to validate — you're ready to think more.
+      </P>
+
+      <H3>Day 2 — List 20 real people who fit the description</H3>
+      <P>
+        Not "small business owners." Twenty specific humans by name, in LinkedIn or a spreadsheet,
+        who would be the buyer. If you can't list 20, the niche is too vague or you don't know it
+        well enough yet. Go narrower.
+      </P>
+
+      <H3>Day 3–4 — Five problem-discovery conversations</H3>
+      <P>
+        Reach out to the 20 with one ask: <em>"I'm researching how [your role] currently handles
+        [problem]. Could I get 15 minutes of your time? Not selling anything."</em> Aim for five
+        accepts. On the call, ask only about their <strong>current behavior</strong>:
+      </P>
+      <ul className="list-disc pl-6 space-y-2 text-muted-foreground mb-4 marker:text-primary">
+        <li>"Walk me through the last time you faced [problem]."</li>
+        <li>"What did you do? What tools? Who else was involved?"</li>
+        <li>"What was frustrating about it? What did it cost you — time or money?"</li>
+        <li>"Have you tried to solve it before? What happened?"</li>
+      </ul>
+      <P>
+        Never pitch. Never describe your idea. If they ask, say "I'll show you next week." You're
+        looking for one thing: <strong>do at least 3 of 5 describe a real, painful, recurring
+        problem in their own words?</strong> If not, your sentence from Day 1 is wrong. Revise.
+      </P>
+
+      <H3>Day 5 — Build a one-page fake-door landing page</H3>
+      <P>
+        Use Carrd, Framer, or a single page in your favorite no-code tool. Include:
+      </P>
+      <ul className="list-disc pl-6 space-y-2 text-muted-foreground mb-4 marker:text-primary">
+        <li>A headline that's your Day 1 sentence, rewritten as a benefit.</li>
+        <li>Three bullets describing what they get.</li>
+        <li>The price — visible, not "request a quote."</li>
+        <li>
+          A single call-to-action button: <strong>"Pre-order — pay $X now"</strong> (B2C) or{' '}
+          <strong>"Reserve your spot"</strong> with a deposit link (B2B).
+        </li>
+      </ul>
+      <P>
+        Use Stripe Payment Links — 10 minutes to set up, no website code required. If a real card
+        gets charged, that's a strong signal. If they click "Pre-order" and bounce when they see
+        the Stripe page, that's still useful: the offer is interesting, the price isn't.
+      </P>
+
+      <H3>Day 6 — Drive 200–500 visitors</H3>
+      <P>
+        Pick one source — don't try all of them:
+      </P>
+      <ul className="list-disc pl-6 space-y-2 text-muted-foreground mb-4 marker:text-primary">
+        <li>$20–$50 of Meta or Reddit ads targeted at your niche.</li>
+        <li>One post in a relevant subreddit or Slack/Discord community (read the rules first).</li>
+        <li>Direct DMs to the other 15 people on your Day 2 list.</li>
+      </ul>
+      <P>
+        You're looking for a <strong>click-through to checkout of 3%+</strong> and at least one
+        completed payment or deposit. No payments after 300+ targeted visitors is a clear "this
+        offer doesn't work yet" signal — and that's a win, because you found out in a week instead
+        of a year.
+      </P>
+
+      <H3>Day 7 — Read the signal and decide</H3>
+      <P>Three possible outcomes:</P>
+      <ul className="list-disc pl-6 space-y-3 text-muted-foreground mb-4 marker:text-primary">
+        <li>
+          <strong>Green light:</strong> 1+ paid pre-orders, or 3+ qualified LOIs. Refund anyone who
+          asks, then start building the smallest version that delivers the promise. You have
+          validation.
+        </li>
+        <li>
+          <strong>Yellow light:</strong> Strong click-throughs but no payments. The audience cares
+          about the problem but not at this price or framing. Rewrite the offer (different price,
+          different mechanism, different audience) and run Day 5–7 again — one variable changed.
+        </li>
+        <li>
+          <strong>Red light:</strong> Low traffic-to-page engagement, no payments. Either the
+          audience isn't who you thought, or the problem isn't real enough to pay for. Go back to
+          Day 1. This is not failure — this is the entire point of validation.
+        </li>
+      </ul>
+
+      <H2 id="mistakes">The four mistakes that ruin validation sprints</H2>
+      <ol className="list-decimal pl-6 space-y-3 text-muted-foreground mb-4 marker:text-primary">
+        <li>
+          <strong>Asking friends and family.</strong> They lie to be kind. Talk to strangers in your
+          target market.
+        </li>
+        <li>
+          <strong>Pitching instead of asking.</strong> You'll get false positives from people being
+          polite about your idea instead of honest about their problem.
+        </li>
+        <li>
+          <strong>Hiding the price.</strong> "Contact us for pricing" makes the test meaningless.
+          The price is half of what you're validating.
+        </li>
+        <li>
+          <strong>Building before validating.</strong> If you've written more than zero lines of
+          product code by Day 7, you've moved the goalposts from "do they want it?" to "did I waste
+          my weekend?"
+        </li>
+      </ol>
+
+      <H2 id="faq">FAQ</H2>
+      <div className="space-y-6">
+        <div>
+          <p className="font-semibold mb-1">How long does it take to validate a business idea?</p>
+          <P>
+            Most solo founders can run a meaningful validation sprint in 7 days of evenings and
+            weekends — five conversations, a one-page landing test, and at least one signal of
+            willingness to pay. Bigger B2B deals take longer; D2C usually doesn't.
+          </P>
+        </div>
+        <div>
+          <p className="font-semibold mb-1">What counts as validation?</p>
+          <P>
+            Pre-orders, deposits, LOIs, or a waitlist with unsolicited "when can I buy?" messages.
+            Survey-style "I would buy this" answers don't count — humans overestimate their own
+            future behavior dramatically.
+          </P>
+        </div>
+        <div>
+          <p className="font-semibold mb-1">Do I need to build an MVP to validate?</p>
+          <P>
+            No. A fake-door landing page, a Figma click-through, or a manual concierge service
+            (where you deliver the outcome by hand) is usually enough to read demand before writing
+            a line of product code.
+          </P>
+        </div>
+        <div>
+          <p className="font-semibold mb-1">How much should I spend on validation?</p>
+          <P>
+            Under $100. A domain, a free landing page builder, and $20–$50 of targeted ads is
+            enough to drive 200–500 visitors and read a clear signal.
+          </P>
+        </div>
+      </div>
+
+      <div className="mt-12 p-6 rounded-lg border border-primary/30 bg-primary/5">
+        <p className="font-display text-xl font-bold mb-2">Want the full validation playbook?</p>
+        <p className="text-muted-foreground mb-4">
+          Course 1 of SoloSuccess Academy walks you through this 7-day sprint with templates,
+          scripts, and an AI tutor that reviews your offer line by line.
+        </p>
+        <Link
+          to="/courses"
+          className="inline-flex items-center gap-2 px-5 py-2 rounded-md bg-primary text-primary-foreground font-semibold hover:opacity-90 transition-opacity"
+        >
+          See the curriculum →
+        </Link>
+      </div>
+    </article>
+  );
 }
