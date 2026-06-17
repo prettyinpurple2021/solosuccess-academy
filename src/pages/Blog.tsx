@@ -8,6 +8,7 @@ import { Calendar, Clock, ArrowRight, Zap } from 'lucide-react';
 import { PageMeta } from '@/components/layout/PageMeta';
 import { BLOG_POSTS } from '@/content/blog/posts';
 import { getSiteUrl } from '@/lib/siteMeta';
+import { LeadMagnetSection } from '@/components/landing/LeadMagnetSection';
 
 export default function Blog() {
   const posts = [...BLOG_POSTS].sort((a, b) =>
@@ -47,6 +48,12 @@ export default function Blog() {
             takes from the team building SoloSuccess Academy.
           </p>
         </header>
+
+        {/* ── Lead magnet (above the fold of post grid) ── */}
+        <div className="mb-16">
+          <LeadMagnetSection source="blog-index" variant="compact" />
+        </div>
+
 
         {/* ── Post list ── */}
         <div className="grid gap-8">

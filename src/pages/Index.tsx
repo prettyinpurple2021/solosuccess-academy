@@ -16,6 +16,7 @@ import { TrustBandSection } from '@/components/landing/TrustBandSection';
 import { FounderNoteSection } from '@/components/landing/FounderNoteSection';
 import { FAQSection, faqs } from '@/components/landing/FAQSection';
 import { TestimonialsSection } from '@/components/landing/TestimonialsSection';
+import { LeadMagnetSection } from '@/components/landing/LeadMagnetSection';
 
 export default function Index() {
   const { data: courses, isLoading, isError, error, refetch } = useCourses();
@@ -56,6 +57,7 @@ export default function Index() {
       <CourseJourneySection courses={courses} isLoading={isLoading} />
       <PricingSection />
       <TestimonialsSection />
+      <LeadMagnetSection source="homepage" />
       <FAQSection />
       <CTASection />
     </div>
