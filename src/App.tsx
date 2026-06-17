@@ -97,6 +97,8 @@ const VerifyLanding = lazy(() => import("./pages/VerifyLanding"));
 const HelpCenter = lazy(() => import("./pages/HelpCenter"));
 const AboutPage = lazy(() => import("./pages/About"));
 const ContactPage = lazy(() => import("./pages/Contact"));
+const Blog = lazy(() => import("./pages/Blog"));
+const BlogPost = lazy(() => import("./pages/BlogPost"));
 const NotificationsPage = lazy(() => import("./pages/Notifications"));
 const TranscriptPage = lazy(() => import("./pages/Transcript"));
 const StudentGrades = lazy(() => import("./pages/StudentGrades"));
@@ -187,6 +189,8 @@ const App = () => (
                 <Route path="/help" element={<RouteErrorBoundary><HelpCenter /></RouteErrorBoundary>} />
                 <Route path="/about" element={<RouteErrorBoundary><AboutPage /></RouteErrorBoundary>} />
                 <Route path="/contact" element={<RouteErrorBoundary><ContactPage /></RouteErrorBoundary>} />
+                <Route path="/blog" element={<RouteErrorBoundary><Blog /></RouteErrorBoundary>} />
+                <Route path="/blog/:slug" element={<RouteErrorBoundary><BlogPost /></RouteErrorBoundary>} />
               </Route>
 
               {/* Public Certificate Verification — standalone page, no layout */}
