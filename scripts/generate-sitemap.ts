@@ -3,7 +3,7 @@
 // for course detail routes so the sitemap stays in sync when courses
 // are added or renamed in src/lib/curriculumData.ts.
 
-import { writeFileSync } from "fs";
+import { readFileSync, writeFileSync } from "fs";
 import { resolve } from "path";
 import { curriculumCourses } from "../src/lib/curriculumData";
 import { LEGAL_DOCUMENTS } from "../src/lib/legalDocuments";
@@ -53,7 +53,38 @@ const legalEntries: SitemapEntry[] = LEGAL_DOCUMENTS.map((doc) => ({
   priority: "0.3",
 }));
 
-const entries: SitemapEntry[] = [...staticEntries, ...courseEntries, ...legalEntries];
+// Blog post entries pulled from src/content/blog/posts.tsx via a lightweight
+// regex (avoids importing the .tsx, which pulls React + react-router-dom
+// into this Node script). Mirrors the same approach used by
+// scripts/validate-blog-seo.ts.
+function getBlogSlugs(): string[] {
+  const src = readFileSync(resolve("src/content/blog/posts.tsx"), "utf8");
+  const arrayMatch = src.match(
+    /export const BLOG_POSTS:\s*BlogPost\[\]\s*=\s*\[([\s\S]*?)\n\];/,
+  );
+  if (!arrayMatch) return [];
+  return Array.from(arrayMatch[1].matchAll(/\bslug\s*:\s*['"`]([^'"`]+)['"`]/g)).map(
+    (m) => m[1],
+  );
+}
+
+const blogEntries: SitemapEntry[] = [
+  { path: "/blog", changefreq: "weekly", priority: "0.7" },
+  ...getBlogSlugs().map(
+    (slug): SitemapEntry => ({
+      path: `/blog/${slug}`,
+      changefreq: "monthly",
+      priority: "0.7",
+    }),
+  ),
+];
+
+const entries: SitemapEntry[] = [
+  ...staticEntries,
+  ...courseEntries,
+  ...legalEntries,
+  ...blogEntries,
+];
 
 function generateSitemap(entries: SitemapEntry[]) {
   const urls = entries.map((e) =>
