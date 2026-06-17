@@ -7,7 +7,7 @@
 import { Link, useParams, Navigate } from 'react-router-dom';
 import { Calendar, Clock, ArrowLeft } from 'lucide-react';
 import { PageMeta } from '@/components/layout/PageMeta';
-import { getPostBySlug } from '@/content/blog/posts';
+import { BLOG_POSTS, getPostBySlug } from '@/content/blog/posts';
 import { getSiteUrl, getOgImageUrl, SITE_NAME } from '@/lib/siteMeta';
 
 export default function BlogPost() {
@@ -49,6 +49,12 @@ export default function BlogPost() {
     : null;
 
   const Body = post.body;
+
+  // Up to 2 related posts (everything else, newest first)
+  const related = BLOG_POSTS
+    .filter((p) => p.slug !== post.slug)
+    .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))
+    .slice(0, 2);
 
   return (
     <>
@@ -104,6 +110,31 @@ export default function BlogPost() {
 
         {/* ── Post body ── */}
         <Body />
+
+        {/* ── Related reading ── */}
+        {related.length > 0 && (
+          <aside className="mt-16 pt-10 border-t border-primary/20">
+            <h2 className="font-display text-xl font-bold mb-6 text-primary tracking-wider">
+              RELATED READING
+            </h2>
+            <div className="grid gap-4 md:grid-cols-2">
+              {related.map((p) => (
+                <Link
+                  key={p.slug}
+                  to={`/blog/${p.slug}`}
+                  className="group block border border-primary/20 bg-card/40 rounded-lg p-5 hover:border-primary/50 transition-colors"
+                >
+                  <p className="text-xs font-mono text-muted-foreground mb-2">
+                    {p.readingMinutes} min read
+                  </p>
+                  <p className="font-display font-semibold leading-snug group-hover:text-primary transition-colors">
+                    {p.title}
+                  </p>
+                </Link>
+              ))}
+            </div>
+          </aside>
+        )}
       </div>
     </>
   );
