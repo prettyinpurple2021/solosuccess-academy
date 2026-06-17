@@ -304,6 +304,362 @@ function OnlineCoursesForEntrepreneursBody() {
   );
 }
 
+/* ─────────────────────────────────────────────────────────────
+   POST 3 — How to Start a Business With No Money
+   ───────────────────────────────────────────────────────────── */
+function HowToStartWithNoMoneyBody() {
+  return (
+    <article className="max-w-3xl mx-auto">
+      <P>
+        "I'd start a business, but I don't have the money." It's the most common reason people stay
+        stuck — and in 2026, it's mostly wrong. The cheapest era in history to start something is
+        right now: free AI tools, free hosting, free distribution, and a planet of customers one DM
+        away.
+      </P>
+      <P>
+        What you actually need isn't capital. It's a <strong>sellable skill</strong>, a{' '}
+        <strong>specific buyer</strong>, and the discipline to get paid <em>before</em> you spend.
+        This is the exact playbook we teach inside{' '}
+        <Link to="/courses" className="text-primary hover:underline">SoloSuccess Academy</Link>,
+        condensed.
+      </P>
+
+      <H2 id="why-services">Why service businesses win when you're broke</H2>
+      <P>
+        Products need inventory, manufacturing, or months of development. Services need you. That's
+        the whole difference. With a service business you:
+      </P>
+      <ul className="list-disc pl-6 space-y-2 text-muted-foreground mb-4 marker:text-primary">
+        <li>Get paid <strong>before</strong> you deliver (deposits, retainers).</li>
+        <li>Need ~$0 to start — domain, free landing page, free invoicing.</li>
+        <li>Learn sales and delivery on real money instead of guessing.</li>
+        <li>Can productize later, once you know what people actually buy.</li>
+      </ul>
+      <P>
+        Every successful "no money" founder you admire started by selling time or expertise. They
+        productized once they had revenue, not before.
+      </P>
+
+      <H2 id="pick-skill">Step 1 — Pick a skill someone already pays for</H2>
+      <P>
+        Forget passion. Pick a skill from this checklist where you can answer "yes" to at least
+        two:
+      </P>
+      <ul className="list-disc pl-6 space-y-2 text-muted-foreground mb-4 marker:text-primary">
+        <li>I've done this for a job, a friend, or a side project.</li>
+        <li>Other people have asked me to do it.</li>
+        <li>I can name a freelancer charging $50+/hr for it.</li>
+        <li>I enjoy it enough to do it for 5 hours on a Saturday.</li>
+      </ul>
+      <P>
+        Common $0-start skills in 2026: copywriting, web design, SEO audits, bookkeeping, virtual
+        assistance, social media management, AI workflow setup, podcast editing, video editing,
+        tutoring, coaching, technical writing, Notion/Airtable consulting.
+      </P>
+
+      <H2 id="narrow-buyer">Step 2 — Narrow until it hurts</H2>
+      <P>
+        "Copywriter for businesses" is unsellable. "Email copywriter for SaaS founders launching
+        their first paid newsletter" is a niche. Niche wins because:
+      </P>
+      <ul className="list-disc pl-6 space-y-2 text-muted-foreground mb-4 marker:text-primary">
+        <li>You can find your buyers in one place (a subreddit, a Slack, a hashtag).</li>
+        <li>Your pitch writes itself — you're speaking their exact problem.</li>
+        <li>You can charge premium rates because there are no comparable freelancers.</li>
+      </ul>
+      <P>
+        Rule of thumb: if you can't list 30 specific potential buyers by name in an afternoon, niche
+        down further.
+      </P>
+
+      <H2 id="first-30-days">The first 30 days, day by day</H2>
+
+      <H3>Days 1–3: Define and price the offer</H3>
+      <P>
+        Write a one-page document: who it's for, what they get, what it costs, how long it takes,
+        and what you need from them. Price for outcomes, not hours — "$750 for a 5-email welcome
+        sequence delivered in 7 days" sells better than "$60/hr."
+      </P>
+
+      <H3>Days 4–7: Ship a one-page site</H3>
+      <P>
+        Carrd, Framer free tier, or a single page on a free Vercel deployment. Headline, three
+        bullets, one testimonial (a quote from anyone you've helped — friend, ex-colleague,
+        anyone), pricing, and a single "Book a free 15-minute call" button linking to Cal.com (free
+        tier). Total cost: $12 for a domain. Skip the domain for week one if you have to.
+      </P>
+
+      <H3>Days 8–21: 5 outreach DMs per day, every day</H3>
+      <P>
+        This is the only thing that matters. Build a list of 100 people in your niche. Message 5 per
+        day with a single short, personal, useful message — not a pitch:
+      </P>
+      <p className="font-mono text-sm bg-card/60 border border-primary/20 rounded-md p-4 my-4 text-foreground">
+        Hey [name] — saw your post on [specific thing]. I'm a [your skill] working with [your niche]
+        and noticed [one specific, generous observation about their work]. Happy to send a free
+        [small useful artifact] if it'd help — no pitch.
+      </p>
+      <P>
+        Two weeks × 5 DMs × ~10% reply rate = roughly 7 real conversations. Most founders land their
+        first paying client in that pool.
+      </P>
+
+      <H3>Days 22–30: Close one customer, deliver, get a testimonial</H3>
+      <P>
+        On the call: listen for 80% of it. Ask what they've already tried, what didn't work, and
+        what success looks like in 30 days. Then propose your offer with a deposit-now structure
+        (50% upfront, 50% on delivery). Use Stripe Payment Links — free, takes 3 minutes.
+      </P>
+      <P>
+        Deliver the work. Over-deliver one small thing. Ask for a written testimonial and a referral.
+        Now you have revenue, social proof, and a referral pipeline — for $12 in total spend.
+      </P>
+
+      <H2 id="free-stack">The free 2026 founder stack</H2>
+      <ul className="list-disc pl-6 space-y-2 text-muted-foreground mb-4 marker:text-primary">
+        <li><strong>Site:</strong> Carrd, Framer free, Vercel + a free template.</li>
+        <li><strong>Payments:</strong> Stripe Payment Links (no website needed).</li>
+        <li><strong>Invoicing:</strong> Wave, Stripe Invoicing, or Google Docs.</li>
+        <li><strong>Scheduling:</strong> Cal.com free tier, Google Calendar booking pages.</li>
+        <li><strong>Email:</strong> Gmail with a custom signature is fine for the first 10 clients.</li>
+        <li><strong>AI:</strong> Free tiers of ChatGPT, Claude, and Gemini cover most workflows.</li>
+        <li><strong>Design:</strong> Canva free, Figma free.</li>
+        <li><strong>Project tracking:</strong> Notion free, Trello free, or a single Google Sheet.</li>
+      </ul>
+      <P>
+        You'll outgrow this stack at around $5K/month in revenue. That's the right time to start
+        paying for tools — not before.
+      </P>
+
+      <H2 id="mistakes">Mistakes that keep "no money" founders broke</H2>
+      <ol className="list-decimal pl-6 space-y-3 text-muted-foreground mb-4 marker:text-primary">
+        <li>
+          <strong>Building a brand before a business.</strong> Logos, color palettes, and Instagram
+          aesthetics generate $0. Sales calls generate revenue. Brand can wait until month three.
+        </li>
+        <li>
+          <strong>Studying instead of shipping.</strong> If you've watched more than 3 hours of
+          YouTube about your idea this week without sending a DM, you're hiding.
+        </li>
+        <li>
+          <strong>Pricing low to "get started."</strong> Cheap clients are the most demanding
+          clients. Charge what a real freelancer charges. Confidence comes from the price, not the
+          other way around.
+        </li>
+        <li>
+          <strong>Trying to automate before you have customers.</strong> Manual delivery teaches you
+          what to build later. Automation without revenue is a hobby.
+        </li>
+      </ol>
+
+      <H2 id="faq">FAQ</H2>
+      <div className="space-y-6">
+        <div>
+          <p className="font-semibold mb-1">Can you really start a business with no money?</p>
+          <P>
+            Yes — with a service business. Skip inventory, equipment, and product development, and
+            you can be invoicing your first client within a month for the cost of a domain.
+          </P>
+        </div>
+        <div>
+          <p className="font-semibold mb-1">What is the cheapest type of business to start?</p>
+          <P>
+            A skill-based service business: freelance writing, design, consulting, tutoring, virtual
+            assistance, or coaching. Under $50 to start in most cases.
+          </P>
+        </div>
+        <div>
+          <p className="font-semibold mb-1">How long until I can earn money?</p>
+          <P>
+            Most focused solo founders land their first paying customer in 2–6 weeks. Beyond 8 weeks
+            usually means the offer or audience is wrong — not the effort.
+          </P>
+        </div>
+        <div>
+          <p className="font-semibold mb-1">Do I need an LLC to start?</p>
+          <P>
+            No. Sole proprietorship works in most jurisdictions. Form an LLC once revenue is
+            consistent and you want liability protection.
+          </P>
+        </div>
+      </div>
+
+      <div className="mt-12 p-6 rounded-lg border border-primary/30 bg-primary/5">
+        <p className="font-display text-xl font-bold mb-2">Want the full 30-day plan?</p>
+        <p className="text-muted-foreground mb-4">
+          SoloSuccess Academy walks you through this end to end — offer design, outreach templates,
+          and the AI tools that replace a small team.
+        </p>
+        <Link
+          to="/courses"
+          className="inline-flex items-center gap-2 px-5 py-2 rounded-md bg-primary text-primary-foreground font-semibold hover:opacity-90 transition-opacity"
+        >
+          Explore the curriculum →
+        </Link>
+      </div>
+    </article>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────
+   POST 4 — Solopreneur vs Entrepreneur
+   ───────────────────────────────────────────────────────────── */
+function SolopreneurVsEntrepreneurBody() {
+  return (
+    <article className="max-w-3xl mx-auto">
+      <P>
+        The words get used interchangeably. They shouldn't be. The path you pick — solopreneur or
+        entrepreneur — shapes how you fund the business, how you hire, how you spend your week, and
+        how (or whether) you eventually exit.
+      </P>
+      <P>
+        Most career advice quietly assumes you want to be an entrepreneur in the classic sense:
+        raise money, build a team, scale fast. For a lot of people in 2026, that's the wrong goal.
+        Here's how the two paths actually differ.
+      </P>
+
+      <H2 id="quick-definition">The 30-second definition</H2>
+      <P>
+        A <strong>solopreneur</strong> builds and runs a business alone — optimizing for freedom,
+        profit per hour, and low overhead. The business is designed around <em>one person</em>.
+      </P>
+      <P>
+        An <strong>entrepreneur</strong> builds an organization — optimizing for scale, market
+        share, or exit. The business is designed to grow <em>beyond</em> the founder.
+      </P>
+      <P>
+        Both are valid. Both can make great money. They are different sports.
+      </P>
+
+      <H2 id="differences">The 7 differences that actually matter</H2>
+
+      <H3>1. Goal</H3>
+      <P>
+        Solopreneur: a great life with control over time. Entrepreneur: a company worth more than
+        its founder.
+      </P>
+
+      <H3>2. Funding</H3>
+      <P>
+        Solopreneurs bootstrap, almost always. Revenue funds the next month. Entrepreneurs raise
+        capital — friends-and-family, angels, VCs — to grow faster than revenue allows.
+      </P>
+
+      <H3>3. Team</H3>
+      <P>
+        Solopreneurs stay solo or work with a small ring of contractors. Entrepreneurs hire
+        employees, build culture, and spend significant time managing people.
+      </P>
+
+      <H3>4. Time</H3>
+      <P>
+        Solopreneurs trade scale for freedom — 25–40 focused hours, often from anywhere.
+        Entrepreneurs usually work 50–80 hours during growth phases and tie themselves to the
+        company's location and rhythm.
+      </P>
+
+      <H3>5. Risk profile</H3>
+      <P>
+        Solopreneur risk is mostly time and opportunity cost — you can shut it down on a Friday and
+        have a job by Monday. Entrepreneur risk includes investor obligations, employee livelihoods,
+        and often personal financial guarantees.
+      </P>
+
+      <H3>6. Revenue model</H3>
+      <P>
+        Solopreneurs favor high-margin services, info products, niche software, and premium
+        coaching. Entrepreneurs build products and platforms that need scale to be profitable.
+      </P>
+
+      <H3>7. Exit</H3>
+      <P>
+        A solopreneur business is hard to sell — most of the value is the founder. An entrepreneur
+        builds explicitly to sell, IPO, or pass on; equity in the company is the long-term reward.
+      </P>
+
+      <H2 id="money">Who actually earns more?</H2>
+      <P>
+        The honest answer: top earners on both paths look similar. Top solopreneurs clear $200K to
+        $1M+ per year solo, keeping 70–90% of revenue because overhead is tiny. Top entrepreneurs
+        earn through equity events — a successful exit dwarfs solopreneur income, but most
+        venture-backed companies never reach one.
+      </P>
+      <P>
+        Expected value, not best case, is the right way to compare. By that measure, solopreneurship
+        wins for most people most of the time — fewer ways to lose, faster to profitable.
+      </P>
+
+      <H2 id="which-fits">Which path fits you?</H2>
+      <P>Pick solopreneur if:</P>
+      <ul className="list-disc pl-6 space-y-2 text-muted-foreground mb-4 marker:text-primary">
+        <li>You want autonomy over your schedule more than you want a big team.</li>
+        <li>You'd rather earn $300K solo than $500K running 10 people.</li>
+        <li>You enjoy doing the work, not just managing it.</li>
+        <li>You want to stay profitable from month one.</li>
+      </ul>
+      <P>Pick entrepreneur if:</P>
+      <ul className="list-disc pl-6 space-y-2 text-muted-foreground mb-4 marker:text-primary">
+        <li>Your idea genuinely requires scale to work (marketplace, network effects, hardware).</li>
+        <li>You're energized by hiring, mentoring, and building culture.</li>
+        <li>You're comfortable raising capital and reporting to a board.</li>
+        <li>You want an exit-driven outcome, not a lifestyle outcome.</li>
+      </ul>
+      <P>
+        You can also start solo and graduate to entrepreneur later. Many of the best entrepreneurs
+        do exactly that — they prove the model alone, then raise to scale what's already working.
+        Far fewer go the other way.
+      </P>
+
+      <H2 id="faq">FAQ</H2>
+      <div className="space-y-6">
+        <div>
+          <p className="font-semibold mb-1">What is the difference between a solopreneur and an entrepreneur?</p>
+          <P>
+            A solopreneur runs the business alone for freedom and profit per hour. An entrepreneur
+            builds an organization with employees and often investors, aiming for scale or exit.
+          </P>
+        </div>
+        <div>
+          <p className="font-semibold mb-1">Can a solopreneur become an entrepreneur?</p>
+          <P>
+            Yes — many do. The shift usually happens when revenue plateaus on personal hours and the
+            founder decides to hire, raise capital, or productize beyond what one person can deliver.
+          </P>
+        </div>
+        <div>
+          <p className="font-semibold mb-1">Do solopreneurs make less money?</p>
+          <P>
+            Not necessarily. Top solopreneurs earn $200K to $1M+ per year alone by selling
+            expertise, software, or premium services — and they keep more of every dollar.
+          </P>
+        </div>
+        <div>
+          <p className="font-semibold mb-1">Which is better for beginners?</p>
+          <P>
+            Solopreneurship is almost always the safer starting point. You learn sales, delivery,
+            finance, and marketing on a small surface area before taking on hiring or fundraising
+            risk.
+          </P>
+        </div>
+      </div>
+
+      <div className="mt-12 p-6 rounded-lg border border-primary/30 bg-primary/5">
+        <p className="font-display text-xl font-bold mb-2">Built for the solo path</p>
+        <p className="text-muted-foreground mb-4">
+          SoloSuccess Academy is designed for the one-person business — every course assumes you are
+          the founder, the team, and the CEO.
+        </p>
+        <Link
+          to="/courses"
+          className="inline-flex items-center gap-2 px-5 py-2 rounded-md bg-primary text-primary-foreground font-semibold hover:opacity-90 transition-opacity"
+        >
+          See the curriculum →
+        </Link>
+      </div>
+    </article>
+  );
+}
+
 export const BLOG_POSTS: BlogPost[] = [
   {
     slug: 'how-to-start-a-business-with-no-money',
