@@ -306,6 +306,38 @@ function OnlineCoursesForEntrepreneursBody() {
 
 export const BLOG_POSTS: BlogPost[] = [
   {
+    slug: 'how-to-validate-a-business-idea',
+    title: 'How to Validate a Business Idea in 7 Days (Without Quitting Your Job)',
+    metaTitle: 'How to Validate a Business Idea in 7 Days (2026 Guide)',
+    description:
+      'A 7-day, evenings-and-weekends framework to validate a business idea before you build it. Real conversations, a fake-door test, and one paying pre-order — not a 40-page business plan.',
+    excerpt:
+      'Skip the 40-page business plan. Here is the exact 7-day framework solo founders use to validate an idea with real conversations, a fake-door test, and one paying pre-order — all in evenings and weekends.',
+    publishedAt: '2026-06-18',
+    readingMinutes: 9,
+    author: { name: 'The SoloSuccess Team', url: '/about' },
+    tags: ['validation', 'idea testing', 'solo founders'],
+    faq: [
+      {
+        q: 'How long does it take to validate a business idea?',
+        a: 'Most solo founders can run a meaningful validation sprint in 7 days of evenings and weekends — five customer conversations, a one-page landing test, and at least one signal of willingness to pay.',
+      },
+      {
+        q: 'What counts as validation?',
+        a: 'Strong signals of willingness to pay: a pre-order, a paid deposit, an LOI, or a waitlist with replies asking when they can buy. Survey "I would buy this" answers do not count.',
+      },
+      {
+        q: 'Do I need to build an MVP to validate?',
+        a: 'No. A fake-door landing page, a Figma click-through, or a manual concierge service is usually enough to test demand before writing a single line of product code.',
+      },
+      {
+        q: 'How much should I spend on validation?',
+        a: 'Under $100. A domain, a landing page builder (often free), and $20–$50 of ads to drive 200–500 visitors is enough to read a clear signal.',
+      },
+    ],
+    body: HowToValidateBusinessIdeaBody,
+  },
+  {
     slug: 'online-courses-for-entrepreneurs',
     title: '10 Online Courses for Entrepreneurs: An Honest Review (2026)',
     metaTitle: '10 Best Online Courses for Entrepreneurs (2026 Review)',
