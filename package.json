@@ -16,6 +16,7 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "type-check": "tsc --noEmit",
+    "validate:blog-seo": "bunx tsx scripts/validate-blog-seo.ts",
     "supabase": "supabase",
     "supabase:serve": "supabase functions serve"
   },

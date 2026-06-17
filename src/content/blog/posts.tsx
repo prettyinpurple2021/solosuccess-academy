@@ -666,7 +666,7 @@ export const BLOG_POSTS: BlogPost[] = [
     title: 'How to Start a Business With No Money in 2026 (Solo Founder Edition)',
     metaTitle: 'How to Start a Business With No Money in 2026',
     description:
-      'A realistic, no-fluff playbook for starting a business with zero capital in 2026. Service-first models, free tools, and the exact first 30 days for solo founders.',
+      'A realistic playbook for starting a business with zero capital in 2026 — service-first models, free tools, and the exact first 30 days for solo founders.',
     excerpt:
       'You do not need savings, investors, or a co-founder. You need a sellable skill, one paying customer, and 30 honest days. Here is the playbook solo founders are actually using in 2026.',
     publishedAt: '2026-06-19',
@@ -730,7 +730,7 @@ export const BLOG_POSTS: BlogPost[] = [
     title: 'How to Validate a Business Idea in 7 Days (Without Quitting Your Job)',
     metaTitle: 'How to Validate a Business Idea in 7 Days (2026 Guide)',
     description:
-      'A 7-day, evenings-and-weekends framework to validate a business idea before you build it. Real conversations, a fake-door test, and one paying pre-order — not a 40-page business plan.',
+      'A 7-day, evenings-and-weekends framework to validate a business idea — real customer conversations, a fake-door test, and one paying pre-order. No 40-page plan.',
     excerpt:
       'Skip the 40-page business plan. Here is the exact 7-day framework solo founders use to validate an idea with real conversations, a fake-door test, and one paying pre-order — all in evenings and weekends.',
     publishedAt: '2026-06-18',
@@ -762,7 +762,7 @@ export const BLOG_POSTS: BlogPost[] = [
     title: '10 Online Courses for Entrepreneurs: An Honest Review (2026)',
     metaTitle: '10 Best Online Courses for Entrepreneurs (2026 Review)',
     description:
-      'An honest comparison of the top online courses for entrepreneurs in 2026 — Coursera, HBS, Udemy, LinkedIn Learning, and more. Find the right fit for solo founders.',
+      'An honest 2026 comparison of the top online courses for entrepreneurs — Coursera, HBS, Udemy, LinkedIn Learning, and more. Find the right fit for solo founders.',
     excerpt:
       'Coursera, Harvard, MIT, YC, Udemy — and us. A no-affiliate, no-filler comparison of the 10 online courses most relevant to solo founders in 2026.',
     publishedAt: '2026-06-17',
