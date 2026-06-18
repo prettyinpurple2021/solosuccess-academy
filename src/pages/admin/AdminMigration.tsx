@@ -49,6 +49,7 @@ import {
   Globe,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { MigrationExportPanel } from "@/components/admin/MigrationExportPanel";
 
 // ──────────────────────────────────────────────
 // LOCALSTORAGE KEY — keeps checklist state
