@@ -49,6 +49,7 @@ import {
   Globe,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { MigrationExportPanel } from "@/components/admin/MigrationExportPanel";
 
 // ──────────────────────────────────────────────
 // LOCALSTORAGE KEY — keeps checklist state
@@ -452,6 +453,7 @@ export default function AdminMigration() {
 
               {isExpanded && (
                 <CardContent className="space-y-3 pt-0">
+                  {phase.id === "export" && <MigrationExportPanel />}
                   {phase.steps.map((step) => {
                     const isChecked = checked.has(step.id);
                     return (
