@@ -4,7 +4,22 @@
 
 ---
 
-## Phase 1: Prep
+## Phase 1: Connect to GitHub (Get Your Code)
+
+This is the easiest way to own your entire codebase. Once connected, Lovable auto-pushes every change to a repo you control.
+
+- [ ] **Open the + menu** at the bottom-left of the chat input (next to the send button)
+- [ ] **Go to GitHub → Connect project**
+- [ ] **Authorize the Lovable GitHub App** — you'll be redirected to GitHub
+- [ ] **Select your account/org** and click **Create Repository**
+- [ ] **Verify on GitHub** — open github.com, find the new repo, confirm it contains `src/`, `supabase/`, `public/`, etc.
+
+**What the repo gives you:** All code, components, pages, migrations, edge functions, configs.
+**What it does NOT give you:** Actual database data (CSV export separately) and secrets (re-add manually).
+
+---
+
+## Phase 2: Prep
 
 - [ ] Create a free account at [supabase.com](https://supabase.com)
 - [ ] Create a new Supabase project — save the project URL, anon key, service role key, and DB password in a password manager
@@ -12,7 +27,7 @@
 
 ---
 
-## Phase 2: Export from Lovable Cloud
+## Phase 3: Export from Lovable Cloud
 
 Since you have no real users, you only need to export **content you authored** (courses, lessons, textbook, blog posts). Skip all user-generated tables.
 
@@ -55,12 +70,12 @@ All `user_*`, `student_*`, `*_submissions`, `*_attempts`, `notifications`, `purc
 
 ---
 
-## Phase 3: New Project Setup
+## Phase 4: New Project Setup
 
 - [ ] **Disable Lovable Cloud for future projects:** Connectors → Lovable Cloud → Disable
 - [ ] Create a new Lovable project
 - [ ] Connect Supabase via the native Supabase integration (top-right button)
-- [ ] Copy from old repo: `src/`, `public/`, `supabase/migrations/`, `supabase/functions/`, `supabase/config.toml`, `index.html`, `tailwind.config.ts`, `vite.config.ts`, `package.json`, `bun.lockb`
+- [ ] Copy from your GitHub repo: `src/`, `public/`, `supabase/migrations/`, `supabase/functions/`, `supabase/config.toml`, `index.html`, `tailwind.config.ts`, `vite.config.ts`, `package.json`, `bun.lockb`
 - [ ] **Do NOT copy** `src/integrations/supabase/client.ts` or `types.ts` — Lovable regenerates these
 
 ### Code changes you'll need to make
@@ -69,7 +84,7 @@ All `user_*`, `student_*`, `*_submissions`, `*_attempts`, `notifications`, `purc
 
 ---
 
-## Phase 4: Restore in New Supabase
+## Phase 5: Restore in New Supabase
 
 1. [ ] Run all migrations (Lovable applies automatically, or `supabase db push`)
 2. [ ] Re-create storage buckets with the same names and public/private settings
@@ -85,7 +100,7 @@ All `user_*`, `student_*`, `*_submissions`, `*_attempts`, `notifications`, `purc
 
 ---
 
-## Phase 5: External Reconnects
+## Phase 6: External Reconnects
 
 - [ ] **Stripe:** update webhook endpoint to `https://<new-ref>.supabase.co/functions/v1/stripe-webhook`, generate new signing secret, update `STRIPE_WEBHOOK_SECRET`
 - [ ] **Google OAuth:** in Supabase Dashboard → Authentication → Providers → Google, paste your Google Client ID/Secret. Add the new callback URL (`https://<new-ref>.supabase.co/auth/v1/callback`) to your Google Cloud Console OAuth credentials
@@ -96,7 +111,7 @@ All `user_*`, `student_*`, `*_submissions`, `*_attempts`, `notifications`, `purc
 
 ---
 
-## Phase 6: Smoke Test Before Sunsetting Old Project
+## Phase 7: Smoke Test Before Sunsetting Old Project
 
 - [ ] Sign up a fresh test account (email + password)
 - [ ] Google sign-in works
