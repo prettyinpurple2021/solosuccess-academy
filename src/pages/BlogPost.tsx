@@ -5,16 +5,30 @@
  * Article + FAQPage JSON-LD, and the post body.
  */
 import { Link, useParams, Navigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import DOMPurify from 'dompurify';
 import { Calendar, Clock, ArrowLeft } from 'lucide-react';
 import { PageMeta } from '@/components/layout/PageMeta';
-import { BLOG_POSTS, getPostBySlug } from '@/content/blog/posts';
 import { getSiteUrl, getOgImageUrl, SITE_NAME } from '@/lib/siteMeta';
+import { fetchAllPosts, fetchPostBySlug, type UnifiedPost } from '@/lib/blogSource';
 
 export default function BlogPost() {
   const { slug } = useParams<{ slug: string }>();
-  const post = slug ? getPostBySlug(slug) : undefined;
+  const [post, setPost] = useState<UnifiedPost | null | undefined>(undefined);
+  const [related, setRelated] = useState<UnifiedPost[]>([]);
 
-  // Unknown slug → 404 route
+  useEffect(() => {
+    if (!slug) return;
+    (async () => {
+      const [p, all] = await Promise.all([fetchPostBySlug(slug), fetchAllPosts()]);
+      setPost(p);
+      setRelated(all.filter((x) => x.slug !== slug).slice(0, 2));
+    })();
+  }, [slug]);
+
+  if (post === undefined) {
+    return <div className="container py-20 text-muted-foreground font-mono text-sm">Loading…</div>;
+  }
   if (!post) return <Navigate to="/blog" replace />;
 
   const url = `${getSiteUrl()}/blog/${post.slug}`;
@@ -49,12 +63,6 @@ export default function BlogPost() {
     : null;
 
   const Body = post.body;
-
-  // Up to 2 related posts (everything else, newest first)
-  const related = BLOG_POSTS
-    .filter((p) => p.slug !== post.slug)
-    .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))
-    .slice(0, 2);
 
   return (
     <>
@@ -109,7 +117,14 @@ export default function BlogPost() {
         </header>
 
         {/* ── Post body ── */}
-        <Body />
+        {Body ? (
+          <Body />
+        ) : post.bodyHtml ? (
+          <article
+            className="max-w-3xl mx-auto prose prose-invert prose-headings:font-display prose-headings:text-foreground prose-h2:text-2xl md:prose-h2:text-3xl prose-h2:mt-12 prose-h2:mb-4 prose-h3:text-xl prose-h3:text-primary prose-p:text-muted-foreground prose-p:leading-relaxed prose-a:text-primary prose-strong:text-foreground prose-li:text-muted-foreground prose-ul:my-4 prose-ol:my-4 marker:text-primary"
+            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.bodyHtml) }}
+          />
+        ) : null}
 
         {/* ── Related reading ── */}
         {related.length > 0 && (
