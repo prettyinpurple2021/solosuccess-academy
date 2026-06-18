@@ -453,6 +453,7 @@ export default function AdminMigration() {
 
               {isExpanded && (
                 <CardContent className="space-y-3 pt-0">
+                  {phase.id === "export" && <MigrationExportPanel />}
                   {phase.steps.map((step) => {
                     const isChecked = checked.has(step.id);
                     return (
