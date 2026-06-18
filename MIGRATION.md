@@ -4,7 +4,22 @@
 
 ---
 
-## Phase 1: Prep
+## Phase 1: Connect to GitHub (Get Your Code)
+
+This is the easiest way to own your entire codebase. Once connected, Lovable auto-pushes every change to a repo you control.
+
+- [ ] **Open the + menu** at the bottom-left of the chat input (next to the send button)
+- [ ] **Go to GitHub → Connect project**
+- [ ] **Authorize the Lovable GitHub App** — you'll be redirected to GitHub
+- [ ] **Select your account/org** and click **Create Repository**
+- [ ] **Verify on GitHub** — open github.com, find the new repo, confirm it contains `src/`, `supabase/`, `public/`, etc.
+
+**What the repo gives you:** All code, components, pages, migrations, edge functions, configs.
+**What it does NOT give you:** Actual database data (CSV export separately) and secrets (re-add manually).
+
+---
+
+## Phase 2: Prep
 
 - [ ] Create a free account at [supabase.com](https://supabase.com)
 - [ ] Create a new Supabase project — save the project URL, anon key, service role key, and DB password in a password manager
@@ -12,7 +27,7 @@
 
 ---
 
-## Phase 2: Export from Lovable Cloud
+## Phase 3: Export from Lovable Cloud
 
 Since you have no real users, you only need to export **content you authored** (courses, lessons, textbook, blog posts). Skip all user-generated tables.
 
