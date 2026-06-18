@@ -84,7 +84,7 @@ All `user_*`, `student_*`, `*_submissions`, `*_attempts`, `notifications`, `purc
 
 ---
 
-## Phase 4: Restore in New Supabase
+## Phase 5: Restore in New Supabase
 
 1. [ ] Run all migrations (Lovable applies automatically, or `supabase db push`)
 2. [ ] Re-create storage buckets with the same names and public/private settings
