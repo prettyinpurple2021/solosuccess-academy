@@ -109,6 +109,7 @@ const Onboarding = lazy(() => import("./pages/Onboarding"));
 const AdminAnnouncements = lazy(() => import("./pages/AdminAnnouncements"));
 const AdminTestimonials = lazy(() => import("./pages/AdminTestimonials"));
 const AdminBlogAutoPost = lazy(() => import("./pages/admin/AdminBlogAutoPost"));
+const AdminMigration = lazy(() => import("./pages/admin/AdminMigration"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 /**
