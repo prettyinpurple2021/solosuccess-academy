@@ -63,6 +63,9 @@ export default function Blog() {
 
         {/* ── Post list ── */}
         <div className="grid gap-8">
+          {loading && (
+            <p className="text-muted-foreground font-mono text-sm">Loading posts…</p>
+          )}
           {posts.map((post) => (
             <article
               key={post.slug}
