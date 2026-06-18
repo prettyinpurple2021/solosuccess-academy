@@ -39,6 +39,7 @@ import {
   Wand2,
   Megaphone,
   MessageSquareQuote,
+  Rss,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
