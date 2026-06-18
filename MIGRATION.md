@@ -111,7 +111,7 @@ All `user_*`, `student_*`, `*_submissions`, `*_attempts`, `notifications`, `purc
 
 ---
 
-## Phase 6: Smoke Test Before Sunsetting Old Project
+## Phase 7: Smoke Test Before Sunsetting Old Project
 
 - [ ] Sign up a fresh test account (email + password)
 - [ ] Google sign-in works
