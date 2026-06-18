@@ -40,6 +40,7 @@ import {
   Megaphone,
   MessageSquareQuote,
   Rss,
+  HardDriveDownload,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
