@@ -229,6 +229,7 @@ const App = () => (
                   <Route path="announcements" element={<RouteErrorBoundary><AdminAnnouncements /></RouteErrorBoundary>} />
                   <Route path="testimonials" element={<RouteErrorBoundary><AdminTestimonials /></RouteErrorBoundary>} />
                   <Route path="webhook-health" element={<RouteErrorBoundary><AdminWebhookHealth /></RouteErrorBoundary>} />
+                  <Route path="blog-auto-post" element={<RouteErrorBoundary><AdminBlogAutoPost /></RouteErrorBoundary>} />
                 </Route>
                 
                 {/* ─── STUDENT LEARNING ROUTES ────────────
