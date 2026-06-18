@@ -4,16 +4,22 @@
  * Lists all posts from the registry. Public route at `/blog`.
  */
 import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 import { Calendar, Clock, ArrowRight, Zap } from 'lucide-react';
 import { PageMeta } from '@/components/layout/PageMeta';
-import { BLOG_POSTS } from '@/content/blog/posts';
 import { getSiteUrl } from '@/lib/siteMeta';
 import { LeadMagnetSection } from '@/components/landing/LeadMagnetSection';
+import { fetchAllPosts, type UnifiedPost } from '@/lib/blogSource';
 
 export default function Blog() {
-  const posts = [...BLOG_POSTS].sort((a, b) =>
-    b.publishedAt.localeCompare(a.publishedAt)
-  );
+  const [posts, setPosts] = useState<UnifiedPost[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchAllPosts()
+      .then((p) => setPosts(p))
+      .finally(() => setLoading(false));
+  }, []);
 
   // Blog JSON-LD (CollectionPage) for SEO
   const jsonLd = {
@@ -57,6 +63,9 @@ export default function Blog() {
 
         {/* ── Post list ── */}
         <div className="grid gap-8">
+          {loading && (
+            <p className="text-muted-foreground font-mono text-sm">Loading posts…</p>
+          )}
           {posts.map((post) => (
             <article
               key={post.slug}

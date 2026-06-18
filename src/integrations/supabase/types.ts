@@ -297,6 +297,116 @@ export type Database = {
         }
         Relationships: []
       }
+      blog_posts: {
+        Row: {
+          author_name: string
+          body_html: string
+          created_at: string
+          description: string
+          excerpt: string
+          faq: Json | null
+          generated_by: string
+          id: string
+          meta_title: string
+          published_at: string
+          reading_minutes: number
+          slug: string
+          source_topic: string | null
+          status: string
+          tags: string[]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author_name?: string
+          body_html: string
+          created_at?: string
+          description: string
+          excerpt: string
+          faq?: Json | null
+          generated_by?: string
+          id?: string
+          meta_title: string
+          published_at?: string
+          reading_minutes?: number
+          slug: string
+          source_topic?: string | null
+          status?: string
+          tags?: string[]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author_name?: string
+          body_html?: string
+          created_at?: string
+          description?: string
+          excerpt?: string
+          faq?: Json | null
+          generated_by?: string
+          id?: string
+          meta_title?: string
+          published_at?: string
+          reading_minutes?: number
+          slug?: string
+          source_topic?: string | null
+          status?: string
+          tags?: string[]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      blog_topic_queue: {
+        Row: {
+          angle: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          priority: number
+          status: string
+          target_keyword: string | null
+          topic: string
+          updated_at: string
+          used_at: string | null
+          used_post_id: string | null
+        }
+        Insert: {
+          angle?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          priority?: number
+          status?: string
+          target_keyword?: string | null
+          topic: string
+          updated_at?: string
+          used_at?: string | null
+          used_post_id?: string | null
+        }
+        Update: {
+          angle?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          priority?: number
+          status?: string
+          target_keyword?: string | null
+          topic?: string
+          updated_at?: string
+          used_at?: string | null
+          used_post_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_topic_queue_used_post_id_fkey"
+            columns: ["used_post_id"]
+            isOneToOne: false
+            referencedRelation: "blog_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       certificates: {
         Row: {
           course_id: string
