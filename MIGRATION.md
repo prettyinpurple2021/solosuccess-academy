@@ -100,7 +100,7 @@ All `user_*`, `student_*`, `*_submissions`, `*_attempts`, `notifications`, `purc
 
 ---
 
-## Phase 5: External Reconnects
+## Phase 6: External Reconnects
 
 - [ ] **Stripe:** update webhook endpoint to `https://<new-ref>.supabase.co/functions/v1/stripe-webhook`, generate new signing secret, update `STRIPE_WEBHOOK_SECRET`
 - [ ] **Google OAuth:** in Supabase Dashboard → Authentication → Providers → Google, paste your Google Client ID/Secret. Add the new callback URL (`https://<new-ref>.supabase.co/auth/v1/callback`) to your Google Cloud Console OAuth credentials
