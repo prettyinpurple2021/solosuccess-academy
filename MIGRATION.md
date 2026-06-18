@@ -70,12 +70,12 @@ All `user_*`, `student_*`, `*_submissions`, `*_attempts`, `notifications`, `purc
 
 ---
 
-## Phase 3: New Project Setup
+## Phase 4: New Project Setup
 
 - [ ] **Disable Lovable Cloud for future projects:** Connectors → Lovable Cloud → Disable
 - [ ] Create a new Lovable project
 - [ ] Connect Supabase via the native Supabase integration (top-right button)
-- [ ] Copy from old repo: `src/`, `public/`, `supabase/migrations/`, `supabase/functions/`, `supabase/config.toml`, `index.html`, `tailwind.config.ts`, `vite.config.ts`, `package.json`, `bun.lockb`
+- [ ] Copy from your GitHub repo: `src/`, `public/`, `supabase/migrations/`, `supabase/functions/`, `supabase/config.toml`, `index.html`, `tailwind.config.ts`, `vite.config.ts`, `package.json`, `bun.lockb`
 - [ ] **Do NOT copy** `src/integrations/supabase/client.ts` or `types.ts` — Lovable regenerates these
 
 ### Code changes you'll need to make
