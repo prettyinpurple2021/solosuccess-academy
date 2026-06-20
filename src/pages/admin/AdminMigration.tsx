@@ -50,6 +50,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MigrationExportPanel } from "@/components/admin/MigrationExportPanel";
+import { Link } from "react-router-dom";
+import { Printer } from "lucide-react";
 
 // ──────────────────────────────────────────────
 // LOCALSTORAGE KEY — keeps checklist state
@@ -392,7 +394,17 @@ export default function AdminMigration() {
         </Card>
 
         {/* Reset button */}
-        <div className="flex justify-end">
+        <div className="flex justify-end gap-2">
+          <Button
+            asChild
+            variant="outline"
+            size="sm"
+          >
+            <Link to="/admin/migration/print" target="_blank" rel="noopener">
+              <Printer className="h-4 w-4" />
+              Printable view / Save as PDF
+            </Link>
+          </Button>
           <Button
             variant="ghost"
             size="sm"
