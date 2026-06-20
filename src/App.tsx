@@ -110,6 +110,7 @@ const AdminAnnouncements = lazy(() => import("./pages/AdminAnnouncements"));
 const AdminTestimonials = lazy(() => import("./pages/AdminTestimonials"));
 const AdminBlogAutoPost = lazy(() => import("./pages/admin/AdminBlogAutoPost"));
 const AdminMigration = lazy(() => import("./pages/admin/AdminMigration"));
+const AdminMigrationPrint = lazy(() => import("./pages/admin/AdminMigrationPrint"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 /**
@@ -207,6 +208,11 @@ const App = () => (
 
               {/* Email Unsubscribe — public standalone page */}
               <Route path="/unsubscribe" element={<RouteErrorBoundary><Unsubscribe /></RouteErrorBoundary>} />
+
+              {/* Migration Playbook (printable) — standalone, no layout chrome
+                  so the page prints cleanly to PDF. Admin-only guard is inside
+                  the page itself. */}
+              <Route path="/admin/migration/print" element={<RouteErrorBoundary><AdminMigrationPrint /></RouteErrorBoundary>} />
 
               {/* ═══════════════════════════════════════════
                   PROTECTED ROUTES — Require authentication.
