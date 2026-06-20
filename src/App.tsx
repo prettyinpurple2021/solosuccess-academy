@@ -209,6 +209,11 @@ const App = () => (
               {/* Email Unsubscribe — public standalone page */}
               <Route path="/unsubscribe" element={<RouteErrorBoundary><Unsubscribe /></RouteErrorBoundary>} />
 
+              {/* Migration Playbook (printable) — standalone, no layout chrome
+                  so the page prints cleanly to PDF. Admin-only guard is inside
+                  the page itself. */}
+              <Route path="/admin/migration/print" element={<RouteErrorBoundary><AdminMigrationPrint /></RouteErrorBoundary>} />
+
               {/* ═══════════════════════════════════════════
                   PROTECTED ROUTES — Require authentication.
                   AppLayout checks auth and redirects to /auth
