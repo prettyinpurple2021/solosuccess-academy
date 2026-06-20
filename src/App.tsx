@@ -110,6 +110,7 @@ const AdminAnnouncements = lazy(() => import("./pages/AdminAnnouncements"));
 const AdminTestimonials = lazy(() => import("./pages/AdminTestimonials"));
 const AdminBlogAutoPost = lazy(() => import("./pages/admin/AdminBlogAutoPost"));
 const AdminMigration = lazy(() => import("./pages/admin/AdminMigration"));
+const AdminMigrationPrint = lazy(() => import("./pages/admin/AdminMigrationPrint"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 /**
