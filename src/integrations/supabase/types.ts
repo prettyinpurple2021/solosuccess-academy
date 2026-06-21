@@ -95,7 +95,6 @@ export type Database = {
       admin_api_keys: {
         Row: {
           api_key_ciphertext: string | null
-          api_key_encrypted: string | null
           created_at: string
           id: string
           is_enabled: boolean
@@ -104,7 +103,6 @@ export type Database = {
         }
         Insert: {
           api_key_ciphertext?: string | null
-          api_key_encrypted?: string | null
           created_at?: string
           id?: string
           is_enabled?: boolean
@@ -113,7 +111,6 @@ export type Database = {
         }
         Update: {
           api_key_ciphertext?: string | null
-          api_key_encrypted?: string | null
           created_at?: string
           id?: string
           is_enabled?: boolean
