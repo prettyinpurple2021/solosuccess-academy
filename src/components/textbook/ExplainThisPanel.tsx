@@ -57,7 +57,9 @@ function renderMarkdown(text: string): string {
       }
 
       const formattedLine = applyInlineFormatting(rawLine);
-      htmlParts.push(formattedLine);
+      if (formattedLine.trim()) {
+        htmlParts.push(`<p>${formattedLine}</p>`);
+      }
     }
   }
 
@@ -65,7 +67,7 @@ function renderMarkdown(text: string): string {
     htmlParts.push('</ul>');
   }
 
-  const html = htmlParts.join('<br/>');
+  const html = htmlParts.join('');
 
   return DOMPurify.sanitize(html);
 }
