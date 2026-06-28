@@ -241,8 +241,11 @@ const App = () => (
                 </Route>
                 
                 {/* ─── STUDENT LEARNING ROUTES ────────────
-                    Wrapped in PurchaseGuard for route-level
-                    access control instead of per-page checks.
+                    Each page performs its own purchase check
+                    inline via useHasPurchasedCourse(). This
+                    shows a "Course Not Purchased" lock screen
+                    rather than a redirect, matching the UX
+                    of other paid-content pages.
                     ──────────────────────────────────────── */}
                 <Route path="/courses/:courseId/lessons/:lessonId" element={<RouteErrorBoundary><LessonViewer /></RouteErrorBoundary>} />
                 <Route path="/courses/:courseId/project" element={<RouteErrorBoundary><CourseProject /></RouteErrorBoundary>} />
