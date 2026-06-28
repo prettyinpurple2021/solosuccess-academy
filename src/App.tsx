@@ -159,7 +159,7 @@ const App = () => (
             {/* Two toast systems: Toaster = shadcn toasts, Sonner = sonner toasts */}
             <Toaster />
             <Sonner />
-            <BrowserRouter>
+            <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
             {/* SkipLink: Accessibility — lets keyboard users skip nav to main content */}
             <SkipLink />
             {/* Suspense: Shows loading spinner while lazy pages download */}
@@ -244,13 +244,15 @@ const App = () => (
                     Wrapped in PurchaseGuard for route-level
                     access control instead of per-page checks.
                     ──────────────────────────────────────── */}
-                <Route path="/courses/:courseId/lessons/:lessonId" element={<RouteErrorBoundary><LessonViewer /></RouteErrorBoundary>} />
-                <Route path="/courses/:courseId/project" element={<RouteErrorBoundary><CourseProject /></RouteErrorBoundary>} />
-                <Route path="/courses/:courseId/discussions" element={<RouteErrorBoundary><CourseDiscussions /></RouteErrorBoundary>} />
-                <Route path="/courses/:courseId/discussions/:discussionId" element={<RouteErrorBoundary><DiscussionDetail /></RouteErrorBoundary>} />
-                <Route path="/courses/:courseId/textbook" element={<RouteErrorBoundary><Textbook /></RouteErrorBoundary>} />
-                <Route path="/courses/:courseId/final-exam" element={<RouteErrorBoundary><FinalExam /></RouteErrorBoundary>} />
-                <Route path="/courses/:courseId/final-essay" element={<RouteErrorBoundary><FinalEssay /></RouteErrorBoundary>} />
+                <Route element={<PurchaseGuard />}>
+                  <Route path="/courses/:courseId/lessons/:lessonId" element={<RouteErrorBoundary><LessonViewer /></RouteErrorBoundary>} />
+                  <Route path="/courses/:courseId/project" element={<RouteErrorBoundary><CourseProject /></RouteErrorBoundary>} />
+                  <Route path="/courses/:courseId/discussions" element={<RouteErrorBoundary><CourseDiscussions /></RouteErrorBoundary>} />
+                  <Route path="/courses/:courseId/discussions/:discussionId" element={<RouteErrorBoundary><DiscussionDetail /></RouteErrorBoundary>} />
+                  <Route path="/courses/:courseId/textbook" element={<RouteErrorBoundary><Textbook /></RouteErrorBoundary>} />
+                  <Route path="/courses/:courseId/final-exam" element={<RouteErrorBoundary><FinalExam /></RouteErrorBoundary>} />
+                  <Route path="/courses/:courseId/final-essay" element={<RouteErrorBoundary><FinalEssay /></RouteErrorBoundary>} />
+                </Route>
                 <Route path="/certificates" element={<RouteErrorBoundary><Certificates /></RouteErrorBoundary>} />
                 <Route path="/leaderboard" element={<RouteErrorBoundary><Leaderboard /></RouteErrorBoundary>} />
                 <Route path="/notifications" element={<RouteErrorBoundary><NotificationsPage /></RouteErrorBoundary>} />
