@@ -30,10 +30,43 @@ interface ExplainThisPanelProps {
  * Uses DOMPurify to sanitize output.
  */
 function renderMarkdown(text: string): string {
-  const html = text
-    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\n- /g, '\n• ')
-    .replace(/\n/g, '<br/>');
+  const applyInlineFormatting = (line: string): string => {
+    return line.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  };
+
+  const lines = text.split(/\r?\n/);
+  const htmlParts: string[] = [];
+  let inList = false;
+
+  for (const rawLine of lines) {
+    const listMatch = rawLine.match(/^[-*]\s+(.+)/);
+
+    if (listMatch) {
+      const content = applyInlineFormatting(listMatch[1]);
+
+      if (!inList) {
+        inList = true;
+        htmlParts.push('<ul>');
+      }
+
+      htmlParts.push(`<li>${content}</li>`);
+    } else {
+      if (inList) {
+        inList = false;
+        htmlParts.push('</ul>');
+      }
+
+      const formattedLine = applyInlineFormatting(rawLine);
+      htmlParts.push(formattedLine);
+    }
+  }
+
+  if (inList) {
+    htmlParts.push('</ul>');
+  }
+
+  const html = htmlParts.join('<br/>');
+
   return DOMPurify.sanitize(html);
 }
 

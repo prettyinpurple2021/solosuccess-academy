@@ -167,7 +167,7 @@ Two future-flag warnings appear in tests and production:
 
 **File:** `supabase/config.toml`
 
-29 of 29 edge functions have `verify_jwt = false`. The PRODUCTION_CHECKLIST states "All edge functions validate JWT in application code." Spot-checking `ai-tutor/index.ts` confirms it manually validates the ******
+29 of 29 edge functions have `verify_jwt = false`. The PRODUCTION_CHECKLIST states "All edge functions validate JWT in application code." Spot-checking `ai-tutor/index.ts` confirms it manually validates the JWT
 
 **Risk:** If any function was added later and the developer forgot to add manual auth checking, it would be silently unprotected.
 
