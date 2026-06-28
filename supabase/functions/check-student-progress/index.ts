@@ -326,7 +326,7 @@ serve(async (req: Request): Promise<Response> => {
       );
       // Pre-fetch their profile prefs in one shot
       const nonBuyerIds = nonBuyers.map((u) => u.id);
-      let prefsMap = new Map<string, { display_name: string | null; email_notifications: boolean; course_updates: boolean }>();
+      const prefsMap = new Map<string, { display_name: string | null; email_notifications: boolean; course_updates: boolean }>();
       if (nonBuyerIds.length) {
         const { data: prefsRows } = await supabase
           .from("profiles")

@@ -234,7 +234,7 @@ serve(async (req) => {
     if (lessonsErr) throw new Error(lessonsErr.message);
 
     // Filter based on mode: force = all text/video/assignment; normal = placeholders only
-    let eligibleLessons = (allLessons || []).filter((l: any) => {
+    const eligibleLessons = (allLessons || []).filter((l: any) => {
       // Skip already-processed lessons in this session
       if (processedIds.includes(l.id)) return false;
 

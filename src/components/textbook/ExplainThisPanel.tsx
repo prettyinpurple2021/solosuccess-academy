@@ -30,7 +30,7 @@ interface ExplainThisPanelProps {
  * Uses DOMPurify to sanitize output.
  */
 function renderMarkdown(text: string): string {
-  let html = text
+  const html = text
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replace(/\n- /g, '\n• ')
     .replace(/\n/g, '<br/>');

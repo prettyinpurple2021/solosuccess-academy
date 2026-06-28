@@ -41,7 +41,7 @@ interface LessonEditorProps {
  * Handles headers, bold, italic, lists, links, code blocks.
  */
 function markdownToHtml(md: string): string {
-  let html = md
+  const html = md
     // Code blocks
     .replace(/```(\w*)\n([\s\S]*?)```/g, '<pre class="bg-muted p-3 rounded-md overflow-x-auto text-sm my-2"><code>$2</code></pre>')
     // Inline code

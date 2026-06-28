@@ -98,7 +98,7 @@ export const BookPage = forwardRef<HTMLDivElement, BookPageProps>(
     };
 
     // Track paragraph index for inline comments
-    let paragraphCounter = 0;
+    const paragraphCounter = 0;
 
     // Apply highlights to content with TTS word highlighting + inline comments
     const renderedContent = useMemo(() => {
