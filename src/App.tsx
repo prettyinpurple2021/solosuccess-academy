@@ -111,6 +111,7 @@ const AdminTestimonials = lazy(() => import("./pages/AdminTestimonials"));
 const AdminBlogAutoPost = lazy(() => import("./pages/admin/AdminBlogAutoPost"));
 const AdminMigration = lazy(() => import("./pages/admin/AdminMigration"));
 const AdminMigrationPrint = lazy(() => import("./pages/admin/AdminMigrationPrint"));
+const AdminPlatformSettings = lazy(() => import("./pages/admin/AdminPlatformSettings"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 /**
@@ -238,6 +239,7 @@ const App = () => (
                   <Route path="webhook-health" element={<RouteErrorBoundary><AdminWebhookHealth /></RouteErrorBoundary>} />
                   <Route path="blog-auto-post" element={<RouteErrorBoundary><AdminBlogAutoPost /></RouteErrorBoundary>} />
                   <Route path="migration" element={<RouteErrorBoundary><AdminMigration /></RouteErrorBoundary>} />
+                  <Route path="platform-settings" element={<RouteErrorBoundary><AdminPlatformSettings /></RouteErrorBoundary>} />
                 </Route>
                 
                 {/* ─── STUDENT LEARNING ROUTES ────────────

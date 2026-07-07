@@ -118,3 +118,34 @@ export function useUpdateGradeSettings() {
     },
   });
 }
+
+/**
+ * Delete a per-course grade weight override so the course falls back to the global default.
+ * The global row (course_id IS NULL) cannot be deleted through this hook.
+ */
+export function useDeleteGradeSettingsOverride() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (courseId: string) => {
+      const { error } = await supabase
+        .from('grade_settings' as any)
+        .delete()
+        .eq('course_id', courseId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['grade-settings'] });
+      queryClient.invalidateQueries({ queryKey: ['gradebook'] });
+      toast({ title: 'Override removed — course now uses global defaults.' });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Failed to remove override',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+}
