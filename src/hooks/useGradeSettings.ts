@@ -87,21 +87,15 @@ export function useUpdateGradeSettings() {
     }) => {
       const { courseId, quizWeight, activityWeight, worksheetWeight, examWeight, essayWeight } = params;
 
-      // Upsert: insert if not exists, update if exists
-      const { error } = await supabase
-        .from('grade_settings' as any)
-        .upsert(
-          {
-            course_id: courseId,
-            quiz_weight: quizWeight,
-            activity_weight: activityWeight,
-            worksheet_weight: worksheetWeight,
-            exam_weight: examWeight,
-            essay_weight: essayWeight,
-          } as any,
-          { onConflict: 'course_id' }
-        );
-
+      // Admin-only SECURITY DEFINER RPC — validates total=100 and admin role server-side.
+      const { error } = await supabase.rpc('admin_upsert_grade_settings' as any, {
+        _course_id: courseId,
+        _quiz_weight: quizWeight,
+        _activity_weight: activityWeight,
+        _worksheet_weight: worksheetWeight,
+        _exam_weight: examWeight,
+        _essay_weight: essayWeight,
+      });
       if (error) throw error;
     },
     onSuccess: () => {
@@ -129,10 +123,9 @@ export function useDeleteGradeSettingsOverride() {
 
   return useMutation({
     mutationFn: async (courseId: string) => {
-      const { error } = await supabase
-        .from('grade_settings' as any)
-        .delete()
-        .eq('course_id', courseId);
+      const { error } = await supabase.rpc('admin_delete_grade_settings_override' as any, {
+        _course_id: courseId,
+      });
       if (error) throw error;
     },
     onSuccess: () => {

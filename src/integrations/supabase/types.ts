@@ -2435,6 +2435,54 @@ export type Database = {
       }
     }
     Functions: {
+      admin_delete_grade_settings_override: {
+        Args: { _course_id: string }
+        Returns: undefined
+      }
+      admin_update_xp_config: {
+        Args: { _id: string; _label?: string; _xp_amount: number }
+        Returns: {
+          action_key: string
+          created_at: string
+          id: string
+          label: string
+          updated_at: string
+          xp_amount: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "xp_config"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      admin_upsert_grade_settings: {
+        Args: {
+          _activity_weight: number
+          _course_id: string
+          _essay_weight: number
+          _exam_weight: number
+          _quiz_weight: number
+          _worksheet_weight: number
+        }
+        Returns: {
+          activity_weight: number
+          course_id: string | null
+          created_at: string
+          essay_weight: number
+          exam_weight: number
+          id: string
+          quiz_weight: number
+          updated_at: string
+          worksheet_weight: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "grade_settings"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       award_xp: {
         Args: { _action?: string; _user_id: string; _xp_amount: number }
         Returns: Json
