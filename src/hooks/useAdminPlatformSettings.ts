@@ -41,10 +41,11 @@ export function useUpdateXpConfig() {
   const { toast } = useToast();
   return useMutation({
     mutationFn: async (row: { id: string; xp_amount: number; label?: string | null }) => {
-      const { error } = await supabase
-        .from('xp_config' as any)
-        .update({ xp_amount: row.xp_amount, label: row.label ?? undefined })
-        .eq('id', row.id);
+      const { error } = await supabase.rpc('admin_update_xp_config' as any, {
+        _id: row.id,
+        _xp_amount: row.xp_amount,
+        _label: row.label ?? null,
+      });
       if (error) throw error;
     },
     onSuccess: () => {
