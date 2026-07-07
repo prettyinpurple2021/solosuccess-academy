@@ -28,14 +28,18 @@ export function useGradeSettings() {
   return useQuery({
     queryKey: ['grade-settings'],
     queryFn: async (): Promise<GradeWeights[]> => {
-      const { data, error } = await supabase
-        .from('grade_settings' as any)
-        .select('*')
-        .order('course_id', { ascending: true, nullsFirst: true });
+      const { data, error } = await supabase.rpc('get_grade_settings' as any);
 
       if (error) throw error;
 
-      return (data as any[]).map((row: any) => ({
+      const rows = ((data as any[]) || []).slice().sort((a: any, b: any) => {
+        if (a.course_id === b.course_id) return 0;
+        if (a.course_id === null) return -1;
+        if (b.course_id === null) return 1;
+        return String(a.course_id).localeCompare(String(b.course_id));
+      });
+
+      return rows.map((row: any) => ({
         id: row.id,
         courseId: row.course_id,
         quizWeight: row.quiz_weight,

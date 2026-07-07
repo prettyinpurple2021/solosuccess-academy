@@ -2483,11 +2483,48 @@ export type Database = {
         }[]
       }
       get_exam_for_student: { Args: { _course_id: string }; Returns: Json }
+      get_grade_settings: {
+        Args: never
+        Returns: {
+          activity_weight: number
+          course_id: string | null
+          created_at: string
+          essay_weight: number
+          exam_weight: number
+          id: string
+          quiz_weight: number
+          updated_at: string
+          worksheet_weight: number
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "grade_settings"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       get_my_deletion_request: { Args: never; Returns: Json }
       get_overall_progress: { Args: { _user_id: string }; Returns: Json }
       get_textbook_pages_for_student: {
         Args: { _course_id: string }
         Returns: Json
+      }
+      get_xp_config: {
+        Args: never
+        Returns: {
+          action_key: string
+          created_at: string
+          id: string
+          label: string
+          updated_at: string
+          xp_amount: number
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "xp_config"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       grade_and_submit_exam: {
         Args: { _answers: Json; _exam_id: string }

@@ -111,9 +111,7 @@ export function useXPConfig() {
   return useQuery({
     queryKey: ['xp-config'],
     queryFn: async (): Promise<Record<string, number>> => {
-      const { data, error } = await supabase
-        .from('xp_config' as any)
-        .select('action_key, xp_amount');
+      const { data, error } = await supabase.rpc('get_xp_config' as any);
 
       if (error) throw error;
 
