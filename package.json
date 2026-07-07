@@ -10,6 +10,8 @@
     "predev": "npx --yes tsx scripts/generate-sitemap.ts",
     "prebuild": "npx --yes tsx scripts/generate-sitemap.ts",
     "prebuild:dev": "npx --yes tsx scripts/generate-sitemap.ts",
+    "postbuild": "npx --yes tsx scripts/prerender-blog.ts",
+    "postbuild:dev": "npx --yes tsx scripts/prerender-blog.ts",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
