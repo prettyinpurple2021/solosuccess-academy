@@ -112,6 +112,7 @@ const AdminBlogAutoPost = lazy(() => import("./pages/admin/AdminBlogAutoPost"));
 const AdminMigration = lazy(() => import("./pages/admin/AdminMigration"));
 const AdminMigrationPrint = lazy(() => import("./pages/admin/AdminMigrationPrint"));
 const AdminPlatformSettings = lazy(() => import("./pages/admin/AdminPlatformSettings"));
+const OAuthConsent = lazy(() => import("./pages/OAuthConsent"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 /**
@@ -209,6 +210,11 @@ const App = () => (
 
               {/* Email Unsubscribe — public standalone page */}
               <Route path="/unsubscribe" element={<RouteErrorBoundary><Unsubscribe /></RouteErrorBoundary>} />
+
+              {/* OAuth 2.1 consent screen for the SoloSuccess Academy MCP server.
+                  Users are redirected here by Supabase Auth when an external
+                  MCP client (Claude, ChatGPT, etc.) requests account access. */}
+              <Route path="/.lovable/oauth/consent" element={<RouteErrorBoundary><OAuthConsent /></RouteErrorBoundary>} />
 
               {/* Migration Playbook (printable) — standalone, no layout chrome
                   so the page prints cleanly to PDF. Admin-only guard is inside
