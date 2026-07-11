@@ -45,7 +45,15 @@ export default function Auth() {
   const { toast } = useToast();
 
   const defaultTab = searchParams.get('mode') === 'signup' ? 'signup' : 'signin';
-  const fromRaw = (location.state as { from?: { pathname?: string } })?.from?.pathname || '/dashboard';
+  // Preserve OAuth-consent (and other) redirects passed via ?next=<relative-path>.
+  // The consent route at /.lovable/oauth/consent sends users here with the full
+  // consent URL in `next`; we must return them to that exact URL after sign-in
+  // (password AND Google) or the external MCP client bounces back to the home page.
+  const nextParam = searchParams.get('next');
+  const isSafeNext =
+    !!nextParam && nextParam.startsWith('/') && !nextParam.startsWith('//');
+  const fromState = (location.state as { from?: { pathname?: string } })?.from?.pathname;
+  const fromRaw = (isSafeNext ? nextParam! : fromState) || '/dashboard';
   const from = fromRaw && fromRaw !== '/auth' ? fromRaw : '/dashboard';
 
   const [isLoading, setIsLoading] = useState(false);
@@ -406,8 +414,12 @@ export default function Auth() {
                 onClick={async () => {
                   setIsLoading(true);
                   try {
+                    // For OAuth-consent flows, send the user back to the full
+                    // consent URL after Google returns. Otherwise use the app origin.
                     const { error } = await lovable.auth.signInWithOAuth('google', {
-                      redirect_uri: window.location.origin,
+                      redirect_uri: isSafeNext
+                        ? `${window.location.origin}${from}`
+                        : window.location.origin,
                     });
                     if (error) throw error;
                   } catch (err: any) {
