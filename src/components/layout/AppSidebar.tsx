@@ -42,6 +42,7 @@ import {
   Rss,
   HardDriveDownload,
 } from 'lucide-react';
+import { SlidersHorizontal } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const mainNavItems = [
@@ -292,6 +293,21 @@ export function AppSidebar() {
                     >
                       <Sparkles className="h-5 w-5 flex-shrink-0 text-accent drop-shadow-[0_0_6px_hsl(var(--accent)/0.5)]" />
                       {!collapsed && <span className="font-medium">AI Settings</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink
+                      to="/admin/platform-settings"
+                      className={cn(
+                        "flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-300",
+                        "hover:bg-primary/10 hover:text-primary",
+                        location.pathname === '/admin/platform-settings' && "bg-primary/20 text-primary shadow-[inset_0_0_20px_hsl(270_80%_60%/0.1)] border-l-2 border-primary"
+                      )}
+                    >
+                      <SlidersHorizontal className="h-5 w-5 flex-shrink-0 text-primary drop-shadow-[0_0_6px_hsl(270_80%_60%/0.5)]" />
+                      {!collapsed && <span className="font-medium">Platform Settings</span>}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

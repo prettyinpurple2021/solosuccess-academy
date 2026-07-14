@@ -28,14 +28,18 @@ export function useGradeSettings() {
   return useQuery({
     queryKey: ['grade-settings'],
     queryFn: async (): Promise<GradeWeights[]> => {
-      const { data, error } = await supabase
-        .from('grade_settings' as any)
-        .select('*')
-        .order('course_id', { ascending: true, nullsFirst: true });
+      const { data, error } = await supabase.rpc('get_grade_settings' as any);
 
       if (error) throw error;
 
-      return (data as any[]).map((row: any) => ({
+      const rows = ((data as any[]) || []).slice().sort((a: any, b: any) => {
+        if (a.course_id === b.course_id) return 0;
+        if (a.course_id === null) return -1;
+        if (b.course_id === null) return 1;
+        return String(a.course_id).localeCompare(String(b.course_id));
+      });
+
+      return rows.map((row: any) => ({
         id: row.id,
         courseId: row.course_id,
         quizWeight: row.quiz_weight,
@@ -83,21 +87,15 @@ export function useUpdateGradeSettings() {
     }) => {
       const { courseId, quizWeight, activityWeight, worksheetWeight, examWeight, essayWeight } = params;
 
-      // Upsert: insert if not exists, update if exists
-      const { error } = await supabase
-        .from('grade_settings' as any)
-        .upsert(
-          {
-            course_id: courseId,
-            quiz_weight: quizWeight,
-            activity_weight: activityWeight,
-            worksheet_weight: worksheetWeight,
-            exam_weight: examWeight,
-            essay_weight: essayWeight,
-          } as any,
-          { onConflict: 'course_id' }
-        );
-
+      // Admin-only SECURITY DEFINER RPC — validates total=100 and admin role server-side.
+      const { error } = await supabase.rpc('admin_upsert_grade_settings' as any, {
+        _course_id: courseId,
+        _quiz_weight: quizWeight,
+        _activity_weight: activityWeight,
+        _worksheet_weight: worksheetWeight,
+        _exam_weight: examWeight,
+        _essay_weight: essayWeight,
+      });
       if (error) throw error;
     },
     onSuccess: () => {
@@ -108,6 +106,36 @@ export function useUpdateGradeSettings() {
     onError: (error: any) => {
       toast({
         title: 'Failed to save weights',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+}
+
+/**
+ * Delete a per-course grade weight override so the course falls back to the global default.
+ * The global row (course_id IS NULL) cannot be deleted through this hook.
+ */
+export function useDeleteGradeSettingsOverride() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (courseId: string) => {
+      const { error } = await supabase.rpc('admin_delete_grade_settings_override' as any, {
+        _course_id: courseId,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['grade-settings'] });
+      queryClient.invalidateQueries({ queryKey: ['gradebook'] });
+      toast({ title: 'Override removed — course now uses global defaults.' });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Failed to remove override',
         description: error.message,
         variant: 'destructive',
       });

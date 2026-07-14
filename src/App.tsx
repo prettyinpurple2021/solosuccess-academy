@@ -111,6 +111,8 @@ const AdminTestimonials = lazy(() => import("./pages/AdminTestimonials"));
 const AdminBlogAutoPost = lazy(() => import("./pages/admin/AdminBlogAutoPost"));
 const AdminMigration = lazy(() => import("./pages/admin/AdminMigration"));
 const AdminMigrationPrint = lazy(() => import("./pages/admin/AdminMigrationPrint"));
+const AdminPlatformSettings = lazy(() => import("./pages/admin/AdminPlatformSettings"));
+const OAuthConsent = lazy(() => import("./pages/OAuthConsent"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 /**
@@ -159,7 +161,7 @@ const App = () => (
             {/* Two toast systems: Toaster = shadcn toasts, Sonner = sonner toasts */}
             <Toaster />
             <Sonner />
-            <BrowserRouter>
+            <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
             {/* SkipLink: Accessibility — lets keyboard users skip nav to main content */}
             <SkipLink />
             {/* Suspense: Shows loading spinner while lazy pages download */}
@@ -209,6 +211,11 @@ const App = () => (
               {/* Email Unsubscribe — public standalone page */}
               <Route path="/unsubscribe" element={<RouteErrorBoundary><Unsubscribe /></RouteErrorBoundary>} />
 
+              {/* OAuth 2.1 consent screen for the SoloSuccess Academy MCP server.
+                  Users are redirected here by Supabase Auth when an external
+                  MCP client (Claude, ChatGPT, etc.) requests account access. */}
+              <Route path="/.lovable/oauth/consent" element={<RouteErrorBoundary><OAuthConsent /></RouteErrorBoundary>} />
+
               {/* Migration Playbook (printable) — standalone, no layout chrome
                   so the page prints cleanly to PDF. Admin-only guard is inside
                   the page itself. */}
@@ -238,6 +245,7 @@ const App = () => (
                   <Route path="webhook-health" element={<RouteErrorBoundary><AdminWebhookHealth /></RouteErrorBoundary>} />
                   <Route path="blog-auto-post" element={<RouteErrorBoundary><AdminBlogAutoPost /></RouteErrorBoundary>} />
                   <Route path="migration" element={<RouteErrorBoundary><AdminMigration /></RouteErrorBoundary>} />
+                  <Route path="platform-settings" element={<RouteErrorBoundary><AdminPlatformSettings /></RouteErrorBoundary>} />
                 </Route>
                 
                 {/* ─── STUDENT LEARNING ROUTES ────────────
@@ -247,13 +255,15 @@ const App = () => (
                     rather than a redirect, matching the UX
                     of other paid-content pages.
                     ──────────────────────────────────────── */}
-                <Route path="/courses/:courseId/lessons/:lessonId" element={<RouteErrorBoundary><LessonViewer /></RouteErrorBoundary>} />
-                <Route path="/courses/:courseId/project" element={<RouteErrorBoundary><CourseProject /></RouteErrorBoundary>} />
-                <Route path="/courses/:courseId/discussions" element={<RouteErrorBoundary><CourseDiscussions /></RouteErrorBoundary>} />
-                <Route path="/courses/:courseId/discussions/:discussionId" element={<RouteErrorBoundary><DiscussionDetail /></RouteErrorBoundary>} />
-                <Route path="/courses/:courseId/textbook" element={<RouteErrorBoundary><Textbook /></RouteErrorBoundary>} />
-                <Route path="/courses/:courseId/final-exam" element={<RouteErrorBoundary><FinalExam /></RouteErrorBoundary>} />
-                <Route path="/courses/:courseId/final-essay" element={<RouteErrorBoundary><FinalEssay /></RouteErrorBoundary>} />
+                <Route element={<PurchaseGuard />}>
+                  <Route path="/courses/:courseId/lessons/:lessonId" element={<RouteErrorBoundary><LessonViewer /></RouteErrorBoundary>} />
+                  <Route path="/courses/:courseId/project" element={<RouteErrorBoundary><CourseProject /></RouteErrorBoundary>} />
+                  <Route path="/courses/:courseId/discussions" element={<RouteErrorBoundary><CourseDiscussions /></RouteErrorBoundary>} />
+                  <Route path="/courses/:courseId/discussions/:discussionId" element={<RouteErrorBoundary><DiscussionDetail /></RouteErrorBoundary>} />
+                  <Route path="/courses/:courseId/textbook" element={<RouteErrorBoundary><Textbook /></RouteErrorBoundary>} />
+                  <Route path="/courses/:courseId/final-exam" element={<RouteErrorBoundary><FinalExam /></RouteErrorBoundary>} />
+                  <Route path="/courses/:courseId/final-essay" element={<RouteErrorBoundary><FinalEssay /></RouteErrorBoundary>} />
+                </Route>
                 <Route path="/certificates" element={<RouteErrorBoundary><Certificates /></RouteErrorBoundary>} />
                 <Route path="/leaderboard" element={<RouteErrorBoundary><Leaderboard /></RouteErrorBoundary>} />
                 <Route path="/notifications" element={<RouteErrorBoundary><NotificationsPage /></RouteErrorBoundary>} />
