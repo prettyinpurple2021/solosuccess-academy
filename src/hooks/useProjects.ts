@@ -351,6 +351,19 @@ export function useAdminGradeProject() {
         _notes: notes ?? null,
       });
       if (error) throw error;
+
+      // Fire-and-forget: notify the student when the decision is final.
+      // Failures do not roll back the grade — the grade record is source of truth.
+      if (status === 'approved' || status === 'needs_revision') {
+        try {
+          await supabase.functions.invoke('notify-project-grade', {
+            body: { projectId },
+          });
+        } catch (err) {
+          console.warn('notify-project-grade failed:', err);
+        }
+      }
+
       return data as CourseProject;
     },
     onSuccess: () => {
