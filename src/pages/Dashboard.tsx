@@ -493,12 +493,7 @@ export default function Dashboard() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                {(() => {
-                  // Show 5 on mobile by default, all on lg+; toggle expands mobile.
-                  const all = courses?.slice(0, 10) ?? [];
-                  const visible = showAllRoadmap ? all : all.slice(0, 5);
-                  return visible;
-                })().map((course) => {
+                {(courses?.slice(0, 10) ?? []).map((course, idx) => {
                   const isPurchased = purchasedCourseIds.has(course.id);
                   const progress = courseProgressMap.get(course.id);
                   const isComplete = progress && progress.completed === progress.total && progress.total > 0;
@@ -507,7 +502,9 @@ export default function Dashboard() {
                     <Link 
                       key={course.id}
                       to={`/courses/${course.id}`}
-                      className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 transition-all group border border-transparent hover:border-primary/30"
+                      className={`${
+                        idx >= 5 && !showAllRoadmap ? 'hidden lg:flex' : 'flex'
+                      } items-center gap-3 p-3 rounded-lg hover:bg-primary/10 transition-all group border border-transparent hover:border-primary/30`}
                     >
                       <div className={`h-9 w-9 rounded-full flex items-center justify-center text-xs font-display font-bold transition-all
                         ${isComplete 
