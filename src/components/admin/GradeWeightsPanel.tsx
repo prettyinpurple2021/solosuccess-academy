@@ -43,6 +43,7 @@ const SLIDERS = [
   { key: 'worksheet' as const, label: 'Worksheet Weight', colorClass: 'accent' },
   { key: 'exam' as const, label: 'Final Exam Weight', colorClass: 'secondary' },
   { key: 'essay' as const, label: 'Final Essay Weight', colorClass: 'primary' },
+  { key: 'project' as const, label: 'Capstone Project Weight', colorClass: 'primary' },
 ] as const;
 
 type WeightKey = typeof SLIDERS[number]['key'];
@@ -55,7 +56,7 @@ export function GradeWeightsPanel({ courses }: GradeWeightsPanelProps) {
 
   // Local slider state
   const [weights, setWeights] = useState<Record<WeightKey, number>>({
-    quiz: 50, activity: 30, worksheet: 20, exam: 0, essay: 0,
+    quiz: 50, activity: 30, worksheet: 20, exam: 0, essay: 0, project: 0,
   });
 
   // Sync from saved settings when scope changes
@@ -70,6 +71,7 @@ export function GradeWeightsPanel({ courses }: GradeWeightsPanelProps) {
       worksheet: current.worksheetWeight,
       exam: current.examWeight,
       essay: current.essayWeight,
+      project: current.projectWeight,
     });
   }, [editScope, settings]);
 
@@ -106,11 +108,12 @@ export function GradeWeightsPanel({ courses }: GradeWeightsPanelProps) {
       worksheetWeight: weights.worksheet,
       examWeight: weights.exam,
       essayWeight: weights.essay,
+      projectWeight: weights.project,
     });
   };
 
   const handleReset = () => {
-    setWeights({ quiz: 40, activity: 20, worksheet: 15, exam: 15, essay: 10 });
+    setWeights({ quiz: 35, activity: 15, worksheet: 15, exam: 15, essay: 10, project: 10 });
   };
 
   const overrideCourseIds = settings?.filter(s => s.courseId !== null).map(s => s.courseId) || [];
@@ -241,7 +244,7 @@ export function GradeWeightsPanel({ courses }: GradeWeightsPanelProps) {
                           {course?.title || 'Unknown'}
                         </span>
                         <span className="font-mono text-muted-foreground">
-                          Q{s.quizWeight}/A{s.activityWeight}/W{s.worksheetWeight}/E{s.examWeight}/Es{s.essayWeight}
+                          Q{s.quizWeight}/A{s.activityWeight}/W{s.worksheetWeight}/E{s.examWeight}/Es{s.essayWeight}/P{s.projectWeight}
                         </span>
                       </div>
                     );
