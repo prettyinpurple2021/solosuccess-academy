@@ -242,7 +242,7 @@ export default function Gradebook() {
   return (
     <div className="p-6 md:p-8 lg:p-12">
       {/* Header */}
-      <div className="flex items-center justify-between gap-4 mb-8">
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
         <div className="flex items-center gap-4">
           <div className="h-14 w-14 rounded-full bg-info/20 flex items-center justify-center shadow-[0_0_30px_hsl(var(--info)/0.4)]">
             <GraduationCap className="h-8 w-8 text-info" style={{ filter: 'drop-shadow(0 0 10px hsl(var(--info)))' }} />
