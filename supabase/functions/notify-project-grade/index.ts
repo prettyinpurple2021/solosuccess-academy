@@ -87,6 +87,20 @@ Deno.serve(async (req) => {
     })
     if (sendErr) return json({ error: sendErr.message }, 500, corsHeaders)
 
+    // Also push an in-app notification into the inbox
+    const approved = status === 'approved'
+    await admin.from('notifications').insert({
+      user_id: project.user_id,
+      type: approved ? 'project_approved' : 'project_needs_revision',
+      title: approved ? 'Your project was approved' : 'Revisions requested on your project',
+      message: approved
+        ? `Your capstone for ${course?.title || 'your course'} was approved${
+            typeof project.admin_score === 'number' ? ` (${project.admin_score}/100)` : ''
+          }.`
+        : `Your capstone for ${course?.title || 'your course'} needs a few improvements before it can be approved.`,
+      link: `/courses/${project.course_id}/project`,
+    })
+
     return json({ sent: true }, 200, corsHeaders)
   } catch (e: any) {
     return json({ error: e?.message || 'Unknown error' }, 500, getCorsHeaders(req))
