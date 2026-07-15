@@ -335,7 +335,7 @@ export function QuizEditor({ data, onChange }: QuizEditorProps) {
       </div>
 
       {/* Add question buttons by type */}
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
         <Button variant="outline" onClick={() => addQuestion('multiple-choice')} className="w-full">
           <Plus className="mr-2 h-4 w-4" />
           Multiple Choice

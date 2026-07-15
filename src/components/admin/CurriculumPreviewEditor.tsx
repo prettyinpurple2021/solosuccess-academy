@@ -438,7 +438,7 @@ export function CurriculumPreviewEditor({ curriculum, onUpdate, documentContent 
               rows={2}
             />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Project Title</Label>
               <Input
@@ -628,7 +628,7 @@ export function CurriculumPreviewEditor({ curriculum, onUpdate, documentContent 
           {curriculum.final_exam ? (
             <ScrollArea className="h-[400px] pr-4">
               <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>Exam Title</Label>
                     <Input
@@ -708,7 +708,7 @@ export function CurriculumPreviewEditor({ curriculum, onUpdate, documentContent 
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
-                        <div className="grid grid-cols-2 gap-2 pl-8">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pl-4 sm:pl-8">
                           {q.options.map((opt, optIndex) => (
                             <div key={optIndex} className="flex items-center gap-2">
                               <input
