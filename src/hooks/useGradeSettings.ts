@@ -18,6 +18,7 @@ export interface GradeWeights {
   worksheetWeight: number;
   examWeight: number;
   essayWeight: number;
+  projectWeight: number;
 }
 
 /**
@@ -47,6 +48,7 @@ export function useGradeSettings() {
         worksheetWeight: row.worksheet_weight,
         examWeight: row.exam_weight ?? 0,
         essayWeight: row.essay_weight ?? 0,
+        projectWeight: row.project_weight ?? 0,
       }));
     },
   });
@@ -56,8 +58,8 @@ export function useGradeSettings() {
 export function getWeightsForCourse(
   allSettings: GradeWeights[] | undefined,
   courseId?: string
-): { quizWeight: number; activityWeight: number; worksheetWeight: number; examWeight: number; essayWeight: number } {
-  const defaults = { quizWeight: 50, activityWeight: 30, worksheetWeight: 20, examWeight: 0, essayWeight: 0 };
+): { quizWeight: number; activityWeight: number; worksheetWeight: number; examWeight: number; essayWeight: number; projectWeight: number } {
+  const defaults = { quizWeight: 50, activityWeight: 30, worksheetWeight: 20, examWeight: 0, essayWeight: 0, projectWeight: 0 };
   if (!allSettings?.length) return defaults;
 
   // Check for per-course override first
@@ -84,8 +86,9 @@ export function useUpdateGradeSettings() {
       worksheetWeight: number;
       examWeight: number;
       essayWeight: number;
+      projectWeight: number;
     }) => {
-      const { courseId, quizWeight, activityWeight, worksheetWeight, examWeight, essayWeight } = params;
+      const { courseId, quizWeight, activityWeight, worksheetWeight, examWeight, essayWeight, projectWeight } = params;
 
       // Admin-only SECURITY DEFINER RPC — validates total=100 and admin role server-side.
       const { error } = await supabase.rpc('admin_upsert_grade_settings' as any, {
@@ -95,6 +98,7 @@ export function useUpdateGradeSettings() {
         _worksheet_weight: worksheetWeight,
         _exam_weight: examWeight,
         _essay_weight: essayWeight,
+        _project_weight: projectWeight,
       });
       if (error) throw error;
     },

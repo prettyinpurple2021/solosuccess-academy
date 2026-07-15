@@ -42,17 +42,19 @@ export function calculateCombinedGrade(
   quizScore: number, quizCount: number,
   activityScore: number, activityCount: number,
   worksheetScore: number, worksheetCount: number,
-  weights?: { quizWeight: number; activityWeight: number; worksheetWeight: number; examWeight?: number; essayWeight?: number },
+  weights?: { quizWeight: number; activityWeight: number; worksheetWeight: number; examWeight?: number; essayWeight?: number; projectWeight?: number },
   examScore?: number, examCount?: number,
   essayScore?: number, essayCount?: number,
+  projectScore?: number, projectCount?: number,
 ): { percentage: number; letter: string } {
-  const w = weights || { quizWeight: 50, activityWeight: 30, worksheetWeight: 20, examWeight: 0, essayWeight: 0 };
+  const w = weights || { quizWeight: 50, activityWeight: 30, worksheetWeight: 20, examWeight: 0, essayWeight: 0, projectWeight: 0 };
   const components: { score: number; weight: number }[] = [];
   if (quizCount > 0) components.push({ score: quizScore, weight: w.quizWeight });
   if (activityCount > 0) components.push({ score: activityScore, weight: w.activityWeight });
   if (worksheetCount > 0) components.push({ score: worksheetScore, weight: w.worksheetWeight });
   if ((examCount ?? 0) > 0) components.push({ score: examScore ?? 0, weight: w.examWeight ?? 0 });
   if ((essayCount ?? 0) > 0) components.push({ score: essayScore ?? 0, weight: w.essayWeight ?? 0 });
+  if ((projectCount ?? 0) > 0) components.push({ score: projectScore ?? 0, weight: w.projectWeight ?? 0 });
 
   if (components.length === 0) return { percentage: 0, letter: '—' };
 
@@ -95,6 +97,8 @@ export interface StudentProgress {
   examCount: number;
   totalEssayScore: number;
   essayCount: number;
+  totalProjectScore: number;
+  projectCount: number;
   combinedGrade: { percentage: number; letter: string };
 }
 
@@ -109,6 +113,8 @@ export interface CourseProgress {
   worksheetScores: WorksheetScore[];
   examScore: number | null;
   essayScore: number | null;
+  projectScore: number | null;
+  projectAdminStatus: 'pending' | 'approved' | 'needs_revision' | null;
   projectStatus: 'draft' | 'submitted' | 'reviewed' | null;
   projectSubmittedAt: string | null;
 }
@@ -163,7 +169,7 @@ export function useGradebook() {
       // Fetch all course projects
       const { data: projects, error: projectsError } = await supabase
         .from('course_projects')
-        .select('user_id, course_id, status, submitted_at')
+        .select('user_id, course_id, status, submitted_at, admin_score, admin_status')
         .in('user_id', userIds);
 
       if (projectsError) throw projectsError;
@@ -307,6 +313,9 @@ export function useGradebook() {
             : null;
 
           const project = userProjects.find(p => p.course_id === purchase.course_id);
+          const projectScore = (project as any)?.admin_score ?? null;
+          const projectAdminStatus = ((project as any)?.admin_status ?? null) as
+            | 'pending' | 'approved' | 'needs_revision' | null;
 
           return {
             courseId: purchase.course_id,
@@ -321,6 +330,8 @@ export function useGradebook() {
             worksheetScores,
             examScore: bestExamScore,
             essayScore: bestEssayScore,
+            projectScore,
+            projectAdminStatus,
             projectStatus: project?.status || null,
             projectSubmittedAt: project?.submitted_at || null,
           };
@@ -354,6 +365,12 @@ export function useGradebook() {
           ? Math.round(essayScoresArr.reduce((a, b) => a + b, 0) / essayScoresArr.length)
           : 0;
 
+        // Project: average admin-graded scores across courses
+        const projectScoresArr = courseProgressList.filter(c => c.projectScore !== null).map(c => c.projectScore!);
+        const avgProjectScore = projectScoresArr.length > 0
+          ? Math.round(projectScoresArr.reduce((a, b) => a + b, 0) / projectScoresArr.length)
+          : 0;
+
         return {
           userId,
           displayName: profile?.display_name || 'Unknown Student',
@@ -371,6 +388,8 @@ export function useGradebook() {
           examCount: examScores.length,
           totalEssayScore: avgEssayScore,
           essayCount: essayScoresArr.length,
+          totalProjectScore: avgProjectScore,
+          projectCount: projectScoresArr.length,
           combinedGrade: calculateCombinedGrade(
             avgQuizScore, allQuizScores.length,
             avgActivityScore, allActivityScores.length,
@@ -378,6 +397,7 @@ export function useGradebook() {
             undefined,
             avgExamScore, examScores.length,
             avgEssayScore, essayScoresArr.length,
+            avgProjectScore, projectScoresArr.length,
           ),
         };
       });

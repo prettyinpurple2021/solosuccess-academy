@@ -25,6 +25,7 @@ import { template as dripDay7Value } from './drip-day7-value.tsx'
 import { template as dripDay14Final } from './drip-day14-final.tsx'
 import { template as courseCompletionUpsell } from './course-completion-upsell.tsx'
 import { template as webhookHealthAlert } from './webhook-health-alert.tsx'
+import { template as projectGradeDecision } from './project-grade-decision.tsx'
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'contact-confirmation': contactConfirmation,
@@ -37,4 +38,5 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'drip-day14-final': dripDay14Final,
   'course-completion-upsell': courseCompletionUpsell,
   'webhook-health-alert': webhookHealthAlert,
+  'project-grade-decision': projectGradeDecision,
 }
