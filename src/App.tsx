@@ -217,6 +217,9 @@ const App = () => (
               {/* Email Unsubscribe — public standalone page */}
               <Route path="/unsubscribe" element={<RouteErrorBoundary><Unsubscribe /></RouteErrorBoundary>} />
 
+              {/* Public health/status page — no layout, standalone */}
+              <Route path="/status" element={<RouteErrorBoundary><Status /></RouteErrorBoundary>} />
+
               {/* OAuth 2.1 consent screen for the SoloSuccess Academy MCP server.
                   Users are redirected here by Supabase Auth when an external
                   MCP client (Claude, ChatGPT, etc.) requests account access. */}
