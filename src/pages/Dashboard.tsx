@@ -396,33 +396,41 @@ export default function Dashboard() {
                     return (
                       <Card key={purchase.id} className="glass-card glass-card-hover overflow-hidden">
                         <CardHeader className="pb-2">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              <div className={`h-10 w-10 rounded-xl flex items-center justify-center flex-shrink-0 ${getPhaseClasses(course?.phase)} shadow-[0_0_15px_currentColor/0.3]`}>
-                                <span className="text-base">{phaseMeta?.icon}</span>
-                              </div>
-                              <div>
-                                <div className="flex items-center gap-2 mb-0.5">
-                                  <Badge variant="outline" className="text-xs border-primary/30">
-                                    Course {course?.order_number}
-                                  </Badge>
-                                  {progressPercent === 100 && (
-                                    <Badge className="bg-success/20 text-success border-success/30">
-                                      <CheckCircle2 className="h-3 w-3 mr-1" />
-                                      Complete
-                                    </Badge>
-                                  )}
-                                </div>
-                                <CardTitle className="text-base font-display">{course?.title}</CardTitle>
-                              </div>
+                          <div className="flex items-start gap-3">
+                            <div className={`h-10 w-10 rounded-xl flex items-center justify-center flex-shrink-0 ${getPhaseClasses(course?.phase)} shadow-[0_0_15px_currentColor/0.3]`}>
+                              <span className="text-base">{phaseMeta?.icon}</span>
                             </div>
-                            <div className="flex items-center gap-3">
-                              <span className="text-sm font-mono text-primary">{progressPercent}%</span>
-                              <Button variant="outline" size="sm" asChild className="flex-shrink-0 border-primary/30 hover:bg-primary/10">
-                                <Link to={`/courses/${purchase.course_id}`}>
-                                  <ArrowRight className="h-4 w-4" />
-                                </Link>
-                              </Button>
+                            <div className="min-w-0 flex-1">
+                              <div className="flex flex-wrap items-center gap-2 mb-0.5">
+                                <Badge variant="outline" className="text-xs border-primary/30">
+                                  Course {course?.order_number}
+                                </Badge>
+                                {progressPercent === 100 && (
+                                  <Badge className="bg-success/20 text-success border-success/30">
+                                    <CheckCircle2 className="h-3 w-3 mr-1" />
+                                    Complete
+                                  </Badge>
+                                )}
+                                <span className="ml-auto text-sm font-mono text-primary">
+                                  {progressPercent}%
+                                </span>
+                              </div>
+                              <div className="flex items-start justify-between gap-3">
+                                <CardTitle className="text-base font-display leading-snug break-words">
+                                  {course?.title}
+                                </CardTitle>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  asChild
+                                  className="flex-shrink-0 border-primary/30 hover:bg-primary/10"
+                                  aria-label={`Open ${course?.title}`}
+                                >
+                                  <Link to={`/courses/${purchase.course_id}`}>
+                                    <ArrowRight className="h-4 w-4" />
+                                  </Link>
+                                </Button>
+                              </div>
                             </div>
                           </div>
                         </CardHeader>
