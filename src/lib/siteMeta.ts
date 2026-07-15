@@ -20,7 +20,7 @@
 export const SITE_NAME = "SoloSuccess Academy";
 
 /** Default <title> tag — shown when no page-specific title is set */
-export const DEFAULT_TITLE = `${SITE_NAME} - AI-Powered Learning for Solo Founders`;
+export const DEFAULT_TITLE = `${SITE_NAME} — AI Courses for Solo Founders`;
 
 /** Default meta description — shown in Google search results (keep under 160 chars) */
 export const DEFAULT_DESCRIPTION =
