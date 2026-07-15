@@ -67,3 +67,5 @@ project_id = "fkqzwlpwdgdiwpsvhavt"
     verify_jwt = false
   [functions.send-weekly-digest]
     verify_jwt = false
+  [functions.generate-adaptive-flashcards]
+    verify_jwt = false

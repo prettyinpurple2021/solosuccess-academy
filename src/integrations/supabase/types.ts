@@ -2211,6 +2211,7 @@ export type Database = {
           last_reviewed_at: string | null
           next_review_at: string
           repetitions: number
+          source_lesson_id: string | null
           updated_at: string
           user_id: string
         }
@@ -2226,6 +2227,7 @@ export type Database = {
           last_reviewed_at?: string | null
           next_review_at?: string
           repetitions?: number
+          source_lesson_id?: string | null
           updated_at?: string
           user_id: string
         }
@@ -2241,6 +2243,7 @@ export type Database = {
           last_reviewed_at?: string | null
           next_review_at?: string
           repetitions?: number
+          source_lesson_id?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -2250,6 +2253,13 @@ export type Database = {
             columns: ["highlight_id"]
             isOneToOne: false
             referencedRelation: "user_textbook_highlights"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_flashcards_source_lesson_id_fkey"
+            columns: ["source_lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
             referencedColumns: ["id"]
           },
         ]
