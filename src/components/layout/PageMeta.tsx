@@ -22,6 +22,8 @@ export interface PageMetaProps {
   noIndex?: boolean;
   /** Optional JSON-LD structured data objects to inject as <script type="application/ld+json"> */
   jsonLd?: Record<string, unknown> | Record<string, unknown>[];
+  /** Open Graph object type. Defaults to "website"; use "article" for blog posts. */
+  ogType?: "website" | "article" | "profile" | "book";
 }
 
 /**
@@ -36,6 +38,7 @@ export function PageMeta({
   ogImagePath,
   noIndex = false,
   jsonLd,
+  ogType = "website",
 }: PageMetaProps) {
   const resolvedTitle = fullTitle ?? (title ? `${title} | ${SITE_NAME}` : DEFAULT_TITLE);
   const canonicalUrl = path ? `${getSiteUrl()}${path.startsWith("/") ? path : `/${path}`}` : undefined;
@@ -58,7 +61,7 @@ export function PageMeta({
       {noIndex && <meta name="robots" content="noindex, nofollow" />}
       {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
       {/* Open Graph */}
-      <meta property="og:type" content="website" />
+      <meta property="og:type" content={ogType} />
       <meta property="og:title" content={resolvedTitle} />
       <meta property="og:description" content={description} />
       <meta property="og:image" content={ogImage} />
