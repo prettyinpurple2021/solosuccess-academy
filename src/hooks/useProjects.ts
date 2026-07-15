@@ -40,6 +40,32 @@ export interface CourseProject {
   submitted_at: string | null;
   created_at: string;
   updated_at: string;
+  admin_status: 'pending' | 'approved' | 'needs_revision';
+  admin_score: number | null;
+  admin_notes: string | null;
+  ai_proposed_score: number | null;
+  graded_by: string | null;
+  graded_at: string | null;
+  current_version: number;
+}
+
+/** A historical snapshot of a project submission (created on resubmit). */
+export interface CourseProjectVersion {
+  id: string;
+  project_id: string;
+  user_id: string;
+  course_id: string;
+  version_number: number;
+  submission_content: string | null;
+  file_urls: string[] | null;
+  ai_feedback: string | null;
+  ai_proposed_score: number | null;
+  admin_score: number | null;
+  admin_status: 'pending' | 'approved' | 'needs_revision' | null;
+  admin_notes: string | null;
+  submitted_at: string | null;
+  graded_at: string | null;
+  snapshotted_at: string;
 }
 
 /** Allowed MIME types for project file uploads */
