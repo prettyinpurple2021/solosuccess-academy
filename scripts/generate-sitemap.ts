@@ -33,6 +33,9 @@ const staticEntries: SitemapEntry[] = [
   // Help Center hosts the long-form FAQ content for students.
   { path: "/help", changefreq: "monthly", priority: "0.6" },
   { path: "/verify", changefreq: "monthly", priority: "0.5" },
+  { path: "/reset-password", changefreq: "yearly", priority: "0.2" },
+  { path: "/account-recovery", changefreq: "yearly", priority: "0.2" },
+  { path: "/unsubscribe", changefreq: "yearly", priority: "0.2" },
   { path: "/legal", changefreq: "yearly", priority: "0.4" },
   { path: "/privacy", changefreq: "yearly", priority: "0.3" },
   { path: "/terms", changefreq: "yearly", priority: "0.3" },
