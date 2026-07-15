@@ -177,22 +177,22 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="py-8">
+    <div className="py-6 sm:py-8">
       <PageMeta title="Dashboard" path="/dashboard" noIndex />
       <div className="container">
         {/* Welcome Section */}
-        <div className="mb-10">
-          <div className="flex items-center gap-3 mb-2">
+        <div className="mb-6 sm:mb-10">
+          <div className="flex items-center gap-2 sm:gap-3 mb-2">
             <Terminal className="h-6 w-6 text-primary" />
-            <Badge variant="outline" className="font-mono border-primary/30 bg-primary/10">
+            <Badge variant="outline" className="font-mono text-[10px] sm:text-xs border-primary/30 bg-primary/10">
               &gt; COMMAND_CENTER
             </Badge>
           </div>
-          <h1 className="text-4xl font-display font-bold mb-3">
+          <h1 className="text-2xl sm:text-4xl font-display font-bold mb-2 sm:mb-3 leading-tight break-words">
             <span className="text-foreground">WELCOME BACK,</span>{' '}
             <span className="text-gradient">{profile?.display_name?.toUpperCase() || 'FOUNDER'}</span>
           </h1>
-          <p className="text-muted-foreground font-mono">
+          <p className="text-sm sm:text-base text-muted-foreground font-mono">
             Track your progress and continue your journey to success.
           </p>
         </div>
@@ -278,9 +278,16 @@ export default function Dashboard() {
           </Card>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Mobile-only: surface daily goal + streak up top so they're not buried
+            under the courses list. Hidden at lg where the sidebar shows them. */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6 lg:hidden">
+          <DailyGoalCard />
+          <StreakCard />
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
           {/* Main Content */}
-          <div className="lg:col-span-2 space-y-8">
+          <div className="lg:col-span-2 space-y-6 lg:space-y-8">
             {/* Continue later (bookmark) */}
             {continueLater && (
               <Card className="glass-card border-secondary/30 overflow-hidden relative">
@@ -290,7 +297,7 @@ export default function Dashboard() {
                     <Bookmark className="h-5 w-5" />
                     <span className="text-sm font-display font-medium tracking-wide">CONTINUE HERE</span>
                   </div>
-                  <CardTitle className="text-xl">
+                  <CardTitle className="text-base sm:text-xl break-words">
                     {continueLater.course?.title ?? 'Course'} – {continueLater.lesson_id
                       ? (continueLater.lesson?.title ?? 'Lesson')
                       : 'Textbook'}
@@ -300,7 +307,7 @@ export default function Dashboard() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="relative">
-                  <Button variant="outline" className="border-secondary/30 hover:bg-secondary/10" asChild>
+                  <Button variant="outline" className="w-full sm:w-auto border-secondary/30 hover:bg-secondary/10" asChild>
                     <Link to={continueLater.lesson_id
                       ? `/courses/${continueLater.course_id}/lessons/${continueLater.lesson_id}`
                       : `/courses/${continueLater.course_id}/textbook`}
@@ -323,8 +330,8 @@ export default function Dashboard() {
                     <Play className="h-5 w-5" />
                     <span className="text-sm font-display font-medium tracking-wide">CONTINUE LEARNING</span>
                   </div>
-                  <CardTitle className="text-2xl">{(continueCourse.courses as any)?.title}</CardTitle>
-                  <CardDescription>
+                  <CardTitle className="text-lg sm:text-2xl break-words">{(continueCourse.courses as any)?.title}</CardTitle>
+                  <CardDescription className="line-clamp-3 sm:line-clamp-none">
                     {(continueCourse.courses as any)?.description}
                   </CardDescription>
                 </CardHeader>
@@ -345,7 +352,7 @@ export default function Dashboard() {
                       className="h-3" 
                     />
                   </div>
-                  <Button variant="neon" asChild>
+                  <Button variant="neon" className="w-full sm:w-auto" asChild>
                     <Link to={`/courses/${continueCourse.course_id}`}>
                       <Zap className="mr-2 h-4 w-4" />
                       Continue Course
