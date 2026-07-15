@@ -111,6 +111,13 @@ export function useStudentGrades(userId: string | undefined) {
         .eq('user_id', userId)
         .in('essay_id', essayIds.length > 0 ? essayIds : ['00000000-0000-0000-0000-000000000000']);
 
+      // 6b. Fetch admin-graded course projects
+      const { data: projectRows } = await supabase
+        .from('course_projects')
+        .select('course_id, admin_score')
+        .eq('user_id', userId)
+        .in('course_id', courseIds);
+
       // 7. Build per-course grades
       return (courses || []).map(course => {
         const courseLessons = lessons?.filter(l => l.course_id === course.id) || [];
@@ -169,6 +176,10 @@ export function useStudentGrades(userId: string | undefined) {
           ? Math.max(...essSubs.map(s => (s.admin_score ?? s.ai_score ?? 0)))
           : null;
 
+        // Capstone project (admin-graded)
+        const projRow = projectRows?.find(p => p.course_id === course.id);
+        const projectScore = (projRow as any)?.admin_score ?? null;
+
         // Combined weighted grade
         const weights = getWeightsForCourse(gradeSettings, course.id);
         const combinedGrade = calculateCombinedGrade(
@@ -178,6 +189,7 @@ export function useStudentGrades(userId: string | undefined) {
           weights,
           examScore ?? 0, examScore !== null ? 1 : 0,
           essayScore ?? 0, essayScore !== null ? 1 : 0,
+          projectScore ?? 0, projectScore !== null ? 1 : 0,
         );
 
         const completedLessons = courseProgress.filter(p => p.completed).length;
@@ -194,6 +206,7 @@ export function useStudentGrades(userId: string | undefined) {
           worksheetCount: wsScores.length,
           examScore,
           essayScore,
+          projectScore,
           combinedGrade,
           completedLessons,
           totalLessons: courseLessons.length,
