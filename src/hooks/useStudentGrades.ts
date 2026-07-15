@@ -31,6 +31,8 @@ export interface StudentCourseGrade {
   examScore: number | null;
   /** Best essay score (0-100) or null */
   essayScore: number | null;
+  /** Admin-graded capstone project score (0-100) or null */
+  projectScore: number | null;
   /** Combined weighted grade */
   combinedGrade: { percentage: number; letter: string };
   /** Lesson completion stats */
