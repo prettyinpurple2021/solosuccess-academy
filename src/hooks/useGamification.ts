@@ -326,6 +326,17 @@ export function useCheckBadges() {
                 _action: `badge_${badge.slug}`,
               });
             }
+
+            // Push an in-app inbox notification for the badge unlock
+            await supabase.from('notifications').insert({
+              user_id: userId,
+              type: 'badge_earned',
+              title: `Badge unlocked: ${badge.name}`,
+              message: badge.xp_reward > 0
+                ? `${badge.description} (+${badge.xp_reward} XP)`
+                : badge.description,
+              link: '/profile',
+            });
           }
         }
       }
