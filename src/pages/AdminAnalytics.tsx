@@ -38,6 +38,7 @@ import {
   Activity,
   ArrowLeft,
 } from 'lucide-react';
+import { CohortAnalytics } from '@/components/admin/CohortAnalytics';
 
 const chartConfig = {
   amount: {
@@ -195,6 +196,12 @@ export default function AdminAnalytics() {
           >
             Courses
           </TabsTrigger>
+          <TabsTrigger
+            value="cohorts"
+            className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary"
+          >
+            Cohorts
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="revenue">
@@ -339,6 +346,10 @@ export default function AdminAnalytics() {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="cohorts">
+          <CohortAnalytics />
         </TabsContent>
       </Tabs>
     </div>
