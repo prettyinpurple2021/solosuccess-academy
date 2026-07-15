@@ -112,6 +112,7 @@ const AdminBlogAutoPost = lazy(() => import("./pages/admin/AdminBlogAutoPost"));
 const AdminMigration = lazy(() => import("./pages/admin/AdminMigration"));
 const AdminMigrationPrint = lazy(() => import("./pages/admin/AdminMigrationPrint"));
 const AdminPlatformSettings = lazy(() => import("./pages/admin/AdminPlatformSettings"));
+const AdminProjects = lazy(() => import("./pages/admin/AdminProjects"));
 const OAuthConsent = lazy(() => import("./pages/OAuthConsent"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
@@ -250,6 +251,7 @@ const App = () => (
                   <Route path="blog-auto-post" element={<RouteErrorBoundary><AdminBlogAutoPost /></RouteErrorBoundary>} />
                   <Route path="migration" element={<RouteErrorBoundary><AdminMigration /></RouteErrorBoundary>} />
                   <Route path="platform-settings" element={<RouteErrorBoundary><AdminPlatformSettings /></RouteErrorBoundary>} />
+                  <Route path="projects" element={<RouteErrorBoundary><AdminProjects /></RouteErrorBoundary>} />
                 </Route>
                 
                 {/* ─── STUDENT LEARNING ROUTES ────────────
