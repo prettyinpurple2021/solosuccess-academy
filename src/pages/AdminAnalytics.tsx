@@ -224,15 +224,16 @@ export default function AdminAnalytics() {
                       className="text-muted-foreground"
                     />
                     <ChartTooltip
-                      content={
+                      content={(props) => (
                         <ChartTooltipContent
+                          {...props}
                           formatter={(value, name) =>
                             name === 'amount' ? `$${value}` : `${value} sales`
                           }
                         />
-                      }
+                      )}
                     />
-                    <ChartLegend content={<ChartLegendContent />} />
+                    <ChartLegend content={(props) => <ChartLegendContent {...props} />} />
                     <Bar
                       dataKey="amount"
                       fill="var(--color-amount)"
@@ -278,8 +279,8 @@ export default function AdminAnalytics() {
                       interval="preserveStartEnd"
                     />
                     <YAxis tickLine={false} axisLine={false} className="text-muted-foreground" />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <ChartLegend content={<ChartLegendContent />} />
+                    <ChartTooltip content={(props) => <ChartTooltipContent {...props} />} />
+                    <ChartLegend content={(props) => <ChartLegendContent {...props} />} />
                     <Area
                       type="monotone"
                       dataKey="activeUsers"
