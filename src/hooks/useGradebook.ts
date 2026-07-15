@@ -42,17 +42,19 @@ export function calculateCombinedGrade(
   quizScore: number, quizCount: number,
   activityScore: number, activityCount: number,
   worksheetScore: number, worksheetCount: number,
-  weights?: { quizWeight: number; activityWeight: number; worksheetWeight: number; examWeight?: number; essayWeight?: number },
+  weights?: { quizWeight: number; activityWeight: number; worksheetWeight: number; examWeight?: number; essayWeight?: number; projectWeight?: number },
   examScore?: number, examCount?: number,
   essayScore?: number, essayCount?: number,
+  projectScore?: number, projectCount?: number,
 ): { percentage: number; letter: string } {
-  const w = weights || { quizWeight: 50, activityWeight: 30, worksheetWeight: 20, examWeight: 0, essayWeight: 0 };
+  const w = weights || { quizWeight: 50, activityWeight: 30, worksheetWeight: 20, examWeight: 0, essayWeight: 0, projectWeight: 0 };
   const components: { score: number; weight: number }[] = [];
   if (quizCount > 0) components.push({ score: quizScore, weight: w.quizWeight });
   if (activityCount > 0) components.push({ score: activityScore, weight: w.activityWeight });
   if (worksheetCount > 0) components.push({ score: worksheetScore, weight: w.worksheetWeight });
   if ((examCount ?? 0) > 0) components.push({ score: examScore ?? 0, weight: w.examWeight ?? 0 });
   if ((essayCount ?? 0) > 0) components.push({ score: essayScore ?? 0, weight: w.essayWeight ?? 0 });
+  if ((projectCount ?? 0) > 0) components.push({ score: projectScore ?? 0, weight: w.projectWeight ?? 0 });
 
   if (components.length === 0) return { percentage: 0, letter: '—' };
 
