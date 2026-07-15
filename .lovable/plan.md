@@ -1,41 +1,74 @@
-# Retention Batch Plan
+# Per-Course Project Submissions — Grading & History
 
-Three pieces to lift activation and bring students back:
+Builds on the existing `course_projects` table (one row per student per course). Adds admin grading, an AI-drafted score that admins approve, and archived versions when a student resubmits.
 
-## 1. Welcome email (app email)
-Sent immediately when a new student verifies their email.
+## What students see
 
-- New app-email template `welcome-student.tsx` in the existing transactional email system (cyan-glow brand styling, Rajdhani heading, links to /dashboard and /courses).
-- Trigger: extend the existing `handle_new_user` flow (or a small DB trigger / auth hook) to enqueue `welcome-student` once per user via `send-transactional-email`.
-- Idempotency key: `welcome-${user_id}` so retries never duplicate.
+On `/course/:id/project`:
+- **Submission form** with content editor + file attachments (already exists).
+- **Locked banner** after submit: "Awaiting review — you can't edit until an admin responds."
+- **Grade card** once graded: score /100, status badge (Approved / Needs Revision), admin notes, AI feedback.
+- **Resubmit** button only when status is `needs_revision`. Submitting snapshots the current version into history and resets to `pending`.
+- **Version history** accordion listing previous attempts (submitted_at, score, status, feedback) — read-only.
 
-## 2. Onboarding screen
-First-run guided intro for new students before they hit the dashboard.
+## What admins see
 
-- New route `/onboarding` (PublicLayout-style but auth-required) with a 3-step flow:
-  1. Pick primary goal (Founder / Side Hustler / Career Changer / Indie Hacker) — saved to `profiles.primary_goal`.
-  2. Pick weekly time commitment (slider 1–15 hrs) — saved to `profiles.weekly_commitment_hours`.
-  3. "Start with Course 1" CTA → `/courses/course-1`.
-- DB: add `primary_goal text`, `weekly_commitment_hours int`, `onboarding_completed_at timestamptz` to `profiles` (migration with GRANTs already in place).
-- Gate: `AppLayout` redirects to `/onboarding` when `onboarding_completed_at` is null. Skippable via "Skip for now" link that just sets the timestamp.
+New section in `/admin/lessons/...` (or a new `/admin/projects` page) — for scope, add a compact grading panel to the existing admin project review flow:
+- List of submissions with status filter (pending / needs_revision / approved).
+- Grading form: score slider (0–100), status dropdown, notes textarea. AI-drafted score pre-fills; admin edits + approves.
+- History drawer per student showing prior versions.
 
-## 3. Lifecycle nudge emails
-Re-engage inactive students using the existing `lifecycle_emails_sent` table.
+## Schema changes
 
-- Two new app-email templates:
-  - `lifecycle-3day-inactive.tsx` — "Pick up where you left off" with their last lesson (uses `continue_later`).
-  - `lifecycle-7day-inactive.tsx` — "Your streak is at risk" + suggested next lesson.
-- New edge function `send-lifecycle-emails` (verify_jwt=false, service-role):
-  - Finds students whose last `user_progress.updated_at` was 3 or 7 days ago.
-  - Skips users already logged in `lifecycle_emails_sent` for that template.
-  - Enqueues template via `send-transactional-email` with `idempotencyKey = ${template}-${user_id}-${YYYYMMDD}`.
-  - Inserts a row into `lifecycle_emails_sent`.
-- Cron: daily 10:00 UTC via pg_cron + pg_net (separate from the existing 9 AM admin-progress job).
+Add to `course_projects`:
+- `admin_status` enum `project_grade_status` — `pending | approved | needs_revision` (default `pending`)
+- `admin_score` int 0–100 (nullable)
+- `admin_notes` text (nullable)
+- `graded_by` uuid → auth.users (nullable)
+- `graded_at` timestamptz (nullable)
+- `ai_proposed_score` int (nullable) — set by `project-feedback` function
+- `current_version` int default 1
 
-## Technical notes
-- All emails go through the existing `send-transactional-email` function — no new send infra.
-- All new templates registered in `_shared/transactional-email-templates/registry.ts` and deployed.
-- Onboarding fields use defaults (`null`) so existing users are unaffected; we can backfill `onboarding_completed_at = now()` for current users in the same migration so they skip the screen.
-- No new secrets required.
+New table `course_project_versions` — append-only snapshots:
+- `id`, `project_id` (fk), `version_number`, `submission_content`, `file_urls`, `ai_feedback`, `ai_proposed_score`, `admin_score`, `admin_status`, `admin_notes`, `snapshotted_at`
 
-Want me to build all three, or start with welcome + onboarding and add lifecycle nudges after?
+Trigger `protect_project_admin_fields` — non-admins can't write `admin_*`, `graded_*`.
+
+RLS:
+- Students: read own project + own versions.
+- Admins: read/update all projects, insert versions.
+- Resubmit RPC `resubmit_project(_project_id, _content, _files)` — checks `admin_status='needs_revision'`, snapshots row into `course_project_versions`, updates project with new content, bumps `current_version`, resets status to `pending`.
+
+RPC `admin_grade_project(_project_id, _score, _status, _notes)` — admin-only, sets grade fields, stamps `graded_by`/`graded_at`.
+
+## AI feedback update
+
+`project-feedback` function extended to also return a numeric score (0–100) parsed from the AI response and write it to `ai_proposed_score`. Existing prose feedback flow unchanged.
+
+## Gradebook
+
+Project grades already have weight in `grade_settings` via other paths; wire `admin_score` for approved projects into `useGradebook` alongside quiz/activity/worksheet (out of scope for this pass unless quick — flagged as follow-up).
+
+## Files
+
+Migration:
+- `supabase/migrations/<ts>_project_grading_and_history.sql`
+
+Edge functions:
+- `supabase/functions/project-feedback/index.ts` — parse score, write `ai_proposed_score`
+
+Hooks:
+- `src/hooks/useProjects.ts` — add `useProjectVersions`, `useResubmitProject`, `useAdminGradeProject`, extend `CourseProject` type
+
+UI:
+- `src/components/project/ProjectSubmissionForm.tsx` — lock states + resubmit button
+- `src/components/project/ProjectFeedback.tsx` — show grade card
+- `src/components/project/ProjectVersionHistory.tsx` **(new)** — accordion of past attempts
+- `src/components/admin/AdminProjectGrader.tsx` **(new)** — grading panel
+- `src/pages/CourseProject.tsx` — wire new pieces
+- Admin route entry in `src/App.tsx` if a new admin page is warranted; otherwise embed grader in existing admin surface
+
+## Out of scope (call out to user after)
+
+- Rewiring the gradebook weighting math for the new `admin_score`.
+- Email notifications on grade decisions (already infra-ready, easy follow-up).
