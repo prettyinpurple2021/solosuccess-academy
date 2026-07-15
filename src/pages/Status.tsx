@@ -298,6 +298,12 @@ function StatusIcon({ state }: { state: CheckState }) {
   return <XCircle className="h-4 w-4 text-destructive" />;
 }
 
+function DeployStatusIcon({ status }: { status: string }) {
+  if (status === "success") return <CheckCircle2 className="h-4 w-4 text-emerald-500" />;
+  if (status === "pending") return <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />;
+  return <XCircle className="h-4 w-4 text-destructive" />;
+}
+
 function OverallBadge({ state }: { state: CheckState }) {
   if (state === "pending") {
     return (
