@@ -123,10 +123,35 @@ export function useMarkLessonComplete() {
       if (error) throw error;
       return data;
     },
-    onSuccess: (_, variables) => {
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['user-progress', variables.userId] });
       queryClient.invalidateQueries({ queryKey: ['course-progress', variables.userId] });
       queryClient.invalidateQueries({ queryKey: ['overall-progress', variables.userId] });
+
+      // ── Adaptive review ──────────────────────────────────────────
+      // If the student's best score is below the passing threshold,
+      // fire-and-forget an edge function that generates review
+      // flashcards from the lesson content. Idempotent per lesson.
+      const bestScore = (data as { quiz_score?: number | null } | null)?.quiz_score ?? null;
+      if (bestScore !== null && bestScore < variables.passingScore && bestScore < 70) {
+        void supabase.functions
+          .invoke('generate-adaptive-flashcards', {
+            body: { lessonId: variables.lessonId },
+          })
+          .then((res) => {
+            if (res.error) {
+              console.warn('[adaptive-flashcards] generation failed', res.error);
+              return;
+            }
+            // Refresh flashcard queries if any card was actually created
+            const created = (res.data as { created?: number } | null)?.created ?? 0;
+            if (created > 0) {
+              queryClient.invalidateQueries({ queryKey: ['flashcards'] });
+              queryClient.invalidateQueries({ queryKey: ['flashcards-due'] });
+            }
+          })
+          .catch((err) => console.warn('[adaptive-flashcards] invoke error', err));
+      }
     },
   });
 }
