@@ -182,7 +182,7 @@ export default function Auth() {
   }
 
   return (
-    <div className="flex-1 flex items-center justify-center py-12 px-4 relative">
+    <div className="flex-1 flex items-center justify-center py-12 px-4 relative overflow-x-hidden">
       <PageMeta
         title="Sign In"
         description="Sign in or create your SoloSuccess Academy account to access courses and track your progress."

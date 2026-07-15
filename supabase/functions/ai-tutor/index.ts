@@ -32,8 +32,11 @@ const aiTutorRequestSchema = z.object({
     .max(50, "Too many messages (max 50)"),
   courseTitle: z.string().max(500).optional(),
   lessonTitle: z.string().max(500).optional(),
-  lessonContent: z.string().max(10000).optional(),
+  lessonContent: z.string().max(40000).optional(),
+  lessonDescription: z.string().max(2000).optional(),
+  lessonType: z.string().max(50).optional(),
   courseId: z.string().uuid("courseId must be a valid UUID").optional(),
+  lessonId: z.string().uuid("lessonId must be a valid UUID").optional(),
 });
 
 serve(async (req) => {
@@ -96,7 +99,16 @@ serve(async (req) => {
       );
     }
 
-    const { messages, courseTitle, lessonTitle, lessonContent, courseId } = parseResult.data;
+    const {
+      messages,
+      courseTitle,
+      lessonTitle,
+      lessonContent,
+      lessonDescription,
+      lessonType,
+      courseId,
+      lessonId,
+    } = parseResult.data;
 
     // 4. Verify course purchase if courseId provided
     if (courseId) {
@@ -122,6 +134,77 @@ serve(async (req) => {
       }
     }
 
+    // 4b. Gather expanded context (best-effort — failures don't block the chat)
+    let courseOutlineText = "";
+    let textbookExcerptText = "";
+    let progressSummaryText = "";
+
+    if (courseId) {
+      try {
+        const { data: lessons } = await supabase
+          .from("lessons")
+          .select("id, title, type, order_number, is_published")
+          .eq("course_id", courseId)
+          .eq("is_published", true)
+          .order("order_number", { ascending: true });
+
+        if (lessons?.length) {
+          const currentIdx = lessonId ? lessons.findIndex((l) => l.id === lessonId) : -1;
+          courseOutlineText = lessons
+            .map((l, i) => {
+              const marker = i === currentIdx ? "→" : "  ";
+              return `${marker} ${l.order_number}. ${l.title} (${l.type})`;
+            })
+            .join("\n");
+
+          // Progress summary — how far the student has gotten in this course
+          const { data: progress } = await supabase
+            .from("user_progress")
+            .select("lesson_id, completed")
+            .eq("user_id", userId)
+            .in("lesson_id", lessons.map((l) => l.id));
+          const completedCount = progress?.filter((p) => p.completed).length ?? 0;
+          progressSummaryText = `The student has completed ${completedCount} of ${lessons.length} lessons in this course.`;
+          if (currentIdx > 0) {
+            progressSummaryText += ` Prior lesson: "${lessons[currentIdx - 1].title}".`;
+          }
+          if (currentIdx >= 0 && currentIdx < lessons.length - 1) {
+            progressSummaryText += ` Next lesson: "${lessons[currentIdx + 1].title}".`;
+          }
+        }
+      } catch (e) {
+        console.warn("ai-tutor: outline/progress fetch failed", e);
+      }
+
+      // Textbook chapter linked to this lesson (if any)
+      if (lessonId) {
+        try {
+          const { data: chapter } = await supabase
+            .from("textbook_chapters")
+            .select("id, title")
+            .eq("course_id", courseId)
+            .eq("lesson_id", lessonId)
+            .maybeSingle();
+          if (chapter) {
+            const { data: pages } = await supabase
+              .from("textbook_pages")
+              .select("page_number, content")
+              .eq("chapter_id", chapter.id)
+              .order("page_number", { ascending: true })
+              .limit(6);
+            if (pages?.length) {
+              const joined = pages
+                .map((p) => `[Page ${p.page_number}]\n${(p.content ?? "").substring(0, 1500)}`)
+                .join("\n\n");
+              textbookExcerptText = `Textbook chapter: "${chapter.title}"\n\n${joined.substring(0, 8000)}`;
+            }
+          }
+        } catch (e) {
+          console.warn("ai-tutor: textbook fetch failed", e);
+        }
+      }
+    }
+
     // 5. Build AI prompt
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
@@ -134,25 +217,48 @@ serve(async (req) => {
       return text.substring(0, maxLen);
     };
 
-    const systemPrompt = `You are an expert AI Tutor for the course "${sanitize(courseTitle) || "Solo Founder Academy"}". 
-You are currently helping a student with the lesson: "${sanitize(lessonTitle) || "Current Lesson"}".
+    const sections: string[] = [];
+    sections.push(
+      `You are an expert AI Tutor for the course "${sanitize(courseTitle) || "SoloSuccess Academy"}".`,
+    );
+    sections.push(
+      `You are helping the student with the lesson: "${sanitize(lessonTitle) || "Current Lesson"}"${
+        lessonType ? ` (type: ${sanitize(lessonType, 40)})` : ""
+      }.`,
+    );
+    if (lessonDescription) {
+      sections.push(`Lesson summary: ${sanitize(lessonDescription, 1500)}`);
+    }
+    if (lessonContent) {
+      sections.push(`--- Lesson content ---\n${sanitize(lessonContent, 20000)}`);
+    }
+    if (textbookExcerptText) {
+      sections.push(`--- Related textbook excerpts ---\n${textbookExcerptText}`);
+    }
+    if (courseOutlineText) {
+      sections.push(
+        `--- Course outline (→ marks the current lesson) ---\n${courseOutlineText.substring(0, 4000)}`,
+      );
+    }
+    if (progressSummaryText) {
+      sections.push(`--- Student progress ---\n${progressSummaryText}`);
+    }
+    sections.push(
+      [
+        "Your role:",
+        "- Ground answers in the lesson content and textbook excerpts above; quote or paraphrase them when relevant.",
+        "- Connect the current lesson to prior and upcoming lessons in the outline so the student sees the arc.",
+        "- Give practical, solo-founder-specific examples and next actions.",
+        "- Ask a clarifying question if the request is ambiguous.",
+        "",
+        "Guidelines:",
+        "- Concise but thorough — usually 2–4 paragraphs. Use bullets for steps.",
+        "- If the answer isn't in the provided context, say so plainly and give your best general guidance.",
+        "- Stay on-topic for this course and the student's business.",
+      ].join("\n"),
+    );
 
-${lessonContent ? `Here is the lesson content for context:\n${sanitize(lessonContent, 5000)}\n\n` : ""}
-
-Your role:
-- Help students understand the lesson material deeply
-- Answer questions about business concepts, strategies, and implementation
-- Provide practical examples and actionable advice
-- Encourage critical thinking and application to their specific business
-- Be supportive, encouraging, and focused on their success as solo founders
-
-Guidelines:
-- Keep responses concise but thorough (aim for 2-4 paragraphs unless they need more detail)
-- Use bullet points for lists and steps
-- Reference the lesson content when relevant
-- Ask clarifying questions if their query is ambiguous
-- Celebrate their progress and curiosity
-- Stay focused on the course material and related business topics`;
+    const systemPrompt = sections.join("\n\n");
 
     // 6. Call AI gateway with streaming
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {

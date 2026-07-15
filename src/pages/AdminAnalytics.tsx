@@ -38,6 +38,7 @@ import {
   Activity,
   ArrowLeft,
 } from 'lucide-react';
+import { CohortAnalytics } from '@/components/admin/CohortAnalytics';
 
 const chartConfig = {
   amount: {
@@ -195,6 +196,12 @@ export default function AdminAnalytics() {
           >
             Courses
           </TabsTrigger>
+          <TabsTrigger
+            value="cohorts"
+            className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary"
+          >
+            Cohorts
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="revenue">
@@ -224,15 +231,16 @@ export default function AdminAnalytics() {
                       className="text-muted-foreground"
                     />
                     <ChartTooltip
-                      content={
+                      content={(props) => (
                         <ChartTooltipContent
+                          {...props}
                           formatter={(value, name) =>
                             name === 'amount' ? `$${value}` : `${value} sales`
                           }
                         />
-                      }
+                      )}
                     />
-                    <ChartLegend content={<ChartLegendContent />} />
+                    <ChartLegend content={(props) => <ChartLegendContent payload={props.payload} verticalAlign={props.verticalAlign} />} />
                     <Bar
                       dataKey="amount"
                       fill="var(--color-amount)"
@@ -278,8 +286,8 @@ export default function AdminAnalytics() {
                       interval="preserveStartEnd"
                     />
                     <YAxis tickLine={false} axisLine={false} className="text-muted-foreground" />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <ChartLegend content={<ChartLegendContent />} />
+                    <ChartTooltip content={(props) => <ChartTooltipContent {...props} />} />
+                    <ChartLegend content={(props) => <ChartLegendContent payload={props.payload} verticalAlign={props.verticalAlign} />} />
                     <Area
                       type="monotone"
                       dataKey="activeUsers"
@@ -326,7 +334,7 @@ export default function AdminAnalytics() {
                       width={120}
                       className="text-muted-foreground text-xs"
                     />
-                    <ChartTooltip content={<ChartTooltipContent />} />
+                    <ChartTooltip content={(props) => <ChartTooltipContent {...props} />} />
                     <Bar
                       dataKey="completions"
                       fill="hsl(var(--success))"
@@ -338,6 +346,10 @@ export default function AdminAnalytics() {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="cohorts">
+          <CohortAnalytics />
         </TabsContent>
       </Tabs>
     </div>

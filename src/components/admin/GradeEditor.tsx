@@ -197,7 +197,7 @@ export function GradeEditor({
         </DialogHeader>
 
         {/* Student & lesson info */}
-        <div className="grid grid-cols-2 gap-4 py-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 py-2">
           <div className="space-y-1">
             <Label className="text-muted-foreground text-xs">Student</Label>
             <p className="font-medium text-sm">{studentName}</p>

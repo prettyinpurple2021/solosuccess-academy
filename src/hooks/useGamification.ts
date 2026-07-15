@@ -107,7 +107,7 @@ export const XP_VALUES = XP_DEFAULTS;
  * Returns a map of action_key → xp_amount.
  * Cached for 10 minutes since these rarely change.
  */
-export function useXPConfig() {
+export function useXPConfig(enabled = true) {
   return useQuery({
     queryKey: ['xp-config'],
     queryFn: async (): Promise<Record<string, number>> => {
@@ -122,6 +122,10 @@ export function useXPConfig() {
       }
       return config;
     },
+    // Only signed-in students/admins can call this protected backend function.
+    // Public pages still use XP_DEFAULTS and avoid noisy 401 errors on load.
+    enabled,
+    initialData: XP_DEFAULTS,
     staleTime: 10 * 60 * 1000, // Cache for 10 minutes
   });
 }
@@ -322,6 +326,17 @@ export function useCheckBadges() {
                 _action: `badge_${badge.slug}`,
               });
             }
+
+            // Push an in-app inbox notification for the badge unlock
+            await supabase.from('notifications').insert({
+              user_id: userId,
+              type: 'badge_earned',
+              title: `Badge unlocked: ${badge.name}`,
+              message: badge.xp_reward > 0
+                ? `${badge.description} (+${badge.xp_reward} XP)`
+                : badge.description,
+              link: '/profile',
+            });
           }
         }
       }

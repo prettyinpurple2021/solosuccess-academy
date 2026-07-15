@@ -16,6 +16,9 @@
  */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import type { Database } from '@/integrations/supabase/types';
+
+type ProfileUpdate = Database['public']['Tables']['profiles']['Update'];
 
 export interface Profile {
   id: string;
@@ -73,7 +76,7 @@ export function useUpdateProfile() {
       displayName?: string;
       bio?: string;
     }) => {
-      const updates: Record<string, string | null> = {};
+      const updates: ProfileUpdate = {};
       if (displayName !== undefined) updates.display_name = displayName || null;
       if (bio !== undefined) updates.bio = bio || null;
 
@@ -204,7 +207,7 @@ export function useUpdateNotificationPreferences() {
       courseUpdates?: boolean;
       discussionReplies?: boolean;
     }) => {
-      const updates: Record<string, boolean> = {};
+      const updates: ProfileUpdate = {};
       if (emailNotifications !== undefined) updates.email_notifications = emailNotifications;
       if (courseUpdates !== undefined) updates.course_updates = courseUpdates;
       if (discussionReplies !== undefined) updates.discussion_replies = discussionReplies;

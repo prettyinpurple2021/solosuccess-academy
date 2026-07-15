@@ -40,6 +40,32 @@ export interface CourseProject {
   submitted_at: string | null;
   created_at: string;
   updated_at: string;
+  admin_status: 'pending' | 'approved' | 'needs_revision';
+  admin_score: number | null;
+  admin_notes: string | null;
+  ai_proposed_score: number | null;
+  graded_by: string | null;
+  graded_at: string | null;
+  current_version: number;
+}
+
+/** A historical snapshot of a project submission (created on resubmit). */
+export interface CourseProjectVersion {
+  id: string;
+  project_id: string;
+  user_id: string;
+  course_id: string;
+  version_number: number;
+  submission_content: string | null;
+  file_urls: string[] | null;
+  ai_feedback: string | null;
+  ai_proposed_score: number | null;
+  admin_score: number | null;
+  admin_status: 'pending' | 'approved' | 'needs_revision' | null;
+  admin_notes: string | null;
+  submitted_at: string | null;
+  graded_at: string | null;
+  snapshotted_at: string;
 }
 
 /** Allowed MIME types for project file uploads */
@@ -247,4 +273,153 @@ export async function deleteProjectFile(fileUrl: string): Promise<void> {
     .remove([filePath]);
 
   if (error) throw error;
+}
+
+/** Fetch archived versions for a project (most-recent first). */
+export function useProjectVersions(projectId: string | undefined) {
+  return useQuery({
+    queryKey: ['course-project-versions', projectId],
+    queryFn: async (): Promise<CourseProjectVersion[]> => {
+      if (!projectId) return [];
+      const { data, error } = await supabase
+        .from('course_project_versions')
+        .select('*')
+        .eq('project_id', projectId)
+        .order('version_number', { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as CourseProjectVersion[];
+    },
+    enabled: !!projectId,
+  });
+}
+
+/**
+ * Resubmit an existing project via SECURITY DEFINER RPC.
+ * The RPC snapshots the previous version into course_project_versions and
+ * resets grading state. Only allowed when admin_status = 'needs_revision'.
+ */
+export function useResubmitProject() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      projectId,
+      submissionContent,
+      fileUrls,
+      userId,
+      courseId,
+    }: {
+      projectId: string;
+      submissionContent: string;
+      fileUrls: string[];
+      userId: string;
+      courseId: string;
+    }) => {
+      const { data, error } = await supabase.rpc('resubmit_project' as any, {
+        _project_id: projectId,
+        _submission_content: submissionContent,
+        _file_urls: fileUrls,
+      });
+      if (error) throw error;
+      return data as CourseProject;
+    },
+    onSuccess: (_, vars) => {
+      queryClient.invalidateQueries({ queryKey: ['course-project', vars.userId, vars.courseId] });
+      queryClient.invalidateQueries({ queryKey: ['course-project-versions', vars.projectId] });
+    },
+  });
+}
+
+/** Admin grading action — sets score, status, notes on a project. */
+export function useAdminGradeProject() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      projectId,
+      score,
+      status,
+      notes,
+    }: {
+      projectId: string;
+      score: number;
+      status: 'pending' | 'approved' | 'needs_revision';
+      notes?: string;
+    }) => {
+      const { data, error } = await supabase.rpc('admin_grade_project' as any, {
+        _project_id: projectId,
+        _score: score,
+        _status: status,
+        _notes: notes ?? null,
+      });
+      if (error) throw error;
+
+      // Fire-and-forget: notify the student when the decision is final.
+      // Failures do not roll back the grade — the grade record is source of truth.
+      if (status === 'approved' || status === 'needs_revision') {
+        try {
+          await supabase.functions.invoke('notify-project-grade', {
+            body: { projectId },
+          });
+        } catch (err) {
+          console.warn('notify-project-grade failed:', err);
+        }
+      }
+
+      return data as CourseProject;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['course-project'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-project-submissions'] });
+    },
+  });
+}
+
+/** Admin queue of pending / graded submissions. */
+export interface AdminProjectRow {
+  id: string;
+  user_id: string;
+  course_id: string;
+  course_title: string;
+  student_name: string;
+  status: 'draft' | 'submitted' | 'reviewed';
+  admin_status: 'pending' | 'approved' | 'needs_revision';
+  admin_score: number | null;
+  ai_proposed_score: number | null;
+  submitted_at: string | null;
+  graded_at: string | null;
+  current_version: number;
+}
+
+export function useAdminProjectSubmissions(filters: {
+  status?: 'pending' | 'approved' | 'needs_revision';
+  courseId?: string;
+} = {}) {
+  return useQuery({
+    queryKey: ['admin-project-submissions', filters],
+    queryFn: async (): Promise<AdminProjectRow[]> => {
+      const { data, error } = await supabase.rpc('admin_list_project_submissions' as any, {
+        _status: filters.status ?? null,
+        _course_id: filters.courseId ?? null,
+      });
+      if (error) throw error;
+      return (data ?? []) as AdminProjectRow[];
+    },
+  });
+}
+
+/** Fetch a single project by id (admin use). */
+export function useProjectById(projectId: string | undefined) {
+  return useQuery({
+    queryKey: ['course-project-by-id', projectId],
+    queryFn: async (): Promise<CourseProject | null> => {
+      if (!projectId) return null;
+      const { data, error } = await supabase
+        .from('course_projects')
+        .select('*')
+        .eq('id', projectId)
+        .maybeSingle();
+      if (error) throw error;
+      return data as CourseProject | null;
+    },
+    enabled: !!projectId,
+  });
 }

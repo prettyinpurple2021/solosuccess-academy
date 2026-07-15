@@ -16,6 +16,10 @@ interface AITutorChatProps {
   courseTitle: string;
   lessonTitle: string;
   lessonContent: string | null;
+  courseId?: string;
+  lessonId?: string;
+  lessonType?: string;
+  lessonDescription?: string | null;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -24,6 +28,10 @@ export function AITutorChat({
   courseTitle, 
   lessonTitle, 
   lessonContent,
+  courseId,
+  lessonId,
+  lessonType,
+  lessonDescription,
   isOpen,
   onClose
 }: AITutorChatProps) {
@@ -69,7 +77,13 @@ export function AITutorChat({
           messages: [...messages, userMessage],
           courseTitle,
           lessonTitle,
-          lessonContent: lessonContent?.substring(0, 2000), // Limit context size
+          // Send the full lesson body — the edge function trims and enriches
+          // with course outline, related textbook pages, and progress.
+          lessonContent: lessonContent ?? undefined,
+          lessonDescription: lessonDescription ?? undefined,
+          lessonType,
+          courseId,
+          lessonId,
         }),
       });
 
@@ -152,7 +166,7 @@ export function AITutorChat({
   if (isMinimized) {
     return (
       <div 
-        className="fixed bottom-4 right-4 z-50 w-72 glass-card cursor-pointer shadow-[0_0_30px_rgba(168,85,247,0.3)] border-primary/30"
+        className="fixed bottom-4 right-4 left-4 sm:left-auto z-50 w-auto sm:w-72 glass-card cursor-pointer shadow-[0_0_30px_rgba(168,85,247,0.3)] border-primary/30"
         onClick={() => setIsMinimized(false)}
       >
         <div className="p-4 flex items-center justify-between">
@@ -184,7 +198,7 @@ export function AITutorChat({
   }
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 w-96 h-[500px] glass-card shadow-[0_0_40px_rgba(168,85,247,0.3)] border-primary/30 flex flex-col">
+    <div className="fixed inset-x-4 bottom-4 sm:inset-x-auto sm:right-4 z-50 w-auto sm:w-96 h-[70vh] sm:h-[500px] max-h-[600px] glass-card shadow-[0_0_40px_rgba(168,85,247,0.3)] border-primary/30 flex flex-col">
       {/* Header */}
       <div className="p-4 border-b border-primary/20 flex items-center justify-between flex-shrink-0 surface-overlay">
         <div className="flex items-center gap-2">

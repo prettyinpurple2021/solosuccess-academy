@@ -197,7 +197,7 @@ export function LessonEditCard({
         
         <CollapsibleContent>
           <CardContent className="pt-0 pb-4 space-y-4 border-t border-border/50">
-            <div className="grid grid-cols-2 gap-4 pt-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
               <div className="space-y-2">
                 <Label>Title</Label>
                 <Input
@@ -256,7 +256,7 @@ export function LessonEditCard({
                         className="flex-1 text-sm"
                       />
                     </div>
-                    <div className="grid grid-cols-2 gap-2 pl-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pl-4 sm:pl-6">
                       {q.options.map((opt, optIndex) => (
                         <div key={optIndex} className="flex items-center gap-2">
                           <input

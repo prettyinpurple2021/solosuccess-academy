@@ -32,7 +32,7 @@ import { lazy, Suspense } from "react";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { ThemeProvider } from "next-themes";
 import { GamificationProvider } from "@/components/gamification/GamificationProvider";
@@ -63,6 +63,7 @@ import { RouteErrorBoundary } from "@/components/layout/RouteErrorBoundary";
 // ──────────────────────────────────────────────
 const Index = lazy(() => import("./pages/Index"));
 const Auth = lazy(() => import("./pages/Auth"));
+const Status = lazy(() => import("./pages/Status"));
 const Courses = lazy(() => import("./pages/Courses"));
 const CourseDetail = lazy(() => import("./pages/CourseDetail"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
@@ -112,6 +113,7 @@ const AdminBlogAutoPost = lazy(() => import("./pages/admin/AdminBlogAutoPost"));
 const AdminMigration = lazy(() => import("./pages/admin/AdminMigration"));
 const AdminMigrationPrint = lazy(() => import("./pages/admin/AdminMigrationPrint"));
 const AdminPlatformSettings = lazy(() => import("./pages/admin/AdminPlatformSettings"));
+const AdminProjects = lazy(() => import("./pages/admin/AdminProjects"));
 const OAuthConsent = lazy(() => import("./pages/OAuthConsent"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
@@ -177,6 +179,10 @@ const App = () => (
               }
             >
               <Routes>
+                {/* Legacy preview path: send /index back to the real home route.
+                    This prevents the app preview from opening on a 404 page. */}
+                <Route path="/index" element={<Navigate to="/" replace />} />
+
                 {/* ═══════════════════════════════════════════
                     PUBLIC ROUTES — No authentication required.
                     Wrapped in PublicLayout (header + footer).
@@ -210,6 +216,9 @@ const App = () => (
 
               {/* Email Unsubscribe — public standalone page */}
               <Route path="/unsubscribe" element={<RouteErrorBoundary><Unsubscribe /></RouteErrorBoundary>} />
+
+              {/* Public health/status page — no layout, standalone */}
+              <Route path="/status" element={<RouteErrorBoundary><Status /></RouteErrorBoundary>} />
 
               {/* OAuth 2.1 consent screen for the SoloSuccess Academy MCP server.
                   Users are redirected here by Supabase Auth when an external
@@ -246,6 +255,7 @@ const App = () => (
                   <Route path="blog-auto-post" element={<RouteErrorBoundary><AdminBlogAutoPost /></RouteErrorBoundary>} />
                   <Route path="migration" element={<RouteErrorBoundary><AdminMigration /></RouteErrorBoundary>} />
                   <Route path="platform-settings" element={<RouteErrorBoundary><AdminPlatformSettings /></RouteErrorBoundary>} />
+                  <Route path="projects" element={<RouteErrorBoundary><AdminProjects /></RouteErrorBoundary>} />
                 </Route>
                 
                 {/* ─── STUDENT LEARNING ROUTES ────────────

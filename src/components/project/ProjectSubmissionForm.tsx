@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,6 +11,7 @@ import {
   useSaveProjectDraft, 
   useSubmitProject, 
   useRequestFeedback,
+  useResubmitProject,
   uploadProjectFile,
   deleteProjectFile 
 } from '@/hooks/useProjects';
@@ -25,7 +26,10 @@ import {
   Send, 
   Sparkles,
   Loader2,
-  CheckCircle2
+  CheckCircle2,
+  Lock,
+  RotateCcw,
+  AlertTriangle
 } from 'lucide-react';
 
 interface ProjectSubmissionFormProps {
@@ -42,19 +46,21 @@ export function ProjectSubmissionForm({ course, userId }: ProjectSubmissionFormP
   const saveDraft = useSaveProjectDraft();
   const submitProject = useSubmitProject();
   const requestFeedback = useRequestFeedback();
+  const resubmit = useResubmitProject();
 
   const [content, setContent] = useState(project?.submission_content || '');
   const [fileUrls, setFileUrls] = useState<string[]>(project?.file_urls || []);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [isResubmitting, setIsResubmitting] = useState(false);
 
-  // Sync content when project loads
-  useState(() => {
+  // Sync form state when project data loads or changes.
+  useEffect(() => {
     if (project) {
       setContent(project.submission_content || '');
       setFileUrls(project.file_urls || []);
     }
-  });
+  }, [project?.id, project?.current_version, project?.admin_status]);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -211,8 +217,45 @@ export function ProjectSubmissionForm({ course, userId }: ProjectSubmissionFormP
     );
   }
 
+  const adminStatus = project?.admin_status ?? 'pending';
   const isSubmitted = project?.status === 'submitted' || project?.status === 'reviewed';
-  const hasFeedback = !!project?.ai_feedback;
+  const isApproved = adminStatus === 'approved';
+  const needsRevision = adminStatus === 'needs_revision';
+  // Lock the form while awaiting admin review (submitted, not yet decided) or approved.
+  const isLocked = (isSubmitted && !needsRevision) && !isResubmitting;
+
+  const handleStartResubmit = () => {
+    setIsResubmitting(true);
+  };
+
+  const handleCancelResubmit = () => {
+    setIsResubmitting(false);
+    setContent(project?.submission_content || '');
+    setFileUrls(project?.file_urls || []);
+  };
+
+  const handleResubmit = async () => {
+    if (!project) return;
+    if (!content.trim()) {
+      toast({ title: 'Content required', variant: 'destructive' });
+      return;
+    }
+    try {
+      await resubmit.mutateAsync({
+        projectId: project.id,
+        submissionContent: content,
+        fileUrls,
+        userId,
+        courseId: course.id,
+      });
+      toast({ title: 'Resubmitted', description: 'Your previous version was archived. Requesting AI feedback…' });
+      setIsResubmitting(false);
+      await requestFeedback.mutateAsync({ projectId: project.id, userId, courseId: course.id });
+      toast({ title: 'Feedback ready', description: 'Your updated project is now awaiting admin review.' });
+    } catch (err: any) {
+      toast({ title: 'Resubmission failed', description: err.message, variant: 'destructive' });
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -221,30 +264,69 @@ export function ProjectSubmissionForm({ course, userId }: ProjectSubmissionFormP
         <div className="p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-xl font-semibold neon-text">{course.project_title}</h3>
-            {project?.status && (
-              <Badge 
-                variant={project.status === 'reviewed' ? 'default' : project.status === 'submitted' ? 'secondary' : 'outline'}
-                className={
-                  project.status === 'reviewed' 
-                    ? 'bg-success/20 text-success border-success/30 shadow-[0_0_10px_hsl(var(--success)/0.3)]' 
-                    : project.status === 'submitted'
-                    ? 'bg-secondary/20 text-secondary border-secondary/30 shadow-[0_0_10px_hsl(var(--secondary)/0.3)]'
-                    : 'border-muted-foreground/30'
-                }
-              >
-                {project.status === 'reviewed' && <CheckCircle2 className="h-3 w-3 mr-1" />}
-                {project.status.charAt(0).toUpperCase() + project.status.slice(1)}
-              </Badge>
+            {project && (
+              <StatusBadge project={project} />
             )}
           </div>
           <p className="text-muted-foreground">{course.project_description}</p>
+          {project && project.current_version > 1 && (
+            <p className="text-xs text-muted-foreground mt-2 font-mono">
+              Attempt #{project.current_version}
+            </p>
+          )}
         </div>
       </div>
+
+      {/* Locked / needs-revision banners */}
+      {isLocked && !isApproved && (
+        <div className="glass-card border-secondary/30 bg-secondary/5 p-4 flex items-start gap-3">
+          <Lock className="h-5 w-5 text-secondary mt-0.5 shrink-0" />
+          <div>
+            <p className="font-medium text-secondary">Awaiting admin review</p>
+            <p className="text-sm text-muted-foreground">
+              Your submission is locked while an admin grades it. You'll be able to edit only if it's marked "needs revision".
+            </p>
+          </div>
+        </div>
+      )}
+      {isApproved && (
+        <div className="glass-card border-success/30 bg-success/5 p-4 flex items-start gap-3">
+          <CheckCircle2 className="h-5 w-5 text-success mt-0.5 shrink-0" />
+          <div>
+            <p className="font-medium text-success">Approved by admin</p>
+            <p className="text-sm text-muted-foreground">
+              This project has been approved and is final. No further changes needed.
+            </p>
+          </div>
+        </div>
+      )}
+      {needsRevision && !isResubmitting && (
+        <div className="glass-card border-warning/30 bg-warning/5 p-4 flex items-start gap-3">
+          <AlertTriangle className="h-5 w-5 text-warning mt-0.5 shrink-0" />
+          <div className="flex-1">
+            <p className="font-medium text-warning">Revisions requested</p>
+            <p className="text-sm text-muted-foreground mb-3">
+              An admin has asked for changes. Review their notes below, then start a new revision.
+            </p>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleStartResubmit}
+              className="border-warning/50 hover:border-warning hover:bg-warning/10 hover:text-warning"
+            >
+              <RotateCcw className="h-4 w-4 mr-2" />
+              Start Revision
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Submission Form */}
       <div className="glass-card border-primary/30 overflow-hidden">
         <div className="p-6 border-b border-primary/20">
-          <h3 className="text-lg font-semibold neon-text">Your Submission</h3>
+          <h3 className="text-lg font-semibold neon-text">
+            {isResubmitting ? `Revision (Attempt #${(project?.current_version ?? 1) + 1})` : 'Your Submission'}
+          </h3>
           <p className="text-sm text-muted-foreground mt-1">
             Write your project submission below. You can also attach files to support your work.
           </p>
@@ -263,7 +345,7 @@ Include:
 • Results and outcomes
 • Lessons learned"
               className="min-h-[300px] resize-y bg-background/50 border-primary/30 focus:border-primary focus:ring-primary/30 transition-all"
-              disabled={isSubmitted}
+              disabled={isLocked}
             />
             <p className="text-xs text-muted-foreground mt-2">
               {content.length} characters
@@ -274,7 +356,7 @@ Include:
           <div>
             <div className="flex items-center justify-between mb-3">
               <label className="text-sm font-medium text-foreground">Attachments</label>
-              {!isSubmitted && (
+              {!isLocked && (
                 <Button
                   variant="outline"
                   size="sm"
@@ -320,7 +402,7 @@ Include:
                     >
                       {getFileName(url)}
                     </a>
-                    {!isSubmitted && (
+                    {!isLocked && (
                       <Button
                         variant="ghost"
                         size="icon"
@@ -341,7 +423,7 @@ Include:
           </div>
 
           {/* Actions */}
-          {!isSubmitted && (
+          {!isSubmitted && !isResubmitting && (
             <div className="flex flex-wrap items-center gap-3 pt-4 border-t border-primary/20">
               <Button
                 variant="outline"
@@ -366,24 +448,32 @@ Include:
                 ) : (
                   <Send className="h-4 w-4 mr-2" />
                 )}
-                Submit for AI Feedback
+                Submit for Review
               </Button>
             </div>
           )}
 
-          {/* Re-submit option */}
-          {isSubmitted && (
-            <div className="pt-4 border-t border-primary/20">
+          {/* Resubmit actions */}
+          {isResubmitting && (
+            <div className="flex flex-wrap items-center gap-3 pt-4 border-t border-primary/20">
               <Button
                 variant="outline"
-                onClick={() => {
-                  // Allow re-editing
-                  setContent(project?.submission_content || '');
-                }}
-                className="w-full border-secondary/50 hover:border-secondary hover:bg-secondary/10 hover:text-secondary transition-all group"
+                onClick={handleCancelResubmit}
+                disabled={resubmit.isPending || requestFeedback.isPending}
               >
-                <Sparkles className="h-4 w-4 mr-2 group-hover:animate-pulse" style={{ filter: 'drop-shadow(0 0 5px hsl(var(--secondary)))' }} />
-                Request New Feedback
+                Cancel
+              </Button>
+              <Button
+                variant="neon"
+                onClick={handleResubmit}
+                disabled={resubmit.isPending || requestFeedback.isPending || !content.trim()}
+              >
+                {(resubmit.isPending || requestFeedback.isPending) ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Send className="h-4 w-4 mr-2" />
+                )}
+                Submit Revision
               </Button>
             </div>
           )}
@@ -391,4 +481,30 @@ Include:
       </div>
     </div>
   );
+}
+
+/** Combined status pill — shows admin grading status when a decision exists. */
+function StatusBadge({ project }: { project: NonNullable<ReturnType<typeof useCourseProject>['data']> }) {
+  if (project.admin_status === 'approved') {
+    return (
+      <Badge className="bg-success/20 text-success border-success/30 shadow-[0_0_10px_hsl(var(--success)/0.3)]">
+        <CheckCircle2 className="h-3 w-3 mr-1" /> Approved
+      </Badge>
+    );
+  }
+  if (project.admin_status === 'needs_revision') {
+    return (
+      <Badge className="bg-warning/20 text-warning border-warning/30 shadow-[0_0_10px_hsl(var(--warning)/0.3)]">
+        <AlertTriangle className="h-3 w-3 mr-1" /> Needs Revision
+      </Badge>
+    );
+  }
+  if (project.status === 'submitted' || project.status === 'reviewed') {
+    return (
+      <Badge className="bg-secondary/20 text-secondary border-secondary/30 shadow-[0_0_10px_hsl(var(--secondary)/0.3)]">
+        Pending Review
+      </Badge>
+    );
+  }
+  return <Badge variant="outline" className="border-muted-foreground/30">Draft</Badge>;
 }

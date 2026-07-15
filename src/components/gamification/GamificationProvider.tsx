@@ -45,7 +45,9 @@ export function GamificationProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const { data: gamification } = useUserGamification(user?.id);
   const { data: achievements } = useProfileAchievements(user?.id);
-  const { data: xpConfig } = useXPConfig();
+  // XP config is protected student/admin data, so load it only after auth exists.
+  // Signed-out visitors keep the safe default XP values without triggering 401s.
+  const { data: xpConfig } = useXPConfig(!!user?.id);
   const awardXPMutation = useAwardXP();
   const checkBadgesMutation = useCheckBadges();
   const { showXP, showBadge, NotificationContainer } = useXPNotification();

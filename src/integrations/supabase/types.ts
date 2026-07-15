@@ -608,13 +608,88 @@ export type Database = {
           },
         ]
       }
+      course_project_versions: {
+        Row: {
+          admin_notes: string | null
+          admin_score: number | null
+          admin_status:
+            | Database["public"]["Enums"]["project_grade_status"]
+            | null
+          ai_feedback: string | null
+          ai_proposed_score: number | null
+          course_id: string
+          file_urls: string[] | null
+          graded_at: string | null
+          id: string
+          project_id: string
+          snapshotted_at: string
+          submission_content: string | null
+          submitted_at: string | null
+          user_id: string
+          version_number: number
+        }
+        Insert: {
+          admin_notes?: string | null
+          admin_score?: number | null
+          admin_status?:
+            | Database["public"]["Enums"]["project_grade_status"]
+            | null
+          ai_feedback?: string | null
+          ai_proposed_score?: number | null
+          course_id: string
+          file_urls?: string[] | null
+          graded_at?: string | null
+          id?: string
+          project_id: string
+          snapshotted_at?: string
+          submission_content?: string | null
+          submitted_at?: string | null
+          user_id: string
+          version_number: number
+        }
+        Update: {
+          admin_notes?: string | null
+          admin_score?: number | null
+          admin_status?:
+            | Database["public"]["Enums"]["project_grade_status"]
+            | null
+          ai_feedback?: string | null
+          ai_proposed_score?: number | null
+          course_id?: string
+          file_urls?: string[] | null
+          graded_at?: string | null
+          id?: string
+          project_id?: string
+          snapshotted_at?: string
+          submission_content?: string | null
+          submitted_at?: string | null
+          user_id?: string
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_project_versions_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "course_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       course_projects: {
         Row: {
+          admin_notes: string | null
+          admin_score: number | null
+          admin_status: Database["public"]["Enums"]["project_grade_status"]
           ai_feedback: string | null
           ai_feedback_at: string | null
+          ai_proposed_score: number | null
           course_id: string
           created_at: string
+          current_version: number
           file_urls: string[] | null
+          graded_at: string | null
+          graded_by: string | null
           id: string
           status: Database["public"]["Enums"]["project_status"]
           submission_content: string | null
@@ -623,11 +698,18 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          admin_notes?: string | null
+          admin_score?: number | null
+          admin_status?: Database["public"]["Enums"]["project_grade_status"]
           ai_feedback?: string | null
           ai_feedback_at?: string | null
+          ai_proposed_score?: number | null
           course_id: string
           created_at?: string
+          current_version?: number
           file_urls?: string[] | null
+          graded_at?: string | null
+          graded_by?: string | null
           id?: string
           status?: Database["public"]["Enums"]["project_status"]
           submission_content?: string | null
@@ -636,11 +718,18 @@ export type Database = {
           user_id: string
         }
         Update: {
+          admin_notes?: string | null
+          admin_score?: number | null
+          admin_status?: Database["public"]["Enums"]["project_grade_status"]
           ai_feedback?: string | null
           ai_feedback_at?: string | null
+          ai_proposed_score?: number | null
           course_id?: string
           created_at?: string
+          current_version?: number
           file_urls?: string[] | null
+          graded_at?: string | null
+          graded_by?: string | null
           id?: string
           status?: Database["public"]["Enums"]["project_status"]
           submission_content?: string | null
@@ -715,6 +804,30 @@ export type Database = {
           subtitle?: string | null
           title?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      deploy_history: {
+        Row: {
+          created_at: string
+          deployed_at: string
+          id: string
+          status: string
+          version: string
+        }
+        Insert: {
+          created_at?: string
+          deployed_at?: string
+          id?: string
+          status?: string
+          version: string
+        }
+        Update: {
+          created_at?: string
+          deployed_at?: string
+          id?: string
+          status?: string
+          version?: string
         }
         Relationships: []
       }
@@ -928,6 +1041,7 @@ export type Database = {
           essay_weight: number
           exam_weight: number
           id: string
+          project_weight: number
           quiz_weight: number
           updated_at: string
           worksheet_weight: number
@@ -939,6 +1053,7 @@ export type Database = {
           essay_weight?: number
           exam_weight?: number
           id?: string
+          project_weight?: number
           quiz_weight?: number
           updated_at?: string
           worksheet_weight?: number
@@ -950,6 +1065,7 @@ export type Database = {
           essay_weight?: number
           exam_weight?: number
           id?: string
+          project_weight?: number
           quiz_weight?: number
           updated_at?: string
           worksheet_weight?: number
@@ -1433,6 +1549,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      project_revision_reminders_sent: {
+        Row: {
+          graded_at: string
+          id: string
+          project_id: string
+          sent_at: string
+          user_id: string
+        }
+        Insert: {
+          graded_at: string
+          id?: string
+          project_id: string
+          sent_at?: string
+          user_id: string
+        }
+        Update: {
+          graded_at?: string
+          id?: string
+          project_id?: string
+          sent_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       project_rubric_categories: {
         Row: {
@@ -2026,6 +2166,33 @@ export type Database = {
           },
         ]
       }
+      user_activity_days: {
+        Row: {
+          activity_date: string
+          created_at: string
+          id: string
+          updated_at: string
+          user_id: string
+          xp_earned: number
+        }
+        Insert: {
+          activity_date: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+          xp_earned?: number
+        }
+        Update: {
+          activity_date?: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+          xp_earned?: number
+        }
+        Relationships: []
+      }
       user_badges: {
         Row: {
           badge_id: string
@@ -2068,6 +2235,7 @@ export type Database = {
           last_reviewed_at: string | null
           next_review_at: string
           repetitions: number
+          source_lesson_id: string | null
           updated_at: string
           user_id: string
         }
@@ -2083,6 +2251,7 @@ export type Database = {
           last_reviewed_at?: string | null
           next_review_at?: string
           repetitions?: number
+          source_lesson_id?: string | null
           updated_at?: string
           user_id: string
         }
@@ -2098,6 +2267,7 @@ export type Database = {
           last_reviewed_at?: string | null
           next_review_at?: string
           repetitions?: number
+          source_lesson_id?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -2107,6 +2277,13 @@ export type Database = {
             columns: ["highlight_id"]
             isOneToOne: false
             referencedRelation: "user_textbook_highlights"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_flashcards_source_lesson_id_fkey"
+            columns: ["source_lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
             referencedColumns: ["id"]
           },
         ]
@@ -2439,6 +2616,60 @@ export type Database = {
         Args: { _course_id: string }
         Returns: undefined
       }
+      admin_grade_project: {
+        Args: {
+          _notes?: string
+          _project_id: string
+          _score: number
+          _status: Database["public"]["Enums"]["project_grade_status"]
+        }
+        Returns: {
+          admin_notes: string | null
+          admin_score: number | null
+          admin_status: Database["public"]["Enums"]["project_grade_status"]
+          ai_feedback: string | null
+          ai_feedback_at: string | null
+          ai_proposed_score: number | null
+          course_id: string
+          created_at: string
+          current_version: number
+          file_urls: string[] | null
+          graded_at: string | null
+          graded_by: string | null
+          id: string
+          status: Database["public"]["Enums"]["project_status"]
+          submission_content: string | null
+          submitted_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "course_projects"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      admin_list_project_submissions: {
+        Args: {
+          _course_id?: string
+          _status?: Database["public"]["Enums"]["project_grade_status"]
+        }
+        Returns: {
+          admin_score: number
+          admin_status: Database["public"]["Enums"]["project_grade_status"]
+          ai_proposed_score: number
+          course_id: string
+          course_title: string
+          current_version: number
+          graded_at: string
+          id: string
+          status: Database["public"]["Enums"]["project_status"]
+          student_name: string
+          submitted_at: string
+          user_id: string
+        }[]
+      }
       admin_update_xp_config: {
         Args: { _id: string; _label?: string; _xp_amount: number }
         Returns: {
@@ -2456,33 +2687,64 @@ export type Database = {
           isSetofReturn: false
         }
       }
-      admin_upsert_grade_settings: {
-        Args: {
-          _activity_weight: number
-          _course_id: string
-          _essay_weight: number
-          _exam_weight: number
-          _quiz_weight: number
-          _worksheet_weight: number
-        }
-        Returns: {
-          activity_weight: number
-          course_id: string | null
-          created_at: string
-          essay_weight: number
-          exam_weight: number
-          id: string
-          quiz_weight: number
-          updated_at: string
-          worksheet_weight: number
-        }
-        SetofOptions: {
-          from: "*"
-          to: "grade_settings"
-          isOneToOne: true
-          isSetofReturn: false
-        }
-      }
+      admin_upsert_grade_settings:
+        | {
+            Args: {
+              _activity_weight: number
+              _course_id: string
+              _essay_weight: number
+              _exam_weight: number
+              _quiz_weight: number
+              _worksheet_weight: number
+            }
+            Returns: {
+              activity_weight: number
+              course_id: string | null
+              created_at: string
+              essay_weight: number
+              exam_weight: number
+              id: string
+              project_weight: number
+              quiz_weight: number
+              updated_at: string
+              worksheet_weight: number
+            }
+            SetofOptions: {
+              from: "*"
+              to: "grade_settings"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
+        | {
+            Args: {
+              _activity_weight: number
+              _course_id: string
+              _essay_weight: number
+              _exam_weight: number
+              _project_weight?: number
+              _quiz_weight: number
+              _worksheet_weight: number
+            }
+            Returns: {
+              activity_weight: number
+              course_id: string | null
+              created_at: string
+              essay_weight: number
+              exam_weight: number
+              id: string
+              project_weight: number
+              quiz_weight: number
+              updated_at: string
+              worksheet_weight: number
+            }
+            SetofOptions: {
+              from: "*"
+              to: "grade_settings"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
       award_xp: {
         Args: { _action?: string; _user_id: string; _xp_amount: number }
         Returns: Json
@@ -2540,6 +2802,7 @@ export type Database = {
           essay_weight: number
           exam_weight: number
           id: string
+          project_weight: number
           quiz_weight: number
           updated_at: string
           worksheet_weight: number
@@ -2623,9 +2886,46 @@ export type Database = {
           read_ct: number
         }[]
       }
+      record_deploy: {
+        Args: { _deployed_at: string; _version: string }
+        Returns: undefined
+      }
       request_account_deletion: {
         Args: { _delete_content?: boolean }
         Returns: Json
+      }
+      resubmit_project: {
+        Args: {
+          _file_urls: string[]
+          _project_id: string
+          _submission_content: string
+        }
+        Returns: {
+          admin_notes: string | null
+          admin_score: number | null
+          admin_status: Database["public"]["Enums"]["project_grade_status"]
+          ai_feedback: string | null
+          ai_feedback_at: string | null
+          ai_proposed_score: number | null
+          course_id: string
+          created_at: string
+          current_version: number
+          file_urls: string[] | null
+          graded_at: string | null
+          graded_by: string | null
+          id: string
+          status: Database["public"]["Enums"]["project_status"]
+          submission_content: string | null
+          submitted_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "course_projects"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       search_textbook_pages_for_student: {
         Args: { _course_id: string; _query: string }
@@ -2669,6 +2969,7 @@ export type Database = {
         | "assignment"
         | "worksheet"
         | "activity"
+      project_grade_status: "pending" | "approved" | "needs_revision"
       project_status: "draft" | "submitted" | "reviewed"
       testimonial_status: "pending" | "approved" | "rejected"
     }
@@ -2809,6 +3110,7 @@ export const Constants = {
         "worksheet",
         "activity",
       ],
+      project_grade_status: ["pending", "approved", "needs_revision"],
       project_status: ["draft", "submitted", "reviewed"],
       testimonial_status: ["pending", "approved", "rejected"],
     },

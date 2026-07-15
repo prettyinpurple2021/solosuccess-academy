@@ -1,6 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { startOfMonth, subMonths, format, eachDayOfInterval, subDays } from 'date-fns';
+import {
+  startOfMonth,
+  subMonths,
+  format,
+  eachDayOfInterval,
+  subDays,
+  differenceInCalendarDays,
+} from 'date-fns';
 
 export interface RevenueData {
   date: string;
@@ -27,6 +34,18 @@ export interface AnalyticsSummary {
   averageEngagement: number;
   revenueGrowth: number;
   studentGrowth: number;
+}
+
+// A single monthly cohort of paying students (grouped by first-purchase month).
+export interface CohortRow {
+  cohortKey: string; // e.g. "2026-05"
+  cohortLabel: string; // e.g. "May 2026"
+  size: number;
+  avgRevenue: number;
+  avgLessonsCompleted: number;
+  avgXp: number;
+  // Retention as % of cohort active in week N after joining (weeks 0-7)
+  retention: number[];
 }
 
 // Fetch revenue data by month
@@ -66,6 +85,159 @@ export function useRevenueAnalytics() {
         amount,
         count,
       }));
+    },
+  });
+}
+
+// Cohort analytics: group paying students by first-purchase month and
+// measure weekly retention + engagement for the last 6 cohorts.
+export function useCohortAnalytics() {
+  return useQuery({
+    queryKey: ['analytics', 'cohorts'],
+    queryFn: async (): Promise<CohortRow[]> => {
+      const WEEKS = 8;
+      const MONTHS = 6;
+      const earliestCohortStart = startOfMonth(subMonths(new Date(), MONTHS - 1));
+
+      // 1. Every purchase (need earliest per user to form cohort + total revenue per user).
+      const { data: purchases, error: purchasesError } = await supabase
+        .from('purchases')
+        .select('user_id, purchased_at, amount_cents');
+      if (purchasesError) throw purchasesError;
+
+      // Build per-user aggregates
+      const perUser = new Map<
+        string,
+        { firstPurchase: Date; revenueCents: number }
+      >();
+      purchases?.forEach((p) => {
+        const when = new Date(p.purchased_at);
+        const existing = perUser.get(p.user_id);
+        if (!existing) {
+          perUser.set(p.user_id, {
+            firstPurchase: when,
+            revenueCents: p.amount_cents,
+          });
+        } else {
+          existing.revenueCents += p.amount_cents;
+          if (when < existing.firstPurchase) existing.firstPurchase = when;
+        }
+      });
+
+      // Bucket users into recent monthly cohorts
+      const cohorts = new Map<
+        string,
+        { label: string; userIds: Set<string>; revenueCents: number }
+      >();
+      for (let i = MONTHS - 1; i >= 0; i--) {
+        const monthDate = startOfMonth(subMonths(new Date(), i));
+        const key = format(monthDate, 'yyyy-MM');
+        cohorts.set(key, {
+          label: format(monthDate, 'MMM yyyy'),
+          userIds: new Set(),
+          revenueCents: 0,
+        });
+      }
+      perUser.forEach(({ firstPurchase, revenueCents }, userId) => {
+        if (firstPurchase < earliestCohortStart) return;
+        const key = format(startOfMonth(firstPurchase), 'yyyy-MM');
+        const bucket = cohorts.get(key);
+        if (!bucket) return;
+        bucket.userIds.add(userId);
+        bucket.revenueCents += revenueCents;
+      });
+
+      const cohortUserIds = Array.from(cohorts.values()).flatMap((c) =>
+        Array.from(c.userIds),
+      );
+      if (cohortUserIds.length === 0) {
+        return Array.from(cohorts.entries()).map(([cohortKey, c]) => ({
+          cohortKey,
+          cohortLabel: c.label,
+          size: 0,
+          avgRevenue: 0,
+          avgLessonsCompleted: 0,
+          avgXp: 0,
+          retention: new Array(WEEKS).fill(0),
+        }));
+      }
+
+      // 2. Activity days per user (drives the retention heatmap)
+      const { data: activityDays, error: activityErr } = await supabase
+        .from('user_activity_days')
+        .select('user_id, activity_date')
+        .in('user_id', cohortUserIds)
+        .gte('activity_date', format(earliestCohortStart, 'yyyy-MM-dd'));
+      if (activityErr) throw activityErr;
+
+      // 3. Lessons completed per user
+      const { data: completions, error: completionsErr } = await supabase
+        .from('user_progress')
+        .select('user_id')
+        .eq('completed', true)
+        .in('user_id', cohortUserIds);
+      if (completionsErr) throw completionsErr;
+
+      const lessonsByUser = new Map<string, number>();
+      completions?.forEach((row) => {
+        lessonsByUser.set(row.user_id, (lessonsByUser.get(row.user_id) ?? 0) + 1);
+      });
+
+      // 4. XP per user
+      const { data: gamification, error: gamErr } = await supabase
+        .from('user_gamification')
+        .select('user_id, total_xp')
+        .in('user_id', cohortUserIds);
+      if (gamErr) throw gamErr;
+
+      const xpByUser = new Map<string, number>();
+      gamification?.forEach((row) => xpByUser.set(row.user_id, row.total_xp));
+
+      // Retention: for each user, which weeks-since-first-purchase they were active
+      const userWeeks = new Map<string, Set<number>>();
+      activityDays?.forEach((row) => {
+        const meta = perUser.get(row.user_id);
+        if (!meta) return;
+        const days = differenceInCalendarDays(
+          new Date(row.activity_date),
+          meta.firstPurchase,
+        );
+        if (days < 0) return;
+        const week = Math.floor(days / 7);
+        if (week >= WEEKS) return;
+        if (!userWeeks.has(row.user_id)) userWeeks.set(row.user_id, new Set());
+        userWeeks.get(row.user_id)!.add(week);
+      });
+
+      return Array.from(cohorts.entries()).map(([cohortKey, c]) => {
+        const ids = Array.from(c.userIds);
+        const size = ids.length;
+        const retention = new Array(WEEKS).fill(0);
+        if (size > 0) {
+          for (let w = 0; w < WEEKS; w++) {
+            const active = ids.filter((uid) => userWeeks.get(uid)?.has(w)).length;
+            retention[w] = Math.round((active / size) * 100);
+          }
+        }
+        const totalLessons = ids.reduce(
+          (sum, uid) => sum + (lessonsByUser.get(uid) ?? 0),
+          0,
+        );
+        const totalXp = ids.reduce(
+          (sum, uid) => sum + (xpByUser.get(uid) ?? 0),
+          0,
+        );
+        return {
+          cohortKey,
+          cohortLabel: c.label,
+          size,
+          avgRevenue: size > 0 ? Math.round(c.revenueCents / size) / 100 : 0,
+          avgLessonsCompleted:
+            size > 0 ? Math.round((totalLessons / size) * 10) / 10 : 0,
+          avgXp: size > 0 ? Math.round(totalXp / size) : 0,
+          retention,
+        };
+      });
     },
   });
 }
