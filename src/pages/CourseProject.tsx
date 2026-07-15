@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { ProjectSubmissionForm } from '@/components/project/ProjectSubmissionForm';
 import { ProjectFeedback } from '@/components/project/ProjectFeedback';
+import { ProjectVersionHistory } from '@/components/project/ProjectVersionHistory';
 import { MilestoneCard } from '@/components/project/MilestoneCard';
 import { GraduationGate } from '@/components/project/GraduationGate';
 import { PortfolioAssembler } from '@/components/project/PortfolioAssembler';
@@ -258,7 +259,8 @@ export default function CourseProject() {
                 /* Legacy single-submission fallback */
                 <>
                   <ProjectSubmissionForm course={course} userId={user!.id} />
-                  {project?.ai_feedback && <ProjectFeedback project={project} />}
+                  {project && <ProjectFeedback project={project} />}
+                  {project && <ProjectVersionHistory projectId={project.id} />}
                 </>
               )}
             </>
