@@ -14,6 +14,9 @@
  * - Add streak recovery (e.g., "freeze" mechanic for premium users)
  * - Animate streak count changes
  */
+import { useEffect, useMemo } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Flame, Trophy, Calendar } from 'lucide-react';
 import { useUserGamification } from '@/hooks/useGamification';
@@ -27,21 +30,64 @@ interface StreakCardProps {
 export function StreakCard({ className }: StreakCardProps) {
   const { user } = useAuth();
   const { data: gamification } = useUserGamification(user?.id);
+  const queryClient = useQueryClient();
+
+  // Last 7 days of activity — accurate per-day history from user_activity_days
+  const { data: activityDays } = useQuery({
+    queryKey: ['user-activity-days-7d', user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const sevenAgo = new Date();
+      sevenAgo.setDate(sevenAgo.getDate() - 6);
+      const from = sevenAgo.toISOString().split('T')[0];
+      const { data, error } = await supabase
+        .from('user_activity_days')
+        .select('activity_date')
+        .eq('user_id', user!.id)
+        .gte('activity_date', from);
+      if (error) throw error;
+      return new Set((data ?? []).map((r) => r.activity_date as string));
+    },
+  });
+
+  // Realtime: invalidate when this user's gamification/activity rows change
+  useEffect(() => {
+    if (!user?.id) return;
+    const channel = supabase
+      .channel(`streak-${user.id}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'user_gamification', filter: `user_id=eq.${user.id}` },
+        () => queryClient.invalidateQueries({ queryKey: ['user-gamification', user.id] }),
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'user_activity_days', filter: `user_id=eq.${user.id}` },
+        () => queryClient.invalidateQueries({ queryKey: ['user-activity-days-7d', user.id] }),
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id, queryClient]);
 
   const currentStreak = gamification?.current_streak || 0;
   const longestStreak = gamification?.longest_streak || 0;
-  const lastActivity = gamification?.last_activity_date;
 
   // Check if streak is active today
   const today = new Date().toISOString().split('T')[0];
-  const isActiveToday = lastActivity === today;
+  const isActiveToday = activityDays?.has(today) ?? false;
 
   // Generate last 7 days for visual
-  const last7Days = Array.from({ length: 7 }, (_, i) => {
-    const date = new Date();
-    date.setDate(date.getDate() - (6 - i));
-    return date.toISOString().split('T')[0];
-  });
+  const last7Days = useMemo(
+    () =>
+      Array.from({ length: 7 }, (_, i) => {
+        const date = new Date();
+        date.setDate(date.getDate() - (6 - i));
+        return date.toISOString().split('T')[0];
+      }),
+    [],
+  );
 
   return (
     <Card className={cn('glass-card', className)}>
@@ -102,7 +148,7 @@ export function StreakCard({ className }: StreakCardProps) {
             {last7Days.map((date, i) => {
               const dayName = new Date(date).toLocaleDateString('en-US', { weekday: 'short' }).charAt(0);
               const isToday = date === today;
-              const wasActive = lastActivity && new Date(lastActivity) >= new Date(date);
+              const wasActive = activityDays?.has(date) ?? false;
               
               return (
                 <div key={date} className="flex flex-col items-center gap-1">

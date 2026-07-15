@@ -1526,6 +1526,30 @@ export type Database = {
           },
         ]
       }
+      project_revision_reminders_sent: {
+        Row: {
+          graded_at: string
+          id: string
+          project_id: string
+          sent_at: string
+          user_id: string
+        }
+        Insert: {
+          graded_at: string
+          id?: string
+          project_id: string
+          sent_at?: string
+          user_id: string
+        }
+        Update: {
+          graded_at?: string
+          id?: string
+          project_id?: string
+          sent_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       project_rubric_categories: {
         Row: {
           course_id: string
@@ -2117,6 +2141,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_activity_days: {
+        Row: {
+          activity_date: string
+          created_at: string
+          id: string
+          updated_at: string
+          user_id: string
+          xp_earned: number
+        }
+        Insert: {
+          activity_date: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+          xp_earned?: number
+        }
+        Update: {
+          activity_date?: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+          xp_earned?: number
+        }
+        Relationships: []
       }
       user_badges: {
         Row: {

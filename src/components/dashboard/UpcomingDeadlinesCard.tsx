@@ -8,13 +8,15 @@
  * Data is fetched here (self-contained) so the Dashboard doesn't need to be
  * restructured. Queries reuse cached tanstack-query keys where possible.
  */
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { AlertTriangle, ArrowRight, CalendarClock, PlayCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { AlertTriangle, ArrowRight, CalendarClock, PlayCircle, Sparkles, BookOpen } from 'lucide-react';
 
 interface RevisionRow {
   id: string;
@@ -34,6 +36,7 @@ interface NextLessonRow {
 
 export function UpcomingDeadlinesCard() {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
 
   // 1) Projects marked "needs revision" — student must act.
   const { data: revisions } = useQuery({
@@ -109,6 +112,27 @@ export function UpcomingDeadlinesCard() {
   const hasRevisions = (revisions?.length ?? 0) > 0;
   const hasNext = (nextLessons?.length ?? 0) > 0;
 
+  // Realtime: refresh Up Next when this user's projects or progress change
+  useEffect(() => {
+    if (!user?.id) return;
+    const channel = supabase
+      .channel(`up-next-${user.id}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'course_projects', filter: `user_id=eq.${user.id}` },
+        () => queryClient.invalidateQueries({ queryKey: ['dashboard-needs-revision', user.id] }),
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'user_progress', filter: `user_id=eq.${user.id}` },
+        () => queryClient.invalidateQueries({ queryKey: ['dashboard-next-lessons', user.id] }),
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id, queryClient]);
+
   return (
     <Card className="glass-card">
       <CardHeader className="pb-3">
@@ -179,9 +203,23 @@ export function UpcomingDeadlinesCard() {
         )}
 
         {!hasRevisions && !hasNext && (
-          <p className="text-sm text-muted-foreground font-mono text-center py-4">
-            You&apos;re all caught up. 🎯
-          </p>
+          <div className="text-center py-6 space-y-3">
+            <div className="mx-auto h-12 w-12 rounded-full bg-success/10 border border-success/30 flex items-center justify-center">
+              <Sparkles className="h-6 w-6 text-success" />
+            </div>
+            <div>
+              <p className="text-sm font-display font-medium">You&apos;re all caught up</p>
+              <p className="text-xs text-muted-foreground font-mono mt-1">
+                Ready for what&apos;s next?
+              </p>
+            </div>
+            <Button variant="outline" size="sm" className="border-primary/30 hover:bg-primary/10" asChild>
+              <Link to="/courses">
+                <BookOpen className="mr-2 h-3.5 w-3.5" />
+                Browse Courses
+              </Link>
+            </Button>
+          </div>
         )}
       </CardContent>
     </Card>
