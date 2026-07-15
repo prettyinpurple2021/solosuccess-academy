@@ -70,6 +70,7 @@ export default function BlogPost() {
         fullTitle={`${post.metaTitle} | ${SITE_NAME}`}
         description={post.description}
         path={`/blog/${post.slug}`}
+        ogType="article"
         jsonLd={faqLd ? [articleLd, faqLd] : articleLd}
       />
 

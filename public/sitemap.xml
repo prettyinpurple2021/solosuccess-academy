@@ -36,6 +36,21 @@
     <priority>0.5</priority>
   </url>
   <url>
+    <loc>https://solosuccessacademy.app/reset-password</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  <url>
+    <loc>https://solosuccessacademy.app/account-recovery</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  <url>
+    <loc>https://solosuccessacademy.app/unsubscribe</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  <url>
     <loc>https://solosuccessacademy.app/legal</loc>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
