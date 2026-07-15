@@ -16,6 +16,10 @@ interface AITutorChatProps {
   courseTitle: string;
   lessonTitle: string;
   lessonContent: string | null;
+  courseId?: string;
+  lessonId?: string;
+  lessonType?: string;
+  lessonDescription?: string | null;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -24,6 +28,10 @@ export function AITutorChat({
   courseTitle, 
   lessonTitle, 
   lessonContent,
+  courseId,
+  lessonId,
+  lessonType,
+  lessonDescription,
   isOpen,
   onClose
 }: AITutorChatProps) {
@@ -69,7 +77,13 @@ export function AITutorChat({
           messages: [...messages, userMessage],
           courseTitle,
           lessonTitle,
-          lessonContent: lessonContent?.substring(0, 2000), // Limit context size
+          // Send the full lesson body — the edge function trims and enriches
+          // with course outline, related textbook pages, and progress.
+          lessonContent: lessonContent ?? undefined,
+          lessonDescription: lessonDescription ?? undefined,
+          lessonType,
+          courseId,
+          lessonId,
         }),
       });
 
