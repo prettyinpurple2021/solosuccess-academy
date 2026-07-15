@@ -23,6 +23,9 @@
  */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import type { Database } from '@/integrations/supabase/types';
+
+type FlashcardUpdate = Database['public']['Tables']['user_flashcards']['Update'];
 
 export interface Flashcard {
   id: string;
@@ -231,7 +234,7 @@ export function useUpdateFlashcard() {
       frontText?: string;
       backText?: string;
     }) => {
-      const updates: Record<string, string> = {};
+      const updates: FlashcardUpdate = {};
       if (frontText !== undefined) updates.front_text = frontText;
       if (backText !== undefined) updates.back_text = backText;
 

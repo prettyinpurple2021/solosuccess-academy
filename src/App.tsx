@@ -32,7 +32,7 @@ import { lazy, Suspense } from "react";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { ThemeProvider } from "next-themes";
 import { GamificationProvider } from "@/components/gamification/GamificationProvider";
@@ -177,6 +177,10 @@ const App = () => (
               }
             >
               <Routes>
+                {/* Legacy preview path: send /index back to the real home route.
+                    This prevents the app preview from opening on a 404 page. */}
+                <Route path="/index" element={<Navigate to="/" replace />} />
+
                 {/* ═══════════════════════════════════════════
                     PUBLIC ROUTES — No authentication required.
                     Wrapped in PublicLayout (header + footer).

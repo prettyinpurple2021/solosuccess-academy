@@ -5,6 +5,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import type { Database } from '@/integrations/supabase/types';
+
+type TestimonialUpdate = Database['public']['Tables']['testimonials']['Update'];
 
 export type TestimonialStatus = 'pending' | 'approved' | 'rejected';
 
@@ -107,7 +110,7 @@ export function useModerateTestimonial() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (input: { id: string; status: TestimonialStatus; admin_notes?: string }) => {
-      const patch: Record<string, unknown> = {
+      const patch: TestimonialUpdate = {
         status: input.status,
         admin_notes: input.admin_notes ?? null,
       };

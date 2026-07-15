@@ -21,7 +21,9 @@
  */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Json } from '@/integrations/supabase/types';
+import { Database, Json } from '@/integrations/supabase/types';
+
+type TextbookPageUpdate = Database['public']['Tables']['textbook_pages']['Update'];
 
 export interface TextbookChapter {
   id: string;
@@ -491,7 +493,14 @@ export function useUpdatePage() {
       chapterId: string;
       updates: Partial<TextbookPage>;
     }) => {
-      const dbUpdates: Record<string, any> = { ...updates };
+      const dbUpdates: TextbookPageUpdate = {
+        id: updates.id,
+        chapter_id: updates.chapter_id,
+        content: updates.content,
+        page_number: updates.page_number,
+        created_at: updates.created_at,
+        updated_at: updates.updated_at,
+      };
       if (updates.embedded_quiz !== undefined) {
         dbUpdates.embedded_quiz = updates.embedded_quiz as unknown as Json;
       }

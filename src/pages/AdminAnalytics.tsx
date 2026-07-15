@@ -224,15 +224,16 @@ export default function AdminAnalytics() {
                       className="text-muted-foreground"
                     />
                     <ChartTooltip
-                      content={
+                      content={(props) => (
                         <ChartTooltipContent
+                          {...props}
                           formatter={(value, name) =>
                             name === 'amount' ? `$${value}` : `${value} sales`
                           }
                         />
-                      }
+                      )}
                     />
-                    <ChartLegend content={<ChartLegendContent />} />
+                    <ChartLegend content={(props) => <ChartLegendContent payload={props.payload} verticalAlign={props.verticalAlign} />} />
                     <Bar
                       dataKey="amount"
                       fill="var(--color-amount)"
@@ -278,8 +279,8 @@ export default function AdminAnalytics() {
                       interval="preserveStartEnd"
                     />
                     <YAxis tickLine={false} axisLine={false} className="text-muted-foreground" />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <ChartLegend content={<ChartLegendContent />} />
+                    <ChartTooltip content={(props) => <ChartTooltipContent {...props} />} />
+                    <ChartLegend content={(props) => <ChartLegendContent payload={props.payload} verticalAlign={props.verticalAlign} />} />
                     <Area
                       type="monotone"
                       dataKey="activeUsers"
@@ -326,7 +327,7 @@ export default function AdminAnalytics() {
                       width={120}
                       className="text-muted-foreground text-xs"
                     />
-                    <ChartTooltip content={<ChartTooltipContent />} />
+                    <ChartTooltip content={(props) => <ChartTooltipContent {...props} />} />
                     <Bar
                       dataKey="completions"
                       fill="hsl(var(--success))"

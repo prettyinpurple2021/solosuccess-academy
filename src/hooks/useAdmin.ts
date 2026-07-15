@@ -43,7 +43,10 @@
  */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Json } from '@/integrations/supabase/types';
+import { Database, Json } from '@/integrations/supabase/types';
+
+type CourseUpdate = Database['public']['Tables']['courses']['Update'];
+type LessonUpdate = Database['public']['Tables']['lessons']['Update'];
 
 // ──────────────────────────────────────────────
 // TYPE DEFINITIONS
@@ -401,15 +404,15 @@ export function useUpdateLesson() {
       };
     }) => {
       // Build update payload — only include defined fields
-      const dbUpdates: Record<string, any> = {};
+      const dbUpdates: LessonUpdate = {};
       if (updates.title !== undefined) dbUpdates.title = updates.title;
       if (updates.type !== undefined) dbUpdates.type = updates.type;
       if (updates.content !== undefined) dbUpdates.content = updates.content;
       if (updates.video_url !== undefined) dbUpdates.video_url = updates.video_url;
       if (updates.duration_minutes !== undefined) dbUpdates.duration_minutes = updates.duration_minutes;
-      if (updates.quiz_data !== undefined) dbUpdates.quiz_data = updates.quiz_data;
-      if (updates.worksheet_data !== undefined) dbUpdates.worksheet_data = updates.worksheet_data;
-      if (updates.activity_data !== undefined) dbUpdates.activity_data = updates.activity_data;
+      if (updates.quiz_data !== undefined) dbUpdates.quiz_data = updates.quiz_data as unknown as Json;
+      if (updates.worksheet_data !== undefined) dbUpdates.worksheet_data = updates.worksheet_data as unknown as Json;
+      if (updates.activity_data !== undefined) dbUpdates.activity_data = updates.activity_data as unknown as Json;
       if (updates.is_published !== undefined) dbUpdates.is_published = updates.is_published;
 
       const { data, error } = await supabase
@@ -639,8 +642,8 @@ export function useUpdateCourse() {
       courseId,
       updates,
     }: {
-      courseId: string;
-      updates: Record<string, any>;
+          courseId: string;
+          updates: CourseUpdate;
     }) => {
       const { data, error } = await supabase
         .from('courses')
