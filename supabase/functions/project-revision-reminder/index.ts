@@ -99,6 +99,15 @@ Deno.serve(async (req) => {
         graded_at: gradedAt,
       })
 
+      // Push an in-app inbox notification so the reminder is visible even if email is missed
+      await admin.from('notifications').insert({
+        user_id: p.user_id,
+        type: 'project_revision_reminder',
+        title: 'Reminder: your project still needs revisions',
+        message: `Your ${courseTitle} capstone has been waiting on revisions for over a week. Resubmit when ready.`,
+        link: `/courses/${p.course_id}/project`,
+      })
+
       results.push({ projectId: p.id, status: 'sent' })
     }
 
