@@ -490,6 +490,10 @@ export default function LessonViewer() {
         courseTitle={course?.title || ''}
         lessonTitle={currentLesson.title}
         lessonContent={currentLesson.content}
+        lessonDescription={currentLesson.description}
+        lessonType={currentLesson.type}
+        courseId={courseId}
+        lessonId={lessonId}
         isOpen={showAITutor}
         onClose={() => setShowAITutor(false)}
       />
