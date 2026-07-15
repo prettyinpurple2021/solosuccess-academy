@@ -54,6 +54,8 @@ import { PageMeta } from '@/components/layout/PageMeta';
 import { ErrorView } from '@/components/ui/error-view';
 import { DashboardSkeleton } from '@/components/skeletons/DashboardSkeleton';
 import { DailyGoalCard } from '@/components/gamification/DailyGoalCard';
+import { StreakCard } from '@/components/gamification/StreakCard';
+import { UpcomingDeadlinesCard } from '@/components/dashboard/UpcomingDeadlinesCard';
 
 export default function Dashboard() {
   const { user, profile } = useAuth();
@@ -458,6 +460,12 @@ export default function Dashboard() {
           <div className="space-y-6">
             {/* Today's study goal */}
             <DailyGoalCard />
+
+            {/* Learning streak */}
+            <StreakCard />
+
+            {/* Upcoming action items & next lesson per course */}
+            <UpcomingDeadlinesCard />
 
             {/* Course Roadmap */}
             <Card className="glass-card">
