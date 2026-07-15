@@ -56,10 +56,12 @@ import { DashboardSkeleton } from '@/components/skeletons/DashboardSkeleton';
 import { DailyGoalCard } from '@/components/gamification/DailyGoalCard';
 import { StreakCard } from '@/components/gamification/StreakCard';
 import { UpcomingDeadlinesCard } from '@/components/dashboard/UpcomingDeadlinesCard';
+import { useState } from 'react';
 
 export default function Dashboard() {
   const { user, profile } = useAuth();
   const { data: courses } = useCourses();
+  const [showAllRoadmap, setShowAllRoadmap] = useState(false);
   const { data: certificateCount } = useCertificateCount(user?.id);
   const { data: continueLater } = useContinueLater(user?.id);
   const { data: readingStats } = useReadingStats(user?.id);
@@ -491,7 +493,12 @@ export default function Dashboard() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                {courses?.slice(0, 10).map((course) => {
+                {(() => {
+                  // Show 5 on mobile by default, all on lg+; toggle expands mobile.
+                  const all = courses?.slice(0, 10) ?? [];
+                  const visible = showAllRoadmap ? all : all.slice(0, 5);
+                  return visible;
+                })().map((course) => {
                   const isPurchased = purchasedCourseIds.has(course.id);
                   const progress = courseProgressMap.get(course.id);
                   const isComplete = progress && progress.completed === progress.total && progress.total > 0;
@@ -518,6 +525,16 @@ export default function Dashboard() {
                     </Link>
                   );
                 })}
+                {(courses?.length ?? 0) > 5 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full lg:hidden text-primary hover:bg-primary/10"
+                    onClick={() => setShowAllRoadmap((v) => !v)}
+                  >
+                    {showAllRoadmap ? 'Show fewer' : `Show all ${courses?.length ?? 10} courses`}
+                  </Button>
+                )}
               </CardContent>
             </Card>
 
