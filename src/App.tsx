@@ -63,6 +63,7 @@ import { RouteErrorBoundary } from "@/components/layout/RouteErrorBoundary";
 // ──────────────────────────────────────────────
 const Index = lazy(() => import("./pages/Index"));
 const Auth = lazy(() => import("./pages/Auth"));
+const Status = lazy(() => import("./pages/Status"));
 const Courses = lazy(() => import("./pages/Courses"));
 const CourseDetail = lazy(() => import("./pages/CourseDetail"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
