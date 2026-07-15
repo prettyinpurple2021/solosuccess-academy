@@ -88,26 +88,26 @@ function AdminGradeCard({
   formatDate: (d: string) => string;
 }) {
   const approved = project.admin_status === 'approved';
-  const color = approved ? 'success' : 'warning';
+  const wrapper = approved
+    ? 'glass-card overflow-hidden border-success/30'
+    : 'glass-card overflow-hidden border-warning/30';
+  const headerBorder = approved ? 'p-6 border-b border-success/20' : 'p-6 border-b border-warning/20';
+  const iconWrap = approved
+    ? 'h-12 w-12 rounded-full bg-success/20 flex items-center justify-center shadow-[0_0_20px_hsl(var(--success)/0.3)]'
+    : 'h-12 w-12 rounded-full bg-warning/20 flex items-center justify-center shadow-[0_0_20px_hsl(var(--warning)/0.3)]';
+  const iconClass = approved ? 'h-6 w-6 text-success' : 'h-6 w-6 text-warning';
+  const titleClass = approved ? 'text-lg font-semibold text-success' : 'text-lg font-semibold text-warning';
+  const scoreClass = approved ? 'text-3xl font-bold text-success' : 'text-3xl font-bold text-warning';
+
   return (
-    <div
-      className={`glass-card overflow-hidden border-${color}/30`}
-      style={{ borderColor: `hsl(var(--${color}) / 0.3)` }}
-    >
-      <div className={`p-6 border-b border-${color}/20 flex items-center justify-between`}>
+    <div className={wrapper}>
+      <div className={`${headerBorder} flex items-center justify-between`}>
         <div className="flex items-center gap-3">
-          <div
-            className={`h-12 w-12 rounded-full bg-${color}/20 flex items-center justify-center`}
-            style={{ boxShadow: `0 0 20px hsl(var(--${color}) / 0.3)` }}
-          >
-            {approved ? (
-              <Award className={`h-6 w-6 text-${color}`} />
-            ) : (
-              <AlertTriangle className={`h-6 w-6 text-${color}`} />
-            )}
+          <div className={iconWrap}>
+            {approved ? <Award className={iconClass} /> : <AlertTriangle className={iconClass} />}
           </div>
           <div>
-            <h3 className={`text-lg font-semibold text-${color}`}>
+            <h3 className={titleClass}>
               {approved ? 'Approved by Admin' : 'Revisions Requested'}
             </h3>
             {project.graded_at && (
@@ -119,7 +119,7 @@ function AdminGradeCard({
           </div>
         </div>
         <div className="text-right">
-          <div className={`text-3xl font-bold text-${color}`}>
+          <div className={scoreClass}>
             {project.admin_score}
             <span className="text-base text-muted-foreground">/100</span>
           </div>
