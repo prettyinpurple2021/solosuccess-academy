@@ -9,7 +9,7 @@
  * Public route — no auth required.
  */
 import { useEffect, useState } from "react";
-import { CheckCircle2, XCircle, Loader2, Activity } from "lucide-react";
+import { CheckCircle2, XCircle, Loader2, Activity, History } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PageMeta } from "@/components/layout/PageMeta";
@@ -24,6 +24,12 @@ interface Check {
   state: CheckState;
   detail?: string;
   ms?: number;
+}
+
+interface DeployRow {
+  version: string;
+  deployed_at: string;
+  status: string;
 }
 
 const INITIAL_CHECKS: Check[] = [
@@ -50,11 +56,45 @@ async function pingRoute(path: string): Promise<{ ok: boolean; ms: number; statu
 export default function Status() {
   const [checks, setChecks] = useState<Check[]>(INITIAL_CHECKS);
   const [startedAt] = useState(() => new Date());
+  const [deploys, setDeploys] = useState<DeployRow[] | null>(null);
+  const [deploysError, setDeploysError] = useState<string | null>(null);
 
   const buildVersion =
     typeof __BUILD_VERSION__ !== "undefined" ? __BUILD_VERSION__ : "unknown";
   const buildTime =
     typeof __BUILD_TIME__ !== "undefined" ? __BUILD_TIME__ : new Date().toISOString();
+
+  // Record this build (no-op if already recorded) and load recent deploy history.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        await supabase.rpc("record_deploy", {
+          _version: buildVersion,
+          _deployed_at: buildTime,
+        });
+      } catch {
+        // Non-fatal — history query below will still run.
+      }
+
+      const { data, error } = await supabase
+        .from("deploy_history")
+        .select("version, deployed_at, status")
+        .order("deployed_at", { ascending: false })
+        .limit(5);
+
+      if (cancelled) return;
+      if (error) {
+        setDeploysError(error.message);
+        setDeploys([]);
+      } else {
+        setDeploys((data ?? []) as DeployRow[]);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [buildVersion, buildTime]);
 
   useEffect(() => {
     let cancelled = false;
@@ -161,6 +201,53 @@ export default function Status() {
           </CardContent>
         </Card>
 
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <History className="h-4 w-4" /> Recent deploys
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {deploys === null ? (
+              <div className="flex items-center gap-2 py-2 text-sm text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" /> Loading history…
+              </div>
+            ) : deploys.length === 0 ? (
+              <p className="py-2 text-sm text-muted-foreground">
+                {deploysError
+                  ? `Could not load history: ${deploysError}`
+                  : "No deploys recorded yet."}
+              </p>
+            ) : (
+              <ul className="divide-y divide-border">
+                {deploys.map((d) => {
+                  const isCurrent = d.version === buildVersion;
+                  return (
+                    <li
+                      key={d.version}
+                      className="flex flex-wrap items-center justify-between gap-2 py-3 text-sm"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <DeployStatusIcon status={d.status} />
+                        <span className="truncate font-mono">{d.version}</span>
+                        {isCurrent && (
+                          <Badge variant="secondary" className="text-[10px]">
+                            current
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                        <span>{formatDate(d.deployed_at)}</span>
+                        <span className="capitalize">{d.status}</span>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
+
         {groups.map((group) => (
           <Card key={group} className="mb-6">
             <CardHeader>
@@ -208,6 +295,12 @@ export default function Status() {
 function StatusIcon({ state }: { state: CheckState }) {
   if (state === "pending") return <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />;
   if (state === "pass") return <CheckCircle2 className="h-4 w-4 text-emerald-500" />;
+  return <XCircle className="h-4 w-4 text-destructive" />;
+}
+
+function DeployStatusIcon({ status }: { status: string }) {
+  if (status === "success") return <CheckCircle2 className="h-4 w-4 text-emerald-500" />;
+  if (status === "pending") return <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />;
   return <XCircle className="h-4 w-4 text-destructive" />;
 }
 

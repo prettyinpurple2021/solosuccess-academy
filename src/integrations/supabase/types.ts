@@ -807,6 +807,30 @@ export type Database = {
         }
         Relationships: []
       }
+      deploy_history: {
+        Row: {
+          created_at: string
+          deployed_at: string
+          id: string
+          status: string
+          version: string
+        }
+        Insert: {
+          created_at?: string
+          deployed_at?: string
+          id?: string
+          status?: string
+          version: string
+        }
+        Update: {
+          created_at?: string
+          deployed_at?: string
+          id?: string
+          status?: string
+          version?: string
+        }
+        Relationships: []
+      }
       discussion_comments: {
         Row: {
           content: string
@@ -2861,6 +2885,10 @@ export type Database = {
           msg_id: number
           read_ct: number
         }[]
+      }
+      record_deploy: {
+        Args: { _deployed_at: string; _version: string }
+        Returns: undefined
       }
       request_account_deletion: {
         Args: { _delete_content?: boolean }
