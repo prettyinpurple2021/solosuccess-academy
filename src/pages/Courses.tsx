@@ -118,7 +118,23 @@ export default function Courses() {
 
   return (
     <section className="py-12">
-      <PageMeta title="Courses" description="Browse all SoloSuccess Academy courses. From mindset to pitch, build your business one course at a time." path="/courses" />
+      <PageMeta
+        title="Courses"
+        description="Browse all SoloSuccess Academy courses. From mindset to pitch, build your business one course at a time."
+        path="/courses"
+        jsonLd={{
+          "@type": "ItemList",
+          name: "SoloSuccess Academy Courses",
+          itemListOrder: "https://schema.org/ItemListOrderAscending",
+          numberOfItems: courses?.length ?? 0,
+          itemListElement: (courses ?? []).map((c, i) => ({
+            "@type": "ListItem",
+            position: (c.order_number ?? i + 1),
+            url: `https://solosuccessacademy.app/courses/${c.id}`,
+            name: c.title,
+          })),
+        }}
+      />
       <div className="container">
           {/* Page Header */}
           <div className="max-w-4xl mb-16">
