@@ -63,6 +63,7 @@ import { RouteErrorBoundary } from "@/components/layout/RouteErrorBoundary";
 // ──────────────────────────────────────────────
 const Index = lazy(() => import("./pages/Index"));
 const Auth = lazy(() => import("./pages/Auth"));
+const Status = lazy(() => import("./pages/Status"));
 const Courses = lazy(() => import("./pages/Courses"));
 const CourseDetail = lazy(() => import("./pages/CourseDetail"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
@@ -215,6 +216,9 @@ const App = () => (
 
               {/* Email Unsubscribe — public standalone page */}
               <Route path="/unsubscribe" element={<RouteErrorBoundary><Unsubscribe /></RouteErrorBoundary>} />
+
+              {/* Public health/status page — no layout, standalone */}
+              <Route path="/status" element={<RouteErrorBoundary><Status /></RouteErrorBoundary>} />
 
               {/* OAuth 2.1 consent screen for the SoloSuccess Academy MCP server.
                   Users are redirected here by Supabase Auth when an external
