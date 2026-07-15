@@ -327,7 +327,7 @@ export default function AdminAnalytics() {
                       width={120}
                       className="text-muted-foreground text-xs"
                     />
-                    <ChartTooltip content={<ChartTooltipContent />} />
+                    <ChartTooltip content={(props) => <ChartTooltipContent {...props} />} />
                     <Bar
                       dataKey="completions"
                       fill="hsl(var(--success))"

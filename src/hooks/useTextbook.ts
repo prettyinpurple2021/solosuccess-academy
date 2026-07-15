@@ -493,7 +493,14 @@ export function useUpdatePage() {
       chapterId: string;
       updates: Partial<TextbookPage>;
     }) => {
-      const dbUpdates: TextbookPageUpdate = { ...updates };
+      const dbUpdates: TextbookPageUpdate = {
+        id: updates.id,
+        chapter_id: updates.chapter_id,
+        content: updates.content,
+        page_number: updates.page_number,
+        created_at: updates.created_at,
+        updated_at: updates.updated_at,
+      };
       if (updates.embedded_quiz !== undefined) {
         dbUpdates.embedded_quiz = updates.embedded_quiz as unknown as Json;
       }
