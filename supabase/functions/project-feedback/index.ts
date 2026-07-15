@@ -209,6 +209,29 @@ ${project.file_urls?.length ? `\nNote: The student has also uploaded ${project.f
       throw new Error("No feedback generated");
     }
 
+    // Parse a numeric score (0-100) from the AI response. We look for common
+    // patterns like "Score: 8/10", "7 out of 10", "Score: 85/100", or a
+    // trailing "Score: N". This is a best-effort proposed score that admins
+    // can override during grading.
+    let aiProposedScore: number | null = null;
+    try {
+      const scoreBlock = feedback.match(/##\s*Score[\s\S]{0,200}/i)?.[0] ?? feedback;
+      const m10 = scoreBlock.match(/(\d{1,2})\s*(?:\/|out of)\s*10\b/i);
+      const m100 = scoreBlock.match(/(\d{1,3})\s*(?:\/|out of)\s*100\b/i);
+      const trailing = scoreBlock.match(/Score[^\d]{0,10}(\d{1,3})\b/i);
+      if (m100) {
+        aiProposedScore = Math.min(100, Math.max(0, parseInt(m100[1], 10)));
+      } else if (m10) {
+        aiProposedScore = Math.min(100, Math.max(0, parseInt(m10[1], 10) * 10));
+      } else if (trailing) {
+        const n = parseInt(trailing[1], 10);
+        if (n <= 10) aiProposedScore = n * 10;
+        else if (n <= 100) aiProposedScore = n;
+      }
+    } catch (_e) {
+      aiProposedScore = null;
+    }
+
     // 9. Update project with feedback
     const { error: updateError } = await supabase
       .from("course_projects")
@@ -216,6 +239,7 @@ ${project.file_urls?.length ? `\nNote: The student has also uploaded ${project.f
         ai_feedback: feedback,
         ai_feedback_at: new Date().toISOString(),
         status: "reviewed",
+        ai_proposed_score: aiProposedScore,
       })
       .eq("id", projectId);
 
@@ -224,7 +248,7 @@ ${project.file_urls?.length ? `\nNote: The student has also uploaded ${project.f
       throw new Error("Failed to save feedback");
     }
 
-    return new Response(JSON.stringify({ feedback }), {
+    return new Response(JSON.stringify({ feedback, aiProposedScore }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
