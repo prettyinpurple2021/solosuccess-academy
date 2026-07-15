@@ -8,10 +8,13 @@
  *
  * Public route — no auth required.
  */
-import { useEffect, useState } from "react";
-import { CheckCircle2, XCircle, Loader2, Activity, History } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { CheckCircle2, XCircle, Loader2, Activity, History, RefreshCw } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { PageMeta } from "@/components/layout/PageMeta";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -53,11 +56,21 @@ async function pingRoute(path: string): Promise<{ ok: boolean; ms: number; statu
   }
 }
 
+const REFRESH_INTERVAL_MS = 24 * 60 * 60 * 1000; // 24h
+const AUTO_REFRESH_STORAGE_KEY = "status:autoRefresh";
+
 export default function Status() {
   const [checks, setChecks] = useState<Check[]>(INITIAL_CHECKS);
-  const [startedAt] = useState(() => new Date());
+  const [lastCheckedAt, setLastCheckedAt] = useState<Date>(() => new Date());
+  const [nextCheckAt, setNextCheckAt] = useState<Date>(() => new Date(Date.now() + REFRESH_INTERVAL_MS));
   const [deploys, setDeploys] = useState<DeployRow[] | null>(null);
   const [deploysError, setDeploysError] = useState<string | null>(null);
+  const [autoRefresh, setAutoRefresh] = useState<boolean>(() => {
+    if (typeof window === "undefined") return true;
+    return localStorage.getItem(AUTO_REFRESH_STORAGE_KEY) !== "false";
+  });
+  const [isRunning, setIsRunning] = useState(false);
+  const cancelRef = useRef(false);
 
   const buildVersion =
     typeof __BUILD_VERSION__ !== "undefined" ? __BUILD_VERSION__ : "unknown";
@@ -96,11 +109,13 @@ export default function Status() {
     };
   }, [buildVersion, buildTime]);
 
-  useEffect(() => {
-    let cancelled = false;
+  const runAllChecks = useCallback(async () => {
+    setIsRunning(true);
+    // Reset every row to pending so the UI clearly indicates a re-run.
+    setChecks((prev) => prev.map((c) => ({ ...c, state: "pending", ms: undefined, detail: undefined })));
 
     const update = (id: string, patch: Partial<Check>) => {
-      if (cancelled) return;
+      if (cancelRef.current) return;
       setChecks((prev) => prev.map((c) => (c.id === id ? { ...c, ...patch } : c)));
     };
 
@@ -114,7 +129,6 @@ export default function Status() {
     };
 
     const runBackend = async () => {
-      // Auth service
       const authStart = performance.now();
       try {
         const { error } = await supabase.auth.getSession();
@@ -131,7 +145,6 @@ export default function Status() {
         });
       }
 
-      // Database — hit a small public table (blog_posts is a safe read).
       const dbStart = performance.now();
       try {
         const { error } = await supabase
@@ -152,7 +165,7 @@ export default function Status() {
       }
     };
 
-    Promise.all([
+    await Promise.all([
       runRoute("route-home", "/"),
       runRoute("route-courses", "/courses"),
       runRoute("route-blog", "/blog"),
@@ -162,10 +175,51 @@ export default function Status() {
       runBackend(),
     ]);
 
-    return () => {
-      cancelled = true;
-    };
+    if (!cancelRef.current) {
+      const now = new Date();
+      setLastCheckedAt(now);
+      setNextCheckAt(new Date(now.getTime() + REFRESH_INTERVAL_MS));
+    }
+    setIsRunning(false);
   }, []);
+
+  // Initial run on mount.
+  useEffect(() => {
+    cancelRef.current = false;
+    void runAllChecks();
+    return () => {
+      cancelRef.current = true;
+    };
+  }, [runAllChecks]);
+
+  // Daily auto-refresh on a 24h timer. Also re-runs when the tab returns to
+  // the foreground after the interval has elapsed since the last check.
+  useEffect(() => {
+    if (!autoRefresh) return;
+
+    const id = window.setInterval(() => {
+      void runAllChecks();
+    }, REFRESH_INTERVAL_MS);
+
+    const onVisible = () => {
+      if (document.visibilityState !== "visible") return;
+      if (Date.now() - lastCheckedAt.getTime() >= REFRESH_INTERVAL_MS) {
+        void runAllChecks();
+      }
+    };
+    document.addEventListener("visibilitychange", onVisible);
+
+    return () => {
+      window.clearInterval(id);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [autoRefresh, lastCheckedAt, runAllChecks]);
+
+  // Persist the toggle so the user's preference sticks across visits.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    localStorage.setItem(AUTO_REFRESH_STORAGE_KEY, autoRefresh ? "true" : "false");
+  }, [autoRefresh]);
 
   const groups: Check["group"][] = ["Public", "Admin", "Backend"];
   const allDone = checks.every((c) => c.state !== "pending");
@@ -197,7 +251,37 @@ export default function Status() {
           <CardContent className="grid gap-3 sm:grid-cols-3 text-sm">
             <Info label="Version" value={buildVersion} mono />
             <Info label="Last deploy" value={formatDate(buildTime)} />
-            <Info label="Checked at" value={formatDate(startedAt.toISOString())} />
+            <Info label="Last checked" value={formatDate(lastCheckedAt.toISOString())} />
+          </CardContent>
+        </Card>
+
+        <Card className="mb-6">
+          <CardContent className="flex flex-wrap items-center justify-between gap-3 py-4 text-sm">
+            <div className="flex items-center gap-3">
+              <Switch
+                id="auto-refresh"
+                checked={autoRefresh}
+                onCheckedChange={setAutoRefresh}
+              />
+              <Label htmlFor="auto-refresh" className="cursor-pointer">
+                Auto-refresh daily
+              </Label>
+              {autoRefresh && (
+                <span className="text-xs text-muted-foreground">
+                  Next: {formatDate(nextCheckAt.toISOString())}
+                </span>
+              )}
+            </div>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => void runAllChecks()}
+              disabled={isRunning}
+              className="gap-2"
+            >
+              <RefreshCw className={`h-4 w-4 ${isRunning ? "animate-spin" : ""}`} />
+              {isRunning ? "Refreshing…" : "Refresh now"}
+            </Button>
           </CardContent>
         </Card>
 
