@@ -233,7 +233,7 @@ export default function AdminAnalytics() {
                         />
                       )}
                     />
-                    <ChartLegend content={(props) => <ChartLegendContent {...props} />} />
+                    <ChartLegend content={(props) => <ChartLegendContent payload={props.payload} verticalAlign={props.verticalAlign} />} />
                     <Bar
                       dataKey="amount"
                       fill="var(--color-amount)"
@@ -280,7 +280,7 @@ export default function AdminAnalytics() {
                     />
                     <YAxis tickLine={false} axisLine={false} className="text-muted-foreground" />
                     <ChartTooltip content={(props) => <ChartTooltipContent {...props} />} />
-                    <ChartLegend content={(props) => <ChartLegendContent {...props} />} />
+                    <ChartLegend content={(props) => <ChartLegendContent payload={props.payload} verticalAlign={props.verticalAlign} />} />
                     <Area
                       type="monotone"
                       dataKey="activeUsers"
