@@ -475,11 +475,15 @@ export default function Dashboard() {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Today's study goal */}
-            <DailyGoalCard />
+            {/* Today's study goal — hidden on mobile/tablet (rendered above the grid) */}
+            <div className="hidden lg:block">
+              <DailyGoalCard />
+            </div>
 
-            {/* Learning streak */}
-            <StreakCard />
+            {/* Learning streak — hidden on mobile/tablet (rendered above the grid) */}
+            <div className="hidden lg:block">
+              <StreakCard />
+            </div>
 
             {/* Upcoming action items & next lesson per course */}
             <UpcomingDeadlinesCard />
