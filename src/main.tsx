@@ -21,6 +21,7 @@ import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
 import { initReducedMotion } from "./lib/initReducedMotion";
+import "./lib/posthog";
 
 // Set data-reduce-motion on <html> BEFORE React mounts so decorative
 // backgrounds (nebula, starfield) never flash in for users who prefer
