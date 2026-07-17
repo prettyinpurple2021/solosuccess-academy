@@ -10,10 +10,10 @@ import { describe, it, expect } from "vitest";
 import { formatPrice } from "./courseData";
 
 describe("formatPrice", () => {
-  it("never shows negative price", () => {
-    // A bug that renders negative prices would let users believe they are owed money
+  it("formats negative prices consistently", () => {
+    // Intl formatting should preserve the sign for negative values
     expect(formatPrice(0)).toBe("$0.00");
-    expect(formatPrice(-100)).toBe("-$1.00"); // JS Intl formats negatives; this is expected
+    expect(formatPrice(-100)).toBe("-$1.00");
   });
 
   it("formats typical course price correctly", () => {
