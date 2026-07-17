@@ -36,6 +36,7 @@ import { Loader2, Eye, EyeOff, Sparkles, MailCheck } from 'lucide-react';
 import { PageMeta } from '@/components/layout/PageMeta';
 import { MfaChallengeForm } from '@/components/auth/MfaChallengeForm';
 import { supabase } from '@/integrations/supabase/client';
+import posthog from '@/lib/posthog';
 
 export default function Auth() {
   const [searchParams] = useSearchParams();
@@ -75,12 +76,18 @@ export default function Auth() {
     setIsLoading(true);
 
     try {
-      await signIn(signInEmail, signInPassword);
+      const signInResult = await signIn(signInEmail, signInPassword);
       // Check if this account has 2FA enrolled and needs to step up to AAL2
       const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
       if (aal?.currentLevel === 'aal1' && aal?.nextLevel === 'aal2') {
         setNeedsMfa(true);
         return;
+      }
+      if (signInResult.user) {
+        posthog.identify(signInResult.user.id, {
+          email: signInResult.user.email,
+        });
+        posthog.capture('sign_in', { method: 'email' });
       }
       toast({
         title: 'Welcome back!',
@@ -88,6 +95,7 @@ export default function Auth() {
       });
       navigate(from, { replace: true });
     } catch (error: any) {
+      posthog.captureException(error, { context: 'sign_in' });
       toast({
         title: 'Error signing in',
         description: error.message || 'Please check your credentials and try again.',
@@ -111,9 +119,16 @@ export default function Auth() {
       // If the user's email is NOT confirmed yet, Supabase returns a user
       // but session will be null (email verification required)
       if (data.user && !data.session) {
+        posthog.capture('sign_up', { method: 'email' });
         // Email confirmation is required — show the verification message
         setShowEmailConfirmation(true);
       } else {
+        if (data.user) {
+          posthog.identify(data.user.id, {
+            email: data.user.email,
+          });
+          posthog.capture('sign_up', { method: 'email' });
+        }
         // Auto-confirm is on (dev mode) — go straight to dashboard
         toast({
           title: 'Account created!',
