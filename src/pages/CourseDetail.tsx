@@ -37,6 +37,7 @@ import { PageMeta } from '@/components/layout/PageMeta';
 import { ErrorView } from '@/components/ui/error-view';
 import { CourseDetailSkeleton } from '@/components/skeletons/CourseDetailSkeleton';
 import { getSiteUrl } from '@/lib/siteMeta';
+import posthog from '@/lib/posthog';
 
 export default function CourseDetail() {
   const { courseId } = useParams<{ courseId: string }>();
@@ -78,6 +79,13 @@ export default function CourseDetail() {
     setIsPurchasing(true);
 
     try {
+      posthog.capture('course_purchase_started', {
+        course_id: course.id,
+        course_title: course.title,
+        course_order: course.order_number,
+        price_cents: course.price_cents,
+      });
+
       // Only send courseId — stripe_price_id is looked up server-side for security
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: {
@@ -91,6 +99,7 @@ export default function CourseDetail() {
         window.open(data.url, '_blank');
       }
     } catch (error: any) {
+      posthog.captureException(error, { context: 'course_purchase_started', course_id: course.id });
       toast({
         title: 'Purchase Error',
         description: error.message || 'Failed to initiate purchase. Please try again.',
@@ -152,6 +161,11 @@ export default function CourseDetail() {
       courseOrderNumber: course.order_number,
       verificationCode: certificate.verification_code,
       issuedAt: certificate.issued_at,
+    });
+    posthog.capture('certificate_downloaded', {
+      course_id: course.id,
+      course_title: course.title,
+      course_order: course.order_number,
     });
     toast({
       title: 'Certificate Downloaded',

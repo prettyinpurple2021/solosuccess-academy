@@ -19,6 +19,7 @@ import { useCreateDiscussion } from '@/hooks/useDiscussions';
 import { useGamification } from '@/components/gamification/GamificationProvider';
 import { Loader2, X, MessageSquarePlus } from 'lucide-react';
 import { z } from 'zod';
+import posthog from '@/lib/posthog';
 
 const discussionSchema = z.object({
   title: z.string().trim().min(5, 'Title must be at least 5 characters').max(200, 'Title must be less than 200 characters'),
@@ -64,6 +65,8 @@ export function CreateDiscussionForm({ courseId, userId, onSuccess, onCancel }: 
         title: result.data.title,
         content: result.data.content,
       });
+
+      posthog.capture('discussion_created', { course_id: courseId });
 
       // Award XP for starting a discussion
       await awardXP('DISCUSSION_START');

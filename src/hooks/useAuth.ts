@@ -23,6 +23,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import posthog from '@/lib/posthog';
 
 /** Shape of the authentication state. */
 export interface AuthState {
@@ -190,6 +191,7 @@ export function useAuth() {
         });
 
         if (session?.user) {
+          posthog.identify(session.user.id, { email: session.user.email });
           setTimeout(() => fetchProfile(session.user.id), 0);
           // Fire welcome email on first verified sign-in. The lifecycle
           // ledger's UNIQUE (user_id, course_id, kind) constraint makes
@@ -198,6 +200,9 @@ export function useAuth() {
             setTimeout(() => sendWelcomeEmailOnce(session.user), 0);
           }
         } else {
+          if (event === 'SIGNED_OUT') {
+            posthog.reset();
+          }
           setProfile(null);
         }
       }
@@ -213,6 +218,7 @@ export function useAuth() {
       });
 
       if (session?.user) {
+        posthog.identify(session.user.id, { email: session.user.email });
         fetchProfile(session.user.id);
       }
     });

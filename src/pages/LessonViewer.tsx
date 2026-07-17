@@ -64,6 +64,7 @@ import {
   Lock
 } from 'lucide-react';
 import { NeonSpinner } from '@/components/ui/neon-spinner';
+import posthog from '@/lib/posthog';
 
 export default function LessonViewer() {
   const { courseId, lessonId } = useParams<{ courseId: string; lessonId: string }>();
@@ -120,6 +121,13 @@ export default function LessonViewer() {
     try {
       await submitQuizScore.mutateAsync({ userId: user.id, lessonId, score, passingScore });
       if (score >= passingScore) {
+        posthog.capture('quiz_passed', {
+          lesson_id: lessonId,
+          lesson_title: currentLesson.title,
+          course_id: courseId,
+          score,
+          passing_score: passingScore,
+        });
         // Sonner toast with action button → instantly jump to next lesson
         sonnerToast.success(`🎉 Quiz Passed — ${score}%`, {
           description: nextLesson
@@ -200,6 +208,15 @@ export default function LessonViewer() {
 
       // Award XP if completing (not uncompleting)
       if (!isCompleted) {
+        posthog.capture('lesson_completed', {
+          lesson_id: lessonId,
+          lesson_title: currentLesson.title,
+          lesson_type: currentLesson.type,
+          course_id: courseId,
+          course_title: course?.title,
+          lessons_completed: currentlyCompleted + 1,
+          total_lessons: totalLessons,
+        });
         await awardXP('LESSON_COMPLETE');
         // Check for new badges after a short delay
         setTimeout(() => checkAndAwardBadges(), 1000);
@@ -209,6 +226,12 @@ export default function LessonViewer() {
       if (willCompleteCourse) {
         fireCourseCompletionConfetti();
         
+        posthog.capture('course_completed', {
+          course_id: courseId,
+          course_title: course?.title,
+          total_lessons: totalLessons,
+        });
+
         // Generate certificate if one doesn't exist
         if (!existingCertificate && course) {
           try {
@@ -377,7 +400,17 @@ export default function LessonViewer() {
         <Button
           variant={showAITutor ? 'neon' : 'outline'}
           size="sm"
-          onClick={() => setShowAITutor(true)}
+          onClick={() => {
+            if (!showAITutor) {
+              posthog.capture('ai_tutor_opened', {
+                lesson_id: lessonId,
+                lesson_title: currentLesson.title,
+                course_id: courseId,
+                course_title: course?.title,
+              });
+            }
+            setShowAITutor(true);
+          }}
           className="gap-1.5 sm:gap-2 border-secondary/50 hover:border-secondary h-8 sm:h-9 px-2 sm:px-3"
         >
           <Bot className="h-3.5 w-3.5 sm:h-4 sm:w-4" />

@@ -15,6 +15,7 @@ import { Slider } from '@/components/ui/slider';
 import { PageMeta } from '@/components/layout/PageMeta';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowRight, Loader2, Rocket, Briefcase, Compass, Zap } from 'lucide-react';
+import posthog from '@/lib/posthog';
 
 type Goal = 'founder' | 'side_hustler' | 'career_changer' | 'indie_hacker';
 
@@ -64,6 +65,11 @@ export default function Onboarding() {
         })
         .eq('id', user.id);
       if (error) throw error;
+      posthog.capture('onboarding_completed', {
+        skipped,
+        goal: skipped ? null : goal,
+        weekly_commitment_hours: skipped ? null : hours,
+      });
       await refetchProfile();
       navigate('/dashboard', { replace: true });
     } catch (err: any) {
