@@ -4,10 +4,45 @@
  * These tests verify that business-logic invariants that protect
  * paid content and user data are correct. They run in CI on every PR.
  */
-import { describe, it, expect } from "vitest";
+import React from "react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { renderHook, waitFor } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 // ── 1. Price formatting ────────────────────────────────────────────────────
 import { formatPrice } from "./courseData";
+
+// ── 2–4. Production validation utilities ──────────────────────────────────
+import { isSafeOrigin, isValidUUID } from "./validation";
+
+// ── 2. Purchase guard logic (uses the real hook) ───────────────────────────
+import { useHasPurchasedCourse } from "../hooks/useCourses";
+
+const mockRpc = vi.hoisted(() => vi.fn());
+
+vi.mock("@/integrations/supabase/client", () => ({
+  supabase: {
+    rpc: mockRpc,
+    from: vi.fn(() => ({
+      select: vi.fn(() => ({
+        eq: vi.fn(() => ({
+          order: vi.fn().mockResolvedValue({ data: [], error: null }),
+        })),
+      })),
+    })),
+  },
+}));
+
+function createWrapper() {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  return function Wrapper({ children }: { children: React.ReactNode }) {
+    return (
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    );
+  };
+}
 
 describe("formatPrice", () => {
   it("formats negative prices consistently", () => {
@@ -22,37 +57,53 @@ describe("formatPrice", () => {
   });
 });
 
-// ── 2. Purchase guard logic ────────────────────────────────────────────────
+// ── 2. Purchase access control ────────────────────────────────────────────
 describe("Purchase access control", () => {
-  it("requires userId and courseId to grant access", () => {
-    // Mirror the logic in useHasPurchasedCourse — if either is missing → no access
-    function canAccess(userId: string | undefined, courseId: string | undefined): boolean {
-      if (!userId || !courseId) return false;
-      return true; // would check DB in real impl
-    }
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
 
-    expect(canAccess(undefined, "course-1")).toBe(false);
-    expect(canAccess("user-1", undefined)).toBe(false);
-    expect(canAccess(undefined, undefined)).toBe(false);
-    expect(canAccess("user-1", "course-1")).toBe(true);
+  it("skips the DB query when userId or courseId is absent", async () => {
+    const { result } = renderHook(
+      () => useHasPurchasedCourse(undefined, "course-1"),
+      { wrapper: createWrapper() },
+    );
+    // Query is disabled when userId is missing — RPC must never be called
+    expect(mockRpc).not.toHaveBeenCalled();
+    expect(result.current.fetchStatus).toBe("idle");
+  });
+
+  it("calls has_purchased_course RPC and returns true when user owns the course", async () => {
+    mockRpc.mockResolvedValue({ data: true, error: null });
+
+    const { result } = renderHook(
+      () => useHasPurchasedCourse("user-1", "course-1"),
+      { wrapper: createWrapper() },
+    );
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(result.current.data).toBe(true);
+    expect(mockRpc).toHaveBeenCalledWith("has_purchased_course", {
+      _user_id: "user-1",
+      _course_id: "course-1",
+    });
+  });
+
+  it("returns false when the RPC reports no purchase", async () => {
+    mockRpc.mockResolvedValue({ data: false, error: null });
+
+    const { result } = renderHook(
+      () => useHasPurchasedCourse("user-1", "course-1"),
+      { wrapper: createWrapper() },
+    );
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(result.current.data).toBe(false);
   });
 });
 
 // ── 3. Origin allow-list ───────────────────────────────────────────────────
 describe("CORS origin validation", () => {
-  const ALLOWED_ORIGINS = new Set([
-    "https://solosuccessacademy.app",
-    "https://www.solosuccessacademy.app",
-    "https://solosuccessacademy.cloud",
-    "https://www.solosuccessacademy.cloud",
-  ]);
-
-  const LOVABLE_PATTERN = /^https:\/\/[a-z0-9-]+\.lovable\.app$/i;
-
-  function isSafeOrigin(origin: string): boolean {
-    return ALLOWED_ORIGINS.has(origin) || LOVABLE_PATTERN.test(origin);
-  }
-
   it("allows production domains", () => {
     expect(isSafeOrigin("https://solosuccessacademy.app")).toBe(true);
     expect(isSafeOrigin("https://www.solosuccessacademy.app")).toBe(true);
@@ -79,12 +130,6 @@ describe("CORS origin validation", () => {
 
 // ── 4. Checkout metadata validation ──────────────────────────────────────
 describe("Stripe checkout metadata validation", () => {
-  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-  function isValidUUID(value: string): boolean {
-    return UUID_RE.test(value);
-  }
-
   it("accepts valid UUIDs", () => {
     expect(isValidUUID("550e8400-e29b-41d4-a716-446655440000")).toBe(true);
     expect(isValidUUID("123e4567-e89b-12d3-a456-426614174000")).toBe(true);
@@ -107,3 +152,4 @@ describe("Stripe webhook idempotency", () => {
     expect(mockError.code).toBe(UNIQUE_VIOLATION_CODE);
   });
 });
+
