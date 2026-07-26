@@ -2,20 +2,22 @@ import { useParams, Link } from 'react-router-dom';
 import { TextbookViewer } from '@/components/textbook/TextbookViewer';
 import { Button } from '@/components/ui/button';
 import { CourseBreadcrumb } from '@/components/navigation/CourseBreadcrumb';
-import { useCourses } from '@/hooks/useCourses';
+import { useCourse, useHasPurchasedCourse } from '@/hooks/useCourses';
 import { useAuth } from '@/hooks/useAuth';
 import { useSetContinueLater } from '@/hooks/useContinueLater';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Bookmark } from 'lucide-react';
+import { ArrowLeft, Bookmark, Lock } from 'lucide-react';
 import { NeonSpinner } from '@/components/ui/neon-spinner';
 
 export default function Textbook() {
   const { courseId } = useParams<{ courseId: string }>();
   const { user } = useAuth();
   const { toast } = useToast();
-  const { data: courses, isLoading } = useCourses();
+  const { data: course, isLoading: courseLoading } = useCourse(courseId);
+  const { data: hasPurchased, isLoading: purchaseLoading } = useHasPurchasedCourse(user?.id, courseId);
   const setContinueLater = useSetContinueLater();
-  const course = courses?.find(c => c.id === courseId);
+
+  const isLoading = courseLoading || purchaseLoading;
 
   if (isLoading) {
     return (
@@ -35,6 +37,23 @@ export default function Textbook() {
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Courses
             </Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!hasPurchased) {
+    return (
+      <div className="flex-1 flex items-center justify-center py-12">
+        <div className="glass-card p-8 text-center max-w-md mx-4">
+          <div className="h-16 w-16 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-4 shadow-[0_0_20px_rgba(168,85,247,0.4)]">
+            <Lock className="h-8 w-8 text-primary" />
+          </div>
+          <h1 className="text-2xl font-display font-bold mb-2 neon-text">Course Not Purchased</h1>
+          <p className="text-muted-foreground mb-6">You need to purchase this course to access the textbook.</p>
+          <Button asChild variant="neon">
+            <Link to={`/courses/${courseId}`}>View Course</Link>
           </Button>
         </div>
       </div>
