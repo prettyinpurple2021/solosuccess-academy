@@ -210,8 +210,8 @@ export default function LessonViewer() {
       if (!isCompleted) {
         posthog.capture('lesson_completed', {
           lesson_id: lessonId,
-          lesson_title: currentLesson.title,
-          lesson_type: currentLesson.type,
+          lesson_title: currentLesson?.title,
+          lesson_type: currentLesson?.type,
           course_id: courseId,
           course_title: course?.title,
           lessons_completed: currentlyCompleted + 1,
