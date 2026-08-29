@@ -365,7 +365,7 @@ export function useGamificationRealtime(userId: string | undefined) {
     if (!userId) return;
 
     const channel = supabase
-      .channel(`gamification-${userId}`)
+      .channel(`gamification-${userId}-${crypto.randomUUID()}`)
       .on(
         'postgres_changes',
         {

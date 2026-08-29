@@ -195,7 +195,7 @@ export function useDiscussionRealtime(discussionId: string | undefined, courseId
     if (!discussionId && !courseId) return;
 
     const channel = supabase
-      .channel(`discussion-realtime-${discussionId || courseId}`)
+      .channel(`discussion-realtime-${discussionId || courseId}-${crypto.randomUUID()}`)
       .on(
         'postgres_changes',
         {

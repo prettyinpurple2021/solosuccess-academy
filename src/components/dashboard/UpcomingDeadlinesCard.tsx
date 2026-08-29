@@ -116,7 +116,7 @@ export function UpcomingDeadlinesCard() {
   useEffect(() => {
     if (!user?.id) return;
     const channel = supabase
-      .channel(`up-next-${user.id}`)
+      .channel(`up-next-${user.id}-${crypto.randomUUID()}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'course_projects', filter: `user_id=eq.${user.id}` },
