@@ -294,6 +294,24 @@ export type Database = {
         }
         Relationships: []
       }
+      app_traffic_heartbeat: {
+        Row: {
+          id: boolean
+          last_seen_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: boolean
+          last_seen_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: boolean
+          last_seen_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       blog_posts: {
         Row: {
           author_name: string
@@ -1079,6 +1097,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      job_gate_decisions: {
+        Row: {
+          decided_at: string
+          id: string
+          job_name: string
+          ran: boolean
+          reason: string
+        }
+        Insert: {
+          decided_at?: string
+          id?: string
+          job_name: string
+          ran: boolean
+          reason: string
+        }
+        Update: {
+          decided_at?: string
+          id?: string
+          job_name?: string
+          ran?: boolean
+          reason?: string
+        }
+        Relationships: []
       }
       lessons: {
         Row: {
@@ -2755,6 +2797,7 @@ export type Database = {
         Returns: Json
       }
       cleanup_expired_rate_limits: { Args: never; Returns: number }
+      cleanup_job_gate_decisions: { Args: never; Returns: undefined }
       confirm_mfa_recovery_code: { Args: { _code: string }; Returns: Json }
       consume_mfa_recovery_code: { Args: { _code: string }; Returns: boolean }
       consume_rate_limit: {
@@ -2849,11 +2892,16 @@ export type Database = {
         Args: { _course_id: string; _user_id: string }
         Returns: boolean
       }
+      has_recent_traffic: { Args: { p_window?: string }; Returns: boolean }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      job_should_run: {
+        Args: { p_has_pending?: boolean; p_job_name: string; p_window?: string }
         Returns: boolean
       }
       list_admin_api_keys: {
@@ -2886,6 +2934,7 @@ export type Database = {
           read_ct: number
         }[]
       }
+      record_app_traffic: { Args: never; Returns: undefined }
       record_deploy: {
         Args: { _deployed_at: string; _version: string }
         Returns: undefined
