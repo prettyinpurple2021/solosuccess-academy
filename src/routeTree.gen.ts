@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as Char91indexChar93RouteImport } from './routes/[index]'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as PublicRouteImport } from './routes/_public'
 import { Route as AccountRecoveryRouteImport } from './routes/account-recovery'
@@ -68,6 +69,11 @@ import { Route as AppPurchaseCoursesCourseIdDiscussionsDiscussionIdRouteImport }
 import { Route as AppPurchaseCoursesCourseIdLessonsLessonIdRouteImport } from './routes/_app._purchase.courses.$courseId.lessons.$lessonId'
 import { Route as AppAdminCoursesCourseIdLessonsLessonIdRouteImport } from './routes/_app.admin.courses.$courseId.lessons.$lessonId'
 
+const Char91indexChar93Route = Char91indexChar93RouteImport.update({
+  id: '/index',
+  path: '/index',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppRoute = AppRouteImport.update({
   id: '/_app',
   getParentRoute: () => rootRouteImport,
@@ -369,6 +375,7 @@ const AppAdminCoursesCourseIdLessonsLessonIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof PublicIndexRoute
   '/account-recovery': typeof AccountRecoveryRoute
+  '/index': typeof Char91indexChar93Route
   '/onboarding': typeof OnboardingRoute
   '/reset-password': typeof ResetPasswordRoute
   '/status': typeof StatusRoute
@@ -426,6 +433,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof PublicIndexRoute
   '/account-recovery': typeof AccountRecoveryRoute
+  '/index': typeof Char91indexChar93Route
   '/onboarding': typeof OnboardingRoute
   '/reset-password': typeof ResetPasswordRoute
   '/status': typeof StatusRoute
@@ -484,6 +492,7 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteWithChildren
   '/_public': typeof PublicRouteWithChildren
   '/account-recovery': typeof AccountRecoveryRoute
+  '/index': typeof Char91indexChar93Route
   '/onboarding': typeof OnboardingRoute
   '/reset-password': typeof ResetPasswordRoute
   '/status': typeof StatusRoute
@@ -545,6 +554,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/account-recovery'
+    | '/index'
     | '/onboarding'
     | '/reset-password'
     | '/status'
@@ -602,6 +612,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/account-recovery'
+    | '/index'
     | '/onboarding'
     | '/reset-password'
     | '/status'
@@ -659,6 +670,7 @@ export interface FileRouteTypes {
     | '/_app'
     | '/_public'
     | '/account-recovery'
+    | '/index'
     | '/onboarding'
     | '/reset-password'
     | '/status'
@@ -720,6 +732,7 @@ export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
   PublicRoute: typeof PublicRouteWithChildren
   AccountRecoveryRoute: typeof AccountRecoveryRoute
+  Char91indexChar93Route: typeof Char91indexChar93Route
   OnboardingRoute: typeof OnboardingRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   StatusRoute: typeof StatusRoute
@@ -732,6 +745,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/index': {
+      id: '/index'
+      path: '/index'
+      fullPath: '/index'
+      preLoaderRoute: typeof Char91indexChar93RouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_app': {
       id: '/_app'
       path: ''
@@ -1284,6 +1304,7 @@ const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
   PublicRoute: PublicRouteWithChildren,
   AccountRecoveryRoute: AccountRecoveryRoute,
+  Char91indexChar93Route: Char91indexChar93Route,
   OnboardingRoute: OnboardingRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   StatusRoute: StatusRoute,
