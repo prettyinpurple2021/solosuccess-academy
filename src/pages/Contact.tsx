@@ -77,7 +77,7 @@ export default function Contact() {
         <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
           {/* Contact Form */}
           <div className="md:col-span-2">
-            <Card className="bg-card/50 backdrop-blur-sm border-primary/20 shadow-[0_0_30px_hsl(var(--primary)/0.08)]">
+            <Card className="bg-card/50 backdrop-blur-xs border-primary/20 shadow-[0_0_30px_hsl(var(--primary)/0.08)]">
               <CardHeader>
                 <CardTitle className="font-display text-xl">Send a Message</CardTitle>
               </CardHeader>
@@ -103,7 +103,7 @@ export default function Contact() {
                       id="contact-message"
                       placeholder="Tell us more..."
                       rows={6}
-                      className="border-primary/30 bg-input backdrop-blur-sm focus:border-primary focus:shadow-[0_0_20px_hsl(var(--primary)/0.4)] focus:outline-none"
+                      className="border-primary/30 bg-input backdrop-blur-xs focus:border-primary focus:shadow-[0_0_20px_hsl(var(--primary)/0.4)] focus:outline-hidden"
                       value={form.message}
                       onChange={(e) => setForm({ ...form, message: e.target.value })}
                     />
@@ -119,7 +119,7 @@ export default function Contact() {
 
           {/* Sidebar links */}
           <div className="space-y-4">
-            <Card className="bg-card/50 backdrop-blur-sm border-primary/20 p-6 space-y-3">
+            <Card className="bg-card/50 backdrop-blur-xs border-primary/20 p-6 space-y-3">
               <Mail className="h-8 w-8 text-primary" />
               <h3 className="font-display font-semibold">Email Us</h3>
               <a href="mailto:support@solosuccessacademy.app" className="text-sm text-primary hover:underline font-mono block">
@@ -127,7 +127,7 @@ export default function Contact() {
               </a>
             </Card>
 
-            <Card className="bg-card/50 backdrop-blur-sm border-primary/20 p-6 space-y-3">
+            <Card className="bg-card/50 backdrop-blur-xs border-primary/20 p-6 space-y-3">
               <HelpCircle className="h-8 w-8 text-secondary" />
               <h3 className="font-display font-semibold">Help Center</h3>
               <p className="text-sm text-muted-foreground">Check our FAQ for quick answers.</p>

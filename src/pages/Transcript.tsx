@@ -102,7 +102,7 @@ export default function Transcript() {
 
         {/* GPA Summary Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Card className="bg-card/50 backdrop-blur-sm border-primary/20">
+          <Card className="bg-card/50 backdrop-blur-xs border-primary/20">
             <CardContent className="p-6 text-center">
               <TrendingUp className="h-8 w-8 text-primary mx-auto mb-2" />
               <p className="text-3xl font-display font-bold text-gradient">
@@ -111,7 +111,7 @@ export default function Transcript() {
               <p className="text-xs text-muted-foreground font-mono mt-1">Overall GPA</p>
             </CardContent>
           </Card>
-          <Card className="bg-card/50 backdrop-blur-sm border-primary/20">
+          <Card className="bg-card/50 backdrop-blur-xs border-primary/20">
             <CardContent className="p-6 text-center">
               <BookOpen className="h-8 w-8 text-secondary mx-auto mb-2" />
               <p className="text-3xl font-display font-bold">
@@ -121,7 +121,7 @@ export default function Transcript() {
               <p className="text-xs text-muted-foreground font-mono mt-1">Lessons Completed</p>
             </CardContent>
           </Card>
-          <Card className="bg-card/50 backdrop-blur-sm border-primary/20">
+          <Card className="bg-card/50 backdrop-blur-xs border-primary/20">
             <CardContent className="p-6 text-center">
               <Award className="h-8 w-8 text-accent mx-auto mb-2" />
               <p className="text-3xl font-display font-bold">{certificates?.length ?? 0}</p>
@@ -132,7 +132,7 @@ export default function Transcript() {
 
         {/* Course Rows */}
         {transcriptRows.length === 0 ? (
-          <Card className="bg-card/50 backdrop-blur-sm border-primary/20 p-12 text-center">
+          <Card className="bg-card/50 backdrop-blur-xs border-primary/20 p-12 text-center">
             <BookOpen className="h-12 w-12 text-muted-foreground/20 mx-auto mb-4" />
             <p className="text-muted-foreground">No enrolled courses yet.</p>
             <p className="text-xs text-muted-foreground/60 mt-1">
@@ -144,7 +144,7 @@ export default function Transcript() {
             {transcriptRows.map(row => (
               <Card
                 key={row.courseId}
-                className="bg-card/50 backdrop-blur-sm border-primary/10 hover:border-primary/20 transition-all"
+                className="bg-card/50 backdrop-blur-xs border-primary/10 hover:border-primary/20 transition-all"
               >
                 <CardContent className="p-4 sm:p-6">
                   <div className="flex flex-col sm:flex-row sm:items-center gap-4">

@@ -116,7 +116,7 @@ export default function Settings() {
                 >
                   <Label
                     htmlFor="light"
-                    className="flex flex-col items-center justify-between rounded-md border-2 border-primary/20 bg-black/40 backdrop-blur-sm p-4 hover:bg-primary/10 hover:border-primary/40 cursor-pointer transition-all duration-300 [&:has([data-state=checked])]:border-primary [&:has([data-state=checked])]:shadow-[0_0_20px_hsl(var(--primary)/0.3)]"
+                    className="flex flex-col items-center justify-between rounded-md border-2 border-primary/20 bg-black/40 backdrop-blur-xs p-4 hover:bg-primary/10 hover:border-primary/40 cursor-pointer transition-all duration-300 [&:has([data-state=checked])]:border-primary [&:has([data-state=checked])]:shadow-[0_0_20px_hsl(var(--primary)/0.3)]"
                   >
                     <RadioGroupItem value="light" id="light" className="sr-only" />
                     <Sun className="h-6 w-6 mb-2 text-amber-400" />
@@ -124,7 +124,7 @@ export default function Settings() {
                   </Label>
                   <Label
                     htmlFor="dark"
-                    className="flex flex-col items-center justify-between rounded-md border-2 border-primary/20 bg-black/40 backdrop-blur-sm p-4 hover:bg-primary/10 hover:border-primary/40 cursor-pointer transition-all duration-300 [&:has([data-state=checked])]:border-primary [&:has([data-state=checked])]:shadow-[0_0_20px_hsl(var(--primary)/0.3)]"
+                    className="flex flex-col items-center justify-between rounded-md border-2 border-primary/20 bg-black/40 backdrop-blur-xs p-4 hover:bg-primary/10 hover:border-primary/40 cursor-pointer transition-all duration-300 [&:has([data-state=checked])]:border-primary [&:has([data-state=checked])]:shadow-[0_0_20px_hsl(var(--primary)/0.3)]"
                   >
                     <RadioGroupItem value="dark" id="dark" className="sr-only" />
                     <Moon className="h-6 w-6 mb-2 text-primary" />
@@ -132,7 +132,7 @@ export default function Settings() {
                   </Label>
                   <Label
                     htmlFor="system"
-                    className="flex flex-col items-center justify-between rounded-md border-2 border-primary/20 bg-black/40 backdrop-blur-sm p-4 hover:bg-primary/10 hover:border-primary/40 cursor-pointer transition-all duration-300 [&:has([data-state=checked])]:border-primary [&:has([data-state=checked])]:shadow-[0_0_20px_hsl(var(--primary)/0.3)]"
+                    className="flex flex-col items-center justify-between rounded-md border-2 border-primary/20 bg-black/40 backdrop-blur-xs p-4 hover:bg-primary/10 hover:border-primary/40 cursor-pointer transition-all duration-300 [&:has([data-state=checked])]:border-primary [&:has([data-state=checked])]:shadow-[0_0_20px_hsl(var(--primary)/0.3)]"
                   >
                     <RadioGroupItem value="system" id="system" className="sr-only" />
                     <Monitor className="h-6 w-6 mb-2 text-secondary" />

@@ -529,7 +529,7 @@ export function TextbookViewer({ courseId, courseName }: TextbookViewerProps) {
     <div className="flex flex-col items-center w-full px-4">
       {/* Reading Progress Bar */}
       <div 
-        className="fixed top-0 left-0 right-0 h-1 z-50 bg-background/20 backdrop-blur-sm"
+        className="fixed top-0 left-0 right-0 h-1 z-50 bg-background/20 backdrop-blur-xs"
       >
         <motion.div
           className="h-full bg-gradient-to-r from-primary via-secondary to-primary shadow-[0_0_10px_hsl(var(--primary)/0.8),0_0_20px_hsl(var(--primary)/0.4)]"

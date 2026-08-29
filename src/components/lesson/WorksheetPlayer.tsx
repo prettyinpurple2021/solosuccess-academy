@@ -232,7 +232,7 @@ export function WorksheetPlayer({ worksheetData, userId, lessonId }: WorksheetPl
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: -20 }}
           transition={{ duration: 0.25 }}
-          className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-xl p-5 space-y-4"
+          className="bg-card/50 backdrop-blur-xs border border-border/50 rounded-xl p-5 space-y-4"
         >
           {/* Section title */}
           <div className="flex items-center gap-2">

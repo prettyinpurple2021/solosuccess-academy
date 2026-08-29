@@ -85,7 +85,7 @@ export function ProgressRing({
             strokeDasharray={circumference}
             strokeDashoffset={offset}
             strokeLinecap="round"
-            className="opacity-20 blur-sm"
+            className="opacity-20 blur-xs"
           />
         )}
       </svg>

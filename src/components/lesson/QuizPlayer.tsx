@@ -147,7 +147,7 @@ function QuestionCard({
       exit={{ opacity: 0, x: -40 }}
       transition={{ duration: 0.3, ease: 'easeInOut' }}
     >
-      <Card className="border-primary/20 bg-card/80 backdrop-blur">
+      <Card className="border-primary/20 bg-card/80 backdrop-blur-sm">
         <CardHeader className="pb-3">
           {/* Question number badge */}
           <div className="flex items-center gap-2 mb-2">

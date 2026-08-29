@@ -103,7 +103,7 @@ export default function Unsubscribe() {
       />
 
       <div className="flex min-h-screen items-center justify-center p-4 bg-background">
-        <Card className="max-w-md w-full bg-card/50 backdrop-blur-sm border-primary/20">
+        <Card className="max-w-md w-full bg-card/50 backdrop-blur-xs border-primary/20">
           <CardContent className="pt-8 pb-8 text-center space-y-6">
             {/* Loading state */}
             {status === 'loading' && (

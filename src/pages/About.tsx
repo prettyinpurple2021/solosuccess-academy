@@ -60,7 +60,7 @@ export default function About() {
               interactive exercises, and verifiable certificates.
             </p>
           </div>
-          <Card className="bg-card/50 backdrop-blur-sm border-primary/20 shadow-[0_0_30px_hsl(var(--primary)/0.08)]">
+          <Card className="bg-card/50 backdrop-blur-xs border-primary/20 shadow-[0_0_30px_hsl(var(--primary)/0.08)]">
             <CardContent className="p-8 space-y-4">
               <Rocket className="h-10 w-10 text-primary mb-2" />
               <h3 className="text-xl font-display font-semibold">Three Learning Phases</h3>
@@ -88,7 +88,7 @@ export default function About() {
             {stats.map((stat) => (
               <Card
                 key={stat.label}
-                className="bg-card/50 backdrop-blur-sm border-primary/20 text-center p-6 hover:border-primary/40 transition-all"
+                className="bg-card/50 backdrop-blur-xs border-primary/20 text-center p-6 hover:border-primary/40 transition-all"
               >
                 <stat.icon className="h-8 w-8 text-primary mx-auto mb-3" />
                 <p className="text-3xl font-display font-bold text-gradient">{stat.value}</p>
@@ -110,7 +110,7 @@ export default function About() {
               { icon: Rocket, title: 'Side-Project Founders', desc: 'Turn your passion project into a real, structured business.' },
               { icon: Brain, title: 'Small Business Owners', desc: 'Fill knowledge gaps in marketing, automation, and strategy.' },
             ].map((item) => (
-              <Card key={item.title} className="bg-card/50 backdrop-blur-sm border-primary/10 p-5">
+              <Card key={item.title} className="bg-card/50 backdrop-blur-xs border-primary/10 p-5">
                 <div className="flex items-start gap-3">
                   <item.icon className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
                   <div>

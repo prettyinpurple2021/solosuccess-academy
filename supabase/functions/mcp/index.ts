@@ -151,7 +151,7 @@ var list_my_certificates_default = defineTool3({
 // src/lib/mcp/tools/search_lessons.ts
 import { createClient as createClient4 } from "npm:@supabase/supabase-js@^2.110.0";
 import { defineTool as defineTool4 } from "npm:@lovable.dev/mcp-js@0.20.1";
-import { z } from "npm:zod@^3.25.76";
+import { z } from "npm:zod@^3.24.2";
 function supabaseForUser4(ctx) {
   return createClient4(process.env.SUPABASE_URL, process.env.SUPABASE_PUBLISHABLE_KEY, {
     global: { headers: { Authorization: `Bearer ${ctx.getToken()}` } },
