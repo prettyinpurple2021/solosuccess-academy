@@ -18,17 +18,31 @@ interface Star {
   hue: number;
 }
 
+// Deterministic PRNG (mulberry32) — server and client must generate the
+// exact same star positions during SSR hydration, so Math.random() cannot
+// be used. A fixed seed keeps the layout stable across renders.
+function mulberry32(seed: number) {
+  return () => {
+    seed |= 0;
+    seed = (seed + 0x6d2b79f5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
 export function StarField({ count = 40 }: { count?: number }) {
   const reducedMotion = useReducedMotion();
   const stars = useMemo<Star[]>(() => {
+    const rand = mulberry32(42); // fixed seed → SSR/client match
     return Array.from({ length: count }, (_, i) => ({
       id: i,
-      x: Math.random() * 100,
-      y: Math.random() * 100,
-      size: Math.random() * 2 + 0.5,          // 0.5–2.5px
-      delay: Math.random() * -10,              // stagger
-      duration: Math.random() * 6 + 4,         // 4–10s twinkle
-      hue: [270, 185, 320, 220, 0][Math.floor(Math.random() * 5)], // purple/cyan/pink/blue/white
+      x: rand() * 100,
+      y: rand() * 100,
+      size: rand() * 2 + 0.5,                  // 0.5–2.5px
+      delay: rand() * -10,                     // stagger
+      duration: rand() * 6 + 4,                // 4–10s twinkle
+      hue: [270, 185, 320, 220, 0][Math.floor(rand() * 5)], // purple/cyan/pink/blue/white
     }));
   }, [count]);
 

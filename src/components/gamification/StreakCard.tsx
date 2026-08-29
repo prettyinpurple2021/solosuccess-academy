@@ -53,8 +53,11 @@ export function StreakCard({ className }: StreakCardProps) {
   // Realtime: invalidate when this user's gamification/activity rows change
   useEffect(() => {
     if (!user?.id) return;
+    // Unique channel name per mount — reusing the same name after
+    // removeChannel() can return the still-subscribed channel instance,
+    // which throws when .on() is called on it.
     const channel = supabase
-      .channel(`streak-${user.id}`)
+      .channel(`streak-${user.id}-${crypto.randomUUID()}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'user_gamification', filter: `user_id=eq.${user.id}` },
