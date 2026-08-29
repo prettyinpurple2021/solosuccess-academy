@@ -2900,6 +2900,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_privileged_grader: { Args: never; Returns: boolean }
       job_should_run: {
         Args: { p_has_pending?: boolean; p_job_name: string; p_window?: string }
         Returns: boolean

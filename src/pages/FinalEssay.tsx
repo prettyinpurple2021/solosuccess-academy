@@ -108,15 +108,11 @@ export default function FinalEssay() {
 
       if (insertError) throw insertError;
 
-      // 2. Trigger AI grading
-      const selectedPrompt = essayConfig.prompts[selectedPromptIndex];
+      // 2. Trigger AI grading (runs server-side; only the submission id is sent)
       await gradeEssay.mutateAsync({
         submissionId: (submission as any).id,
-        essayContent,
-        prompt: selectedPrompt,
-        rubric: essayConfig.rubric,
-        courseTitle: course?.title || '',
       });
+
 
       return submission;
     },
