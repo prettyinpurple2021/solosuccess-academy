@@ -110,70 +110,22 @@ export function useGenerateEssay() {
   });
 }
 
-/** AI-grade a student essay submission. */
+/**
+ * AI-grade a student essay submission.
+ *
+ * SECURITY: grading runs entirely on the server (`gradeEssaySubmission`).
+ * The browser only sends the submission id — the essay text, rubric, and the
+ * resulting score are read/written server-side, because the database blocks
+ * students from writing grading columns themselves.
+ */
 export function useGradeEssay() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const gradeFn = useServerFn(gradeEssaySubmission);
 
   return useMutation({
-    mutationFn: async (params: {
-      submissionId: string;
-      essayContent: string;
-      prompt: EssayPrompt;
-      rubric: { criteria: RubricCriterion[]; totalPoints: number };
-      courseTitle: string;
-    }) => {
-      const { data, error } = await supabase.functions.invoke('generate-content', {
-        body: {
-          type: 'grade_essay',
-          context: {
-            courseTitle: params.courseTitle,
-            documentContent: params.essayContent,
-          },
-          customPrompt: `Grade the following student essay based on this rubric and prompt.
-
-ESSAY PROMPT: "${params.prompt.title}" — ${params.prompt.description}
-
-RUBRIC CRITERIA:
-${params.rubric.criteria.map(c => `- ${c.name} (${c.maxPoints} pts): ${c.description}`).join('\n')}
-
-Total possible points: ${params.rubric.totalPoints}
-
-STUDENT ESSAY:
-${params.essayContent}
-
-Return your assessment as JSON:
-{
-  "totalScore": <number out of ${params.rubric.totalPoints}>,
-  "percentage": <0-100>,
-  "criteriaScores": [
-    { "name": "<criterion name>", "score": <number>, "maxScore": <number>, "feedback": "<specific feedback>" }
-  ],
-  "overallFeedback": "<2-3 paragraphs of constructive feedback>",
-  "strengths": ["strength 1", "strength 2"],
-  "improvements": ["improvement 1", "improvement 2"]
-}`,
-        },
-      });
-
-      if (error) throw new Error(error.message);
-      if (data?.error) throw new Error(data.error);
-
-      const gradeData = data.content;
-
-      // Update the submission with AI grades
-      const { error: updateError } = await supabase
-        .from('student_essay_submissions' as any)
-        .update({
-          ai_score: gradeData.percentage ?? gradeData.totalScore,
-          ai_feedback: gradeData.overallFeedback,
-          ai_rubric_scores: gradeData,
-          ai_graded_at: new Date().toISOString(),
-        } as any)
-        .eq('id', params.submissionId);
-
-      if (updateError) throw updateError;
-      return gradeData;
+    mutationFn: async (params: { submissionId: string }) => {
+      return await gradeFn({ data: { submissionId: params.submissionId } });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['essay-submissions'] });
@@ -184,3 +136,4 @@ Return your assessment as JSON:
     },
   });
 }
+
