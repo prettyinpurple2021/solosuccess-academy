@@ -21,19 +21,32 @@ interface Particle {
   hue: number;
 }
 
+// Deterministic PRNG (mulberry32) — SSR and client must produce identical
+// particle configs, so Math.random() cannot be used here.
+function mulberry32(seed: number) {
+  return () => {
+    seed |= 0;
+    seed = (seed + 0x6d2b79f5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
 export function FloatingParticles({ count = 30 }: { count?: number }) {
   const reducedMotion = useReducedMotion();
-  /* Generate random particle configs once */
+  /* Generate deterministic particle configs once */
   const particles = useMemo<Particle[]>(() => {
+    const rand = mulberry32(1337); // fixed seed → SSR/client match
     return Array.from({ length: count }, (_, i) => ({
       id: i,
-      size: Math.random() * 5 + 1,              // 1–6px (slightly larger for nebula feel)
-      x: Math.random() * 100,                   // 0–100%
-      y: Math.random() * 100,
-      duration: Math.random() * 25 + 20,         // 20–45s drift (slower, more cinematic)
-      delay: Math.random() * -25,                // stagger start
-      opacity: Math.random() * 0.4 + 0.05,       // 0.05–0.45
-      hue: [270, 185, 320, 240, 200][Math.floor(Math.random() * 5)], // purple/cyan/pink/indigo/blue
+      size: rand() * 5 + 1,              // 1–6px (slightly larger for nebula feel)
+      x: rand() * 100,                   // 0–100%
+      y: rand() * 100,
+      duration: rand() * 25 + 20,         // 20–45s drift (slower, more cinematic)
+      delay: rand() * -25,                // stagger start
+      opacity: rand() * 0.4 + 0.05,       // 0.05–0.45
+      hue: [270, 185, 320, 240, 200][Math.floor(rand() * 5)], // purple/cyan/pink/indigo/blue
     }));
   }, [count]);
 
