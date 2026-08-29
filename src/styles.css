@@ -1,0 +1,156 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+@plugin "@tailwindcss/typography";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * SoloSuccess Academy — Tailwind v4 design-system bridge.
+ *
+ * The @theme inline block below re-creates every custom token from the old
+ * tailwind.config.ts (colors, fonts, radii, animations) so existing utility
+ * classes like bg-primary, text-glow-cyan, font-heading and
+ * animate-glow-pulse keep working exactly as before.
+ *
+ * All raw HSL variable values (--primary: 270 50% 55%; etc.) are defined in
+ * the ported theme section further down — carried over verbatim from the
+ * old src/index.css.
+ */
+
+@theme inline {
+  /* Radii — mirror the old borderRadius extension */
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+
+  /* Core shadcn semantic colors (HSL triplet vars → real colors) */
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-ring-offset-background: hsl(var(--background));
+
+  /* Sidebar palette (old DEFAULT mapped to --sidebar-background) */
+  --color-sidebar: hsl(var(--sidebar-background));
+  --color-sidebar-foreground: hsl(var(--sidebar-foreground));
+  --color-sidebar-primary: hsl(var(--sidebar-primary));
+  --color-sidebar-primary-foreground: hsl(var(--sidebar-primary-foreground));
+  --color-sidebar-accent: hsl(var(--sidebar-accent));
+  --color-sidebar-accent-foreground: hsl(var(--sidebar-accent-foreground));
+  --color-sidebar-border: hsl(var(--sidebar-border));
+  --color-sidebar-ring: hsl(var(--sidebar-ring));
+
+  /* Custom semantic colors */
+  --color-success: hsl(var(--success));
+  --color-success-foreground: hsl(var(--success-foreground));
+  --color-warning: hsl(var(--warning));
+  --color-warning-foreground: hsl(var(--warning-foreground));
+  --color-info: hsl(var(--info));
+  --color-info-foreground: hsl(var(--info-foreground));
+
+  /* Phase colors */
+  --color-phase-initialization: hsl(var(--phase-initialization));
+  --color-phase-orchestration: hsl(var(--phase-orchestration));
+  --color-phase-launch: hsl(var(--phase-launch));
+
+  /* Glow colors */
+  --color-glow-purple: hsl(var(--glow-purple));
+  --color-glow-cyan: hsl(var(--glow-cyan));
+  --color-glow-pink: hsl(var(--glow-pink));
+
+  /* Font families — mirror the old fontFamily extension */
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-display: "Orbitron", "Space Grotesk", "Inter", system-ui, sans-serif;
+  --font-heading: "Rajdhani", "Orbitron", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", monospace;
+
+  /* Animations — mirror the old animation extension */
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+  --animate-fade-in: fade-in 0.3s ease-out;
+  --animate-fade-out: fade-out 0.3s ease-out;
+  --animate-slide-in-right: slide-in-right 0.3s ease-out;
+  --animate-slide-out-right: slide-out-right 0.3s ease-out;
+  --animate-pulse: pulse 2s ease-in-out infinite;
+  --animate-shimmer: shimmer 2s linear infinite;
+  --animate-glow-pulse: glow-pulse 3s ease-in-out infinite;
+}
+
+/* Keyframes referenced by the --animate-* tokens above */
+@keyframes accordion-down {
+  from { height: 0; }
+  to { height: var(--radix-accordion-content-height); }
+}
+@keyframes accordion-up {
+  from { height: var(--radix-accordion-content-height); }
+  to { height: 0; }
+}
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fade-out {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(10px); }
+}
+@keyframes slide-in-right {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+@keyframes slide-out-right {
+  from { transform: translateX(0); }
+  to { transform: translateX(100%); }
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 20px hsl(270 80% 60% / 0.3), 0 0 40px hsl(270 80% 60% / 0.1); }
+  50% { box-shadow: 0 0 30px hsl(270 80% 60% / 0.5), 0 0 60px hsl(270 80% 60% / 0.2); }
+}
+
+/* Container — mirror the old v3 container config (centered, 2rem padding, 1400px cap) */
+@utility container {
+  margin-inline: auto;
+  padding-inline: 2rem;
+  width: 100%;
+  @media (min-width: 1400px) {
+    max-width: 1400px;
+  }
+}
+
+/* backgroundImage extensions from the old tailwind.config.ts */
+@utility bg-gradient-radial {
+  background-image: radial-gradient(var(--tw-gradient-stops));
+}
+@utility bg-shimmer {
+  background-image: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+}
+@utility bg-cyber-gradient {
+  background-image:
+    radial-gradient(ellipse at 50% 0%, hsl(270 60% 15% / 0.5) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 100%, hsl(185 60% 10% / 0.4) 0%, transparent 50%);
+}
