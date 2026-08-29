@@ -62,7 +62,7 @@ export default function AdminMigrationPrint() {
       `}</style>
 
       {/* Top action bar (hidden when printing) */}
-      <div className="no-print sticky top-0 z-20 border-b bg-white/95 backdrop-blur">
+      <div className="no-print sticky top-0 z-20 border-b bg-white/95 backdrop-blur-sm">
         <div className="max-w-4xl mx-auto px-6 py-3 flex items-center justify-between gap-3 flex-wrap">
           <Button
             asChild
