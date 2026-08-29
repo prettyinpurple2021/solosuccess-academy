@@ -5,7 +5,7 @@
  * Categories: General, Learning Experience, Gamification, Account & Access, Legal & Permissions
  */
 import { useState, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from '@/lib/router-compat';
 import { Search, HelpCircle, Send, BookOpen, Gamepad2, UserCog, Scale, Info, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';

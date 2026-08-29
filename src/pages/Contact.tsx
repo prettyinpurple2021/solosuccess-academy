@@ -5,7 +5,7 @@
  * Submissions are stored in the database via the submit-contact edge function.
  */
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from '@/lib/router-compat';
 import { Send, Mail, HelpCircle, MessageSquare, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';

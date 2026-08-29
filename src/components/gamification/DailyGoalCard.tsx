@@ -11,7 +11,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Target, BookOpen, Clock, Sparkles } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link } from '@/lib/router-compat';
 import { useAuth } from '@/hooks/useAuth';
 import { useDailyGoalsConfig, useDailyProgress } from '@/hooks/useDailyGoals';
 import { cn } from '@/lib/utils';

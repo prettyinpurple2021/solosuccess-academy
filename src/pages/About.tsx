@@ -3,7 +3,7 @@
  * 
  * Public page with mission statement, platform vision, and stats.
  */
-import { Link } from 'react-router-dom';
+import { Link } from '@/lib/router-compat';
 import { Zap, Target, Users, BookOpen, Brain, Rocket, Award, ArrowRight } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';

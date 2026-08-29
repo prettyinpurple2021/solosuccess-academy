@@ -4,7 +4,7 @@
  * Lists every published legal document with version + effective date,
  * and links to /legal/:slug for an in-app PDF viewer.
  */
-import { Link } from 'react-router-dom';
+import { Link } from '@/lib/router-compat';
 import { FileText, Download, ExternalLink, Scale } from 'lucide-react';
 import { PageMeta } from '@/components/layout/PageMeta';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';

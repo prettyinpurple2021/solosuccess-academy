@@ -4,7 +4,7 @@
  * Displays all courses grouped by phase (Initialization, Orchestration, Launch)
  * with a timeline connector visual. Includes a loading skeleton.
  */
-import { Link } from 'react-router-dom';
+import { Link } from '@/lib/router-compat';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ArrowRight } from 'lucide-react';

@@ -5,7 +5,8 @@
  * plus a `body` React component rendered inside the post page.
  * Add new posts here — the routes and index auto-pick them up.
  */
-import { Link } from 'react-router-dom';
+import type { JSX } from 'react';
+import { Link } from '@/lib/router-compat';
 
 export interface BlogPost {
   slug: string;

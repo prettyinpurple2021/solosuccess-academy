@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from '@/lib/router-compat';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { AvatarUpload } from '@/components/profile/AvatarUpload';
@@ -18,7 +18,7 @@ import { NeonSpinner } from '@/components/ui/neon-spinner';
 import { TrendingUp, BookOpen, Award, ArrowRight } from 'lucide-react';
 import { TestimonialForm } from '@/components/testimonials/TestimonialForm';
 import { useEffect, useRef } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams } from '@/lib/router-compat';
 
 export default function Profile() {
   const { user, isLoading: authLoading } = useAuth();
@@ -135,7 +135,7 @@ export default function Profile() {
             </CardHeader>
             <CardContent>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {overallProgress.courseProgress.map((course) => (
+                {overallProgress.courseProgress.map((course: (typeof overallProgress.courseProgress)[number]) => (
                   <div 
                     key={course.courseId}
                     className="flex items-center gap-4 p-4 rounded-lg bg-black/30 border border-accent/20 hover:border-accent/40 transition-all"

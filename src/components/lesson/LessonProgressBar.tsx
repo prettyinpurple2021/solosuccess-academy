@@ -5,7 +5,7 @@
  * and completed lessons. Provides quick navigation by clicking on nodes.
  */
 
-import { Link } from 'react-router-dom';
+import { Link } from '@/lib/router-compat';
 import { type Lesson } from '@/lib/courseData';
 import { type UserProgress } from '@/hooks/useProgress';
 import { CheckCircle2 } from 'lucide-react';

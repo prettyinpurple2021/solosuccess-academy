@@ -10,11 +10,11 @@ import { Highlighter, StickyNote, X, Lightbulb } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const HIGHLIGHT_COLORS = [
-  { name: 'yellow', class: 'bg-yellow-400', hover: 'hover:bg-yellow-500', shadow-sm: 'shadow-[0_0_10px_rgba(250,204,21,0.5)]' },
-  { name: 'green', class: 'bg-green-400', hover: 'hover:bg-green-500', shadow-sm: 'shadow-[0_0_10px_rgba(74,222,128,0.5)]' },
-  { name: 'blue', class: 'bg-blue-400', hover: 'hover:bg-blue-500', shadow-sm: 'shadow-[0_0_10px_rgba(96,165,250,0.5)]' },
-  { name: 'pink', class: 'bg-pink-400', hover: 'hover:bg-pink-500', shadow-sm: 'shadow-[0_0_10px_rgba(244,114,182,0.5)]' },
-  { name: 'purple', class: 'bg-purple-400', hover: 'hover:bg-purple-500', shadow-sm: 'shadow-[0_0_10px_rgba(192,132,252,0.5)]' },
+  { name: 'yellow', class: 'bg-yellow-400', hover: 'hover:bg-yellow-500', shadow: 'shadow-[0_0_10px_rgba(250,204,21,0.5)]' },
+  { name: 'green', class: 'bg-green-400', hover: 'hover:bg-green-500', shadow: 'shadow-[0_0_10px_rgba(74,222,128,0.5)]' },
+  { name: 'blue', class: 'bg-blue-400', hover: 'hover:bg-blue-500', shadow: 'shadow-[0_0_10px_rgba(96,165,250,0.5)]' },
+  { name: 'pink', class: 'bg-pink-400', hover: 'hover:bg-pink-500', shadow: 'shadow-[0_0_10px_rgba(244,114,182,0.5)]' },
+  { name: 'purple', class: 'bg-purple-400', hover: 'hover:bg-purple-500', shadow: 'shadow-[0_0_10px_rgba(192,132,252,0.5)]' },
 ];
 
 interface HighlightToolbarProps {
@@ -45,7 +45,7 @@ export function HighlightToolbar({ position, onHighlight, onAddNote, onExplain, 
               "w-5 h-5 rounded-full transition-all hover:scale-125 focus:outline-hidden focus:ring-2 focus:ring-primary focus:ring-offset-1 focus:ring-offset-background",
               color.class,
               color.hover,
-              color.shadow-sm
+              color.shadow
             )}
             title={`Highlight ${color.name}`}
           />

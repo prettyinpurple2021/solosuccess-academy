@@ -1,5 +1,5 @@
 import { format } from 'date-fns';
-import { Link } from 'react-router-dom';
+import { Link } from '@/lib/router-compat';
 import { AlertTriangle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';

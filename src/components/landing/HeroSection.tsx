@@ -5,7 +5,7 @@
  * animated orb backgrounds, and dual CTA buttons.
  * Mobile-first responsive sizing for all viewports.
  */
-import { Link } from 'react-router-dom';
+import { Link } from '@/lib/router-compat';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Play, Terminal, Cpu, Shield } from 'lucide-react';
 import { UIFrame } from '@/components/landing/UIFrame';

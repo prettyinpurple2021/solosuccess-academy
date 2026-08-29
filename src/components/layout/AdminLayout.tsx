@@ -20,7 +20,7 @@
  * - Add an "Unauthorized" page instead of silent redirect to dashboard
  * - Consider caching the admin check to avoid re-querying on every navigation
  */
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate, Outlet } from "@/lib/router-compat";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsAdmin } from "@/hooks/useAdmin";
 import { NeonSpinner } from "@/components/ui/neon-spinner";

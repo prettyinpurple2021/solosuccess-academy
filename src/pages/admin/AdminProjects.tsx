@@ -3,7 +3,7 @@
  * Left: filterable list. Right: grading panel for the selected project.
  */
 import { useState } from 'react';
-import { Helmet } from 'react-helmet-async';
+import { Helmet } from "@/lib/helmet-compat";
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';

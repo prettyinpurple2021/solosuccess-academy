@@ -10,7 +10,7 @@
  * Route: /admin/platform-settings  (admin-only via AdminLayout guard).
  */
 import { useMemo, useState, useEffect } from 'react';
-import { Helmet } from 'react-helmet-async';
+import { Helmet } from "@/lib/helmet-compat";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';

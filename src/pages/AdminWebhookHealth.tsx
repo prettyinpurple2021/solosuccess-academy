@@ -3,7 +3,7 @@
  * recent event counts (last 24h / 7d), per-type breakdown, and the most
  * recent error. Read-only; admins only (RLS already restricts the table).
  */
-import { Link } from 'react-router-dom';
+import { Link } from '@/lib/router-compat';
 import { useQuery } from '@tanstack/react-query';
 import { ArrowLeft, RefreshCw, AlertTriangle, CheckCircle2, Activity, Mail } from 'lucide-react';
 import { format } from 'date-fns';

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { MilestoneEditor } from '@/components/admin/MilestoneEditor';
-import { Link } from 'react-router-dom';
+import { Link } from '@/lib/router-compat';
 import { Button } from '@/components/ui/button';
 import { CourseBreadcrumb } from '@/components/navigation/CourseBreadcrumb';
 import { Card, CardContent } from '@/components/ui/card';

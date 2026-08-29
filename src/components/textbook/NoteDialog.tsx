@@ -23,11 +23,11 @@ import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 
 const HIGHLIGHT_COLORS = [
-  { name: 'yellow', class: 'bg-yellow-400', shadow-sm: 'shadow-[0_0_10px_rgba(250,204,21,0.5)]' },
-  { name: 'green', class: 'bg-green-400', shadow-sm: 'shadow-[0_0_10px_rgba(74,222,128,0.5)]' },
-  { name: 'blue', class: 'bg-blue-400', shadow-sm: 'shadow-[0_0_10px_rgba(96,165,250,0.5)]' },
-  { name: 'pink', class: 'bg-pink-400', shadow-sm: 'shadow-[0_0_10px_rgba(244,114,182,0.5)]' },
-  { name: 'purple', class: 'bg-purple-400', shadow-sm: 'shadow-[0_0_10px_rgba(192,132,252,0.5)]' },
+  { name: 'yellow', class: 'bg-yellow-400', shadow: 'shadow-[0_0_10px_rgba(250,204,21,0.5)]' },
+  { name: 'green', class: 'bg-green-400', shadow: 'shadow-[0_0_10px_rgba(74,222,128,0.5)]' },
+  { name: 'blue', class: 'bg-blue-400', shadow: 'shadow-[0_0_10px_rgba(96,165,250,0.5)]' },
+  { name: 'pink', class: 'bg-pink-400', shadow: 'shadow-[0_0_10px_rgba(244,114,182,0.5)]' },
+  { name: 'purple', class: 'bg-purple-400', shadow: 'shadow-[0_0_10px_rgba(192,132,252,0.5)]' },
 ];
 
 interface NoteDialogProps {
@@ -79,7 +79,7 @@ export function NoteDialog({ open, onOpenChange, selectedText, onSave }: NoteDia
                   className={cn(
                     "w-8 h-8 rounded-full transition-all focus:outline-hidden",
                     c.class,
-                    color === c.name && cn("ring-2 ring-foreground ring-offset-2 ring-offset-background scale-110", c.shadow-sm)
+                    color === c.name && cn("ring-2 ring-foreground ring-offset-2 ring-offset-background scale-110", c.shadow)
                   )}
                   title={c.name}
                 />

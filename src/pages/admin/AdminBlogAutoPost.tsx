@@ -68,7 +68,7 @@ export default function AdminBlogAutoPost() {
       angle: angle.trim() || null,
       target_keyword: keyword.trim() || null,
     });
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success('Topic added to queue');
     setTopic('');
     setAngle('');
@@ -78,7 +78,7 @@ export default function AdminBlogAutoPost() {
 
   async function removeTopic(id: string) {
     const { error } = await supabase.from('blog_topic_queue').delete().eq('id', id);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     refresh();
   }
 

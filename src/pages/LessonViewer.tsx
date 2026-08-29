@@ -32,7 +32,7 @@
  * - Add lesson-level error boundary
  */
 import { useState, useCallback } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link, useNavigate } from '@/lib/router-compat';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useCourse, useCourseLessons, useHasPurchasedCourse } from '@/hooks/useCourses';

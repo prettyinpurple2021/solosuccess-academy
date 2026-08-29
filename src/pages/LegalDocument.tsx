@@ -2,7 +2,7 @@
  * @file LegalDocument.tsx — Single-document viewer at /legal/:slug
  * Embeds the PDF in an <iframe> with a clear download fallback.
  */
-import { useParams, Link, Navigate } from 'react-router-dom';
+import { useParams, Link, Navigate } from '@/lib/router-compat';
 import { ArrowLeft, Download } from 'lucide-react';
 import { PageMeta } from '@/components/layout/PageMeta';
 import { Button } from '@/components/ui/button';

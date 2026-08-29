@@ -15,7 +15,7 @@
  * - Locked: Dimmed with lock icon
  */
 import { useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from '@/lib/router-compat';
 import { motion } from 'framer-motion';
 import { 
   CheckCircle2, 
