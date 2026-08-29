@@ -3,7 +3,7 @@
  * SSR module evaluation. This shim imports the CJS default and re-exports
  * the pieces the app uses, working in both server and browser bundles.
  */
-import pkg from "react-helmet-async";
+import * as pkg from "react-helmet-async";
 
 type HelmetModule = typeof import("react-helmet-async");
 
