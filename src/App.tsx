@@ -38,6 +38,8 @@ import { ThemeProvider } from "next-themes";
 import { GamificationProvider } from "@/components/gamification/GamificationProvider";
 import { NeonSpinner } from "@/components/ui/neon-spinner";
 import { ErrorBoundary } from "@/components/layout/ErrorBoundary";
+import { useTrafficHeartbeat } from "@/hooks/useTrafficHeartbeat";
+
 import { SkipLink } from "@/components/layout/SkipLink";
 
 // ──────────────────────────────────────────────
