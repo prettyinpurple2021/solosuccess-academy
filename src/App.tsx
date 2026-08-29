@@ -38,6 +38,8 @@ import { ThemeProvider } from "next-themes";
 import { GamificationProvider } from "@/components/gamification/GamificationProvider";
 import { NeonSpinner } from "@/components/ui/neon-spinner";
 import { ErrorBoundary } from "@/components/layout/ErrorBoundary";
+import { useTrafficHeartbeat } from "@/hooks/useTrafficHeartbeat";
+
 import { SkipLink } from "@/components/layout/SkipLink";
 
 // ──────────────────────────────────────────────
@@ -153,6 +155,15 @@ const queryClient = new QueryClient({
  * 4. ThemeProvider enables dark/light mode toggling
  * 5. GamificationProvider tracks XP and streak state globally
  */
+/**
+ * TrafficHeartbeat: invisible component that reports "the app is in use" to the
+ * backend, so scheduled background jobs only run when there's real traffic.
+ */
+const TrafficHeartbeat = () => {
+  useTrafficHeartbeat();
+  return null;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ErrorBoundary>
@@ -160,10 +171,13 @@ const App = () => (
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
         <TooltipProvider>
           <GamificationProvider>
+            {/* Reports live traffic used by on-demand background job gating */}
+            <TrafficHeartbeat />
             {/* Two toast systems: Toaster = shadcn toasts, Sonner = sonner toasts */}
             <Toaster />
             <Sonner />
             <BrowserRouter>
+
             {/* SkipLink: Accessibility — lets keyboard users skip nav to main content */}
             <SkipLink />
             {/* Suspense: Shows loading spinner while lazy pages download */}
