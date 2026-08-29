@@ -57,7 +57,7 @@ export function AccessibilityCard() {
           <RadioGroup value={preference} onValueChange={handleChange} className="grid gap-3">
             <Label
               htmlFor="motion-system"
-              className="flex items-start gap-3 rounded-md border-2 border-info/20 bg-black/40 backdrop-blur-sm p-4 hover:bg-info/10 hover:border-info/40 cursor-pointer transition-all duration-300 [&:has([data-state=checked])]:border-info [&:has([data-state=checked])]:shadow-[0_0_20px_hsl(var(--info)/0.3)]"
+              className="flex items-start gap-3 rounded-md border-2 border-info/20 bg-black/40 backdrop-blur-xs p-4 hover:bg-info/10 hover:border-info/40 cursor-pointer transition-all duration-300 [&:has([data-state=checked])]:border-info [&:has([data-state=checked])]:shadow-[0_0_20px_hsl(var(--info)/0.3)]"
             >
               <RadioGroupItem value="system" id="motion-system" className="mt-0.5" />
               <div className="flex-1">
@@ -73,7 +73,7 @@ export function AccessibilityCard() {
 
             <Label
               htmlFor="motion-reduce"
-              className="flex items-start gap-3 rounded-md border-2 border-info/20 bg-black/40 backdrop-blur-sm p-4 hover:bg-info/10 hover:border-info/40 cursor-pointer transition-all duration-300 [&:has([data-state=checked])]:border-info [&:has([data-state=checked])]:shadow-[0_0_20px_hsl(var(--info)/0.3)]"
+              className="flex items-start gap-3 rounded-md border-2 border-info/20 bg-black/40 backdrop-blur-xs p-4 hover:bg-info/10 hover:border-info/40 cursor-pointer transition-all duration-300 [&:has([data-state=checked])]:border-info [&:has([data-state=checked])]:shadow-[0_0_20px_hsl(var(--info)/0.3)]"
             >
               <RadioGroupItem value="reduce" id="motion-reduce" className="mt-0.5" />
               <div className="flex-1">
@@ -89,7 +89,7 @@ export function AccessibilityCard() {
 
             <Label
               htmlFor="motion-full"
-              className="flex items-start gap-3 rounded-md border-2 border-info/20 bg-black/40 backdrop-blur-sm p-4 hover:bg-info/10 hover:border-info/40 cursor-pointer transition-all duration-300 [&:has([data-state=checked])]:border-info [&:has([data-state=checked])]:shadow-[0_0_20px_hsl(var(--info)/0.3)]"
+              className="flex items-start gap-3 rounded-md border-2 border-info/20 bg-black/40 backdrop-blur-xs p-4 hover:bg-info/10 hover:border-info/40 cursor-pointer transition-all duration-300 [&:has([data-state=checked])]:border-info [&:has([data-state=checked])]:shadow-[0_0_20px_hsl(var(--info)/0.3)]"
             >
               <RadioGroupItem value="full" id="motion-full" className="mt-0.5" />
               <div className="flex-1">

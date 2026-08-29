@@ -36,7 +36,7 @@ export function ReadingProgressBar({ className }: ReadingProgressBarProps) {
   return (
     <div 
       className={cn(
-        'fixed top-0 left-0 right-0 h-1 z-50 bg-background/20 backdrop-blur-sm',
+        'fixed top-0 left-0 right-0 h-1 z-50 bg-background/20 backdrop-blur-xs',
         className
       )}
     >

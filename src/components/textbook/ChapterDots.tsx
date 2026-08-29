@@ -61,7 +61,7 @@ export function ChapterDots({ chapters, currentPage, totalPages, onNavigate }: C
             <TooltipTrigger asChild>
               <button
                 onClick={() => onNavigate(chapter.firstPageIndex)}
-                className="relative group p-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-full"
+                className="relative group p-1 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary rounded-full"
                 aria-label={`Go to ${chapter.title}`}
                 aria-current={isActive ? 'step' : undefined}
               >
@@ -69,7 +69,7 @@ export function ChapterDots({ chapters, currentPage, totalPages, onNavigate }: C
                 {isActive && (
                   <motion.span
                     layoutId="chapter-dot-glow"
-                    className="absolute inset-0 rounded-full bg-primary/30 blur-sm"
+                    className="absolute inset-0 rounded-full bg-primary/30 blur-xs"
                     transition={{ type: 'spring', stiffness: 300, damping: 25 }}
                   />
                 )}

@@ -419,7 +419,7 @@ export default function LessonViewer() {
       </header>
 
       {/* Lesson Progress Bar - Shows position in course */}
-      <div className="py-3 border-b border-primary/10 bg-background/40 backdrop-blur-sm">
+      <div className="py-3 border-b border-primary/10 bg-background/40 backdrop-blur-xs">
         <LessonProgressBar
           lessons={lessons || []}
           currentLessonId={lessonId || ''}

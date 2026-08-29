@@ -252,7 +252,7 @@ export default function HelpCenter() {
             filteredCategories.map((category) => (
               <Card
                 key={category.name}
-                className="bg-card/50 backdrop-blur-sm border-primary/20 shadow-[0_0_20px_hsl(var(--primary)/0.05)]"
+                className="bg-card/50 backdrop-blur-xs border-primary/20 shadow-[0_0_20px_hsl(var(--primary)/0.05)]"
               >
                 <CardHeader>
                   <h2 className="flex items-center gap-3 text-lg font-display font-semibold leading-none tracking-tight m-0">
@@ -285,7 +285,7 @@ export default function HelpCenter() {
 
         {/* ── Contact Support Section ─────────────── */}
         <section className="max-w-2xl mx-auto">
-          <Card className="bg-card/50 backdrop-blur-sm border-primary/20 shadow-[0_0_30px_hsl(var(--primary)/0.08)]">
+          <Card className="bg-card/50 backdrop-blur-xs border-primary/20 shadow-[0_0_30px_hsl(var(--primary)/0.08)]">
             <CardHeader className="text-center">
               <CardTitle className="text-2xl font-display">
                 <Send className="h-5 w-5 inline-block mr-2 text-primary" />
@@ -335,7 +335,7 @@ export default function HelpCenter() {
                     id="help-message"
                     placeholder="Describe your issue or question..."
                     rows={5}
-                    className="border-primary/30 bg-black/60 backdrop-blur-sm focus:border-primary focus:shadow-[0_0_20px_hsl(var(--primary)/0.4)] focus:outline-none"
+                    className="border-primary/30 bg-black/60 backdrop-blur-xs focus:border-primary focus:shadow-[0_0_20px_hsl(var(--primary)/0.4)] focus:outline-hidden"
                     value={contactForm.message}
                     onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
                   />

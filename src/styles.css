@@ -1909,3 +1909,9 @@ html[data-reduce-motion='true'] .nebula-cloud,
 html[data-reduce-motion='true'] .cyber-grid::after {
   display: none !important;
 }
+
+/* Tailwind v4 compat: bare `rounded` was removed in v4 — preserve the v3
+   0.25rem visual for the existing call sites without touching them. */
+@utility rounded {
+  border-radius: 0.25rem;
+}

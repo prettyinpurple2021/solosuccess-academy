@@ -120,7 +120,7 @@ export function VocabularyGlossary({ terms, className }: VocabularyGlossaryProps
               {Object.entries(groupedTerms).map(([letter, letterTerms]) => (
                 <div key={letter}>
                   {/* Letter header */}
-                  <div className="sticky top-0 bg-black/80 backdrop-blur-sm py-1 px-2 mb-2 border-b border-primary/20">
+                  <div className="sticky top-0 bg-black/80 backdrop-blur-xs py-1 px-2 mb-2 border-b border-primary/20">
                     <span className="text-lg font-display font-bold text-primary">
                       {letter}
                     </span>

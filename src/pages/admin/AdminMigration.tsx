@@ -378,7 +378,7 @@ export default function AdminMigration() {
         </div>
 
         {/* Progress bar */}
-        <Card className="border border-primary/20 bg-background/80 backdrop-blur-sm">
+        <Card className="border border-primary/20 bg-background/80 backdrop-blur-xs">
           <CardContent className="pt-6 pb-4 space-y-2">
             <div className="flex items-center justify-between text-sm">
               <span className="font-medium">{completedSteps} of {totalSteps} steps completed</span>
@@ -432,7 +432,7 @@ export default function AdminMigration() {
             <Card
               key={phase.id}
               className={cn(
-                "border bg-background/80 backdrop-blur-sm transition-all duration-300",
+                "border bg-background/80 backdrop-blur-xs transition-all duration-300",
                 allDone ? "border-success/30" : "border-primary/20"
               )}
             >

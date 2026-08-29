@@ -77,7 +77,7 @@ export function LessonProgressBar({
                       // Base styles
                       'relative h-4 w-4 rounded-full flex items-center justify-center',
                       'transition-all duration-300 ease-out',
-                      'hover:scale-125 focus:outline-none focus:ring-2 focus:ring-primary/50',
+                      'hover:scale-125 focus:outline-hidden focus:ring-2 focus:ring-primary/50',
                     // State-based styles
                     isCompleted && 'bg-success shadow-[0_0_12px_hsl(var(--success)/0.6)]',
                     isCurrent && !isCompleted && 'bg-primary shadow-[0_0_15px_hsl(var(--primary)/0.8)] scale-125 ring-2 ring-primary/30',

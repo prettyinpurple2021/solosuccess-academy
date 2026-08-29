@@ -44,7 +44,7 @@ export function CookieBanner() {
       aria-label="Cookie notice"
       className="fixed bottom-0 left-0 right-0 z-50 px-4 pb-4 sm:pb-6 sm:px-6 pointer-events-none"
     >
-      <div className="mx-auto max-w-3xl pointer-events-auto rounded-lg border border-primary/30 bg-background/95 shadow-lg shadow-primary/10 backdrop-blur-sm">
+      <div className="mx-auto max-w-3xl pointer-events-auto rounded-lg border border-primary/30 bg-background/95 shadow-lg shadow-primary/10 backdrop-blur-xs">
         <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:gap-4 sm:p-5">
           <Cookie
             className="h-5 w-5 shrink-0 text-primary"
@@ -55,7 +55,7 @@ export function CookieBanner() {
             you signed in and remember your preferences. No tracking, no ads.{' '}
             <Link
               to="/privacy"
-              className="text-primary hover:underline focus:outline-none focus:ring-2 focus:ring-primary/40 rounded"
+              className="text-primary hover:underline focus:outline-hidden focus:ring-2 focus:ring-primary/40 rounded"
             >
               Read our Privacy Policy
             </Link>

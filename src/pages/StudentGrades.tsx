@@ -70,7 +70,7 @@ export default function StudentGrades() {
         </div>
 
         {/* Weight explanation */}
-        <Card className="bg-card/50 backdrop-blur-sm border-primary/20">
+        <Card className="bg-card/50 backdrop-blur-xs border-primary/20">
           <CardContent className="p-4 flex items-start gap-3">
             <HelpCircle className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
             <p className="text-xs text-muted-foreground">
@@ -82,7 +82,7 @@ export default function StudentGrades() {
 
         {/* Course grade cards */}
         {!grades?.length ? (
-          <Card className="bg-card/50 backdrop-blur-sm border-primary/20 p-12 text-center">
+          <Card className="bg-card/50 backdrop-blur-xs border-primary/20 p-12 text-center">
             <BookOpen className="h-12 w-12 text-muted-foreground/20 mx-auto mb-4" />
             <p className="text-muted-foreground">No courses enrolled yet.</p>
           </Card>
@@ -91,7 +91,7 @@ export default function StudentGrades() {
             {grades.map(g => {
               const weights = getWeightsForCourse(gradeSettings, g.courseId);
               return (
-                <Card key={g.courseId} className="bg-card/50 backdrop-blur-sm border-primary/10">
+                <Card key={g.courseId} className="bg-card/50 backdrop-blur-xs border-primary/10">
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
                       <div>
