@@ -28,4 +28,8 @@ const csrfMiddleware = createCsrfMiddleware({
 
 export const startInstance = createStart(() => ({
   requestMiddleware: [errorMiddleware, csrfMiddleware],
+  // Attaches the signed-in user's token to server function calls so
+  // auth-protected server functions (e.g. essay grading) can verify the caller.
+  functionMiddleware: [attachSupabaseAuth],
 }));
+
