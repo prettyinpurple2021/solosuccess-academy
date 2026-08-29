@@ -5,7 +5,7 @@
  * Users arrive here from the unsubscribe link in transactional emails.
  */
 import { useEffect, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from '@/lib/router-compat';
 import { Loader2, MailX, CheckCircle, AlertTriangle, Settings as SettingsIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';

@@ -4,7 +4,7 @@
  * Resolves the post by `:slug` from the registry. Renders metadata,
  * Article + FAQPage JSON-LD, and the post body.
  */
-import { Link, useParams, Navigate } from 'react-router-dom';
+import { Link, useParams, Navigate } from '@/lib/router-compat';
 import { useEffect, useState } from 'react';
 import DOMPurify from 'dompurify';
 import { Calendar, Clock, ArrowLeft } from 'lucide-react';

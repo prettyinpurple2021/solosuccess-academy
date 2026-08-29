@@ -12,7 +12,7 @@
  * Public route — no auth required (the user can't sign in).
  */
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from '@/lib/router-compat';
 import { ArrowLeft, ShieldQuestion, Send, Loader2 } from 'lucide-react';
 import { z } from 'zod';
 import { Input } from '@/components/ui/input';

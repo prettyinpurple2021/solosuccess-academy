@@ -6,7 +6,7 @@
  * support per the refund policy.
  */
 import { useQuery } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
+import { Link } from '@/lib/router-compat';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { PageMeta } from '@/components/layout/PageMeta';

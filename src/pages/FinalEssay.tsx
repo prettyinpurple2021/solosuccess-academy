@@ -8,7 +8,7 @@
  * 4. View past submissions and their grades
  */
 import { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link } from '@/lib/router-compat';
 import { useAuth } from '@/hooks/useAuth';
 import { useCourse, useHasPurchasedCourse } from '@/hooks/useCourses';
 import { useCourseEssay, useGradeEssay } from '@/hooks/useFinalEssay';

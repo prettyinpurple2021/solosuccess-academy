@@ -22,7 +22,7 @@
  * - Consider adding a top notification banner slot
  * - Add breadcrumb navigation for deeply nested routes
  */
-import { Navigate, Outlet, useLocation, useParams } from 'react-router-dom';
+import { Navigate, Outlet, useLocation, useParams } from '@/lib/router-compat';
 import { useAuth } from '@/hooks/useAuth';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { AppSidebar } from './AppSidebar';

@@ -9,7 +9,7 @@
  * - Chamfered cyber buttons
  * - Theme toggle (Cyberpunk ↔ Pastel Goth)
  */
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation } from '@/lib/router-compat';
 import { useTheme } from 'next-themes';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';

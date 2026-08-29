@@ -21,7 +21,7 @@
  * 2. If not authenticated → redirect to /auth with return URL
  * 3. If authenticated → render children
  */
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate, useLocation } from '@/lib/router-compat';
 import { useAuth } from '@/hooks/useAuth';
 import { NeonSpinner } from '@/components/ui/neon-spinner';
 

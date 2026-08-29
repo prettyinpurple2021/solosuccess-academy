@@ -5,7 +5,7 @@
  * wrapped in a neon UI frame with key benefit reminders.
  * Mobile-optimized spacing and text sizing.
  */
-import { Link } from 'react-router-dom';
+import { Link } from '@/lib/router-compat';
 import { Button } from '@/components/ui/button';
 import { Rocket, Trophy, CheckCircle2 } from 'lucide-react';
 import { UIFrame } from '@/components/landing/UIFrame';

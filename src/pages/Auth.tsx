@@ -23,7 +23,7 @@
  * - Add CAPTCHA for sign-up to prevent bot registrations
  */
 import { useState } from 'react';
-import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
+import { useNavigate, useSearchParams, useLocation } from '@/lib/router-compat';
 import { useAuth } from '@/hooks/useAuth';
 import { lovable } from '@/integrations/lovable/index';
 import { Button } from '@/components/ui/button';

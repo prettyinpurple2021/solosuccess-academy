@@ -11,7 +11,7 @@
  * SECURITY: Only searches content the user has purchased access to.
  */
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from '@/lib/router-compat';
 import {
   Dialog,
   DialogContent,
@@ -51,7 +51,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const inputRef = useRef<HTMLInputElement>(null);
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   // Focus input when dialog opens
   useEffect(() => {

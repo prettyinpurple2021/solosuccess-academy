@@ -4,7 +4,7 @@
  * Wraps public-facing pages with the cyberpunk background,
  * floating bokeh particles, grid overlay, header, and footer.
  */
-import { Outlet } from 'react-router-dom';
+import { Outlet } from '@/lib/router-compat';
 import { PublicHeader } from './PublicHeader';
 import { Footer } from './Footer';
 import { CookieBanner } from './CookieBanner';

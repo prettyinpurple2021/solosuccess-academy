@@ -10,12 +10,12 @@
  *     <Route path="/courses/:courseId/lessons/:lessonId" element={<LessonViewer />} />
  *   </Route>
  */
-import { Navigate, Outlet, useParams } from 'react-router-dom';
+import { Navigate, Outlet, useParams } from '@/lib/router-compat';
 import { useAuth } from '@/hooks/useAuth';
 import { useHasPurchasedCourse } from '@/hooks/useCourses';
 import { NeonSpinner } from '@/components/ui/neon-spinner';
 import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom';
+import { Link } from '@/lib/router-compat';
 import { Lock } from 'lucide-react';
 
 export function PurchaseGuard() {

@@ -6,7 +6,7 @@
  * notifications, user dropdown, and admin link.
  */
 import { useState, useEffect } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from '@/lib/router-compat';
 import { useTheme } from 'next-themes';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';

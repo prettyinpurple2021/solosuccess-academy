@@ -22,7 +22,7 @@ import {
   useRequestDeletion,
   useCancelDeletion,
 } from '@/hooks/useAccountDeletion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from '@/lib/router-compat';
 
 interface DeleteAccountCardProps {
   userId: string;

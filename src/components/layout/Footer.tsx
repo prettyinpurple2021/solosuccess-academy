@@ -4,7 +4,7 @@
  * Displays platform links, resource links, legal links, social media,
  * and copyright notice. Used in PublicLayout for all public pages.
  */
-import { Link } from 'react-router-dom';
+import { Link } from '@/lib/router-compat';
 import { Zap, Mail } from 'lucide-react';
 
 export function Footer() {

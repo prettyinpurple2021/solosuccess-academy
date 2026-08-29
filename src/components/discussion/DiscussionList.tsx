@@ -10,7 +10,7 @@
  * VOTING: Students can upvote discussions to signal valuable threads.
  * Each user can upvote once per discussion (toggle on/off).
  */
-import { Link } from 'react-router-dom';
+import { Link } from '@/lib/router-compat';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';

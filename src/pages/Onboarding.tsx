@@ -6,7 +6,7 @@
  * and weekly time commitment, then drops the user on /dashboard.
  */
 import { useEffect, useState } from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate } from '@/lib/router-compat';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';

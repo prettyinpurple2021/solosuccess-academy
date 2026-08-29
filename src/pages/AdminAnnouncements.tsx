@@ -4,7 +4,7 @@
  * announcements that appear at the top of the authenticated app shell.
  */
 import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from '@/lib/router-compat';
 import { format } from 'date-fns';
 import {
   Megaphone,

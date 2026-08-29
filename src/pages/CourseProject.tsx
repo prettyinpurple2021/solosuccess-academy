@@ -13,7 +13,7 @@
  * - Includes a Portfolio Compiler button to download all projects as PDF
  * - Only unlocks the project form after prerequisites are met
  */
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link } from '@/lib/router-compat';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { ProjectSubmissionForm } from '@/components/project/ProjectSubmissionForm';

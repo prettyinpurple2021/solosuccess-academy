@@ -9,7 +9,7 @@
  * - Clicking the X dismisses it server-side so it stays gone across devices.
  * - Optional CTA button opens the configured URL (internal or external).
  */
-import { Link } from 'react-router-dom';
+import { Link } from '@/lib/router-compat';
 import { useActiveAnnouncements, useDismissAnnouncement } from '@/hooks/useAnnouncements';
 import { Button } from '@/components/ui/button';
 import { X, Info, CheckCircle2, AlertTriangle } from 'lucide-react';

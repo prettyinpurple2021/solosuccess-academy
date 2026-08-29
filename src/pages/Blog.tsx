@@ -3,7 +3,7 @@
  *
  * Lists all posts from the registry. Public route at `/blog`.
  */
-import { Link } from 'react-router-dom';
+import { Link } from '@/lib/router-compat';
 import { useEffect, useState } from 'react';
 import { Calendar, Clock, ArrowRight, Zap } from 'lucide-react';
 import { PageMeta } from '@/components/layout/PageMeta';

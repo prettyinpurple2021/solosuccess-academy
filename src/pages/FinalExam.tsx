@@ -5,7 +5,7 @@
  * Route: /courses/:courseId/final-exam
  * Requirements: User must be authenticated and have purchased the course.
  */
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from '@/lib/router-compat';
 import { useAuth } from '@/hooks/useAuth';
 import { useCourse, useHasPurchasedCourse } from '@/hooks/useCourses';
 import { useFinalExam } from '@/hooks/useFinalExam';
@@ -16,7 +16,7 @@ import { PageMeta } from '@/components/layout/PageMeta';
 import { CourseBreadcrumb } from '@/components/navigation/CourseBreadcrumb';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Lock } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link } from '@/lib/router-compat';
 
 export default function FinalExam() {
   const { courseId } = useParams<{ courseId: string }>();

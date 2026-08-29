@@ -20,7 +20,7 @@ import {
   useRouter,
 } from "@tanstack/react-router";
 import { Suspense } from "react";
-import { HelmetProvider } from "react-helmet-async";
+import { HelmetProvider } from "@/lib/helmet-compat";
 import { ThemeProvider } from "next-themes";
 
 import appCss from "../styles.css?url";

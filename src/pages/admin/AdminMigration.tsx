@@ -22,7 +22,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsAdmin } from "@/hooks/useAdmin";
-import { Navigate } from "react-router-dom";
+import { Navigate } from "@/lib/router-compat";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -50,7 +50,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MigrationExportPanel } from "@/components/admin/MigrationExportPanel";
-import { Link } from "react-router-dom";
+import { Link } from "@/lib/router-compat";
 import { Printer } from "lucide-react";
 
 // ──────────────────────────────────────────────

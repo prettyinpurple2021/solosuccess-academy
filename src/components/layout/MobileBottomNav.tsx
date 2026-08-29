@@ -11,7 +11,7 @@
  * Sticky with backdrop blur, follows the cyber/glass aesthetic.
  */
 import { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from '@/lib/router-compat';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsAdmin } from '@/hooks/useAdmin';
 import { GlobalSearch } from '@/components/search/GlobalSearch';

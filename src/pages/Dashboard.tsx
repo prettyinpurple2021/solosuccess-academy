@@ -22,7 +22,7 @@
  * - Add a "Quick Actions" section (start discussion, submit project, etc.)
  * - Consider server-side aggregation for stats to reduce client computation
  */
-import { Link } from 'react-router-dom';
+import { Link } from '@/lib/router-compat';
 import { CourseJourneyMap } from '@/components/dashboard/CourseJourneyMap';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';

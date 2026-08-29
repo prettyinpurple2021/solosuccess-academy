@@ -1,4 +1,4 @@
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link } from '@/lib/router-compat';
 import { TextbookViewer } from '@/components/textbook/TextbookViewer';
 import { Button } from '@/components/ui/button';
 import { CourseBreadcrumb } from '@/components/navigation/CourseBreadcrumb';
