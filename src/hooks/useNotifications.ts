@@ -130,7 +130,9 @@ export function useNotifications() {
     if (!user?.id) return;
 
     const channel = supabase
-      .channel('notifications-realtime')
+      // Unique topic per mount: reusing a name after removeChannel() can return the
+      // still-subscribed instance, which throws when .on() is called afterwards.
+      .channel(`notifications-realtime-${user.id}-${crypto.randomUUID()}`)
       .on(
         'postgres_changes',
         {
