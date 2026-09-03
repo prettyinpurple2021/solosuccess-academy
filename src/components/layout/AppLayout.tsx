@@ -66,7 +66,7 @@ export function AppLayout() {
   // ── Auth gate: Redirect unauthenticated users to login ──
   // `state.from` allows redirecting back after successful login
   if (!isAuthenticated) {
-    return <Navigate to="/auth" state={{ from: location }} replace />;
+    return <Navigate to="/auth" state={redirectState} replace />;
   }
 
   // ── First-run onboarding gate ──
