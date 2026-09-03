@@ -101,6 +101,68 @@ export interface Notification {
   created_at: string;
 }
 
+/* ──────────────────────────────────────────────────────────────
+ * Shared realtime subscription.
+ *
+ * WHY: useNotifications() is called by several consumers at once
+ * (NotificationBell, Notifications page, useUnreadCount). If each
+ * instance opened its own channel, one new notification would fire
+ * the toast/chime/push once PER instance (up to 4 duplicates).
+ * So we keep ONE channel per user and reference-count the mounts:
+ * the first mount subscribes, the last unmount tears it down.
+ * ────────────────────────────────────────────────────────────── */
+type InsertHandler = (n: Notification) => void;
+
+let sharedChannel: ReturnType<typeof supabase.channel> | null = null;
+let sharedChannelUserId: string | null = null;
+let subscriberCount = 0;
+// Only the newest handler runs, so effects that re-run (new toast/navigate
+// identities) never cause the alert to fire twice.
+let activeHandler: InsertHandler | null = null;
+
+function acquireNotificationChannel(userId: string, handler: InsertHandler) {
+  activeHandler = handler;
+
+  if (sharedChannel && sharedChannelUserId !== userId) {
+    // User switched — drop the old channel entirely.
+    supabase.removeChannel(sharedChannel);
+    sharedChannel = null;
+    sharedChannelUserId = null;
+    subscriberCount = 0;
+  }
+
+  subscriberCount += 1;
+
+  if (!sharedChannel) {
+    sharedChannelUserId = userId;
+    sharedChannel = supabase
+      .channel(`notifications-realtime-${userId}-${crypto.randomUUID()}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${userId}`,
+        },
+        (payload) => activeHandler?.(payload.new as Notification)
+      )
+      .subscribe();
+  }
+
+  // Release: only the last consumer actually removes the channel.
+  return () => {
+    subscriberCount -= 1;
+    if (activeHandler === handler) activeHandler = null;
+    if (subscriberCount <= 0 && sharedChannel) {
+      supabase.removeChannel(sharedChannel);
+      sharedChannel = null;
+      sharedChannelUserId = null;
+      subscriberCount = 0;
+    }
+  };
+}
+
 export function useNotifications() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -125,58 +187,45 @@ export function useNotifications() {
     enabled: !!user?.id,
   });
 
-  // Subscribe to realtime notifications
+  // Subscribe to realtime notifications (shared across all consumers)
   useEffect(() => {
-    if (!user?.id) return;
+    const userId = user?.id;
+    if (!userId) return;
 
-    const channel = supabase
-      // Unique topic per mount: reusing a name after removeChannel() can return the
-      // still-subscribed instance, which throws when .on() is called afterwards.
-      .channel(`notifications-realtime-${user.id}-${crypto.randomUUID()}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'notifications',
-          filter: `user_id=eq.${user.id}`,
-        },
-        (payload) => {
-          const newNotification = payload.new as Notification;
-          queryClient.setQueryData<Notification[]>(
-            ['notifications', user.id],
-            (old) => {
-              return old ? [newNotification, ...old] : [newNotification];
-            }
-          );
-
-          // 1) In-app toast (foreground)
-          if (getPref(PREF_KEYS.toast)) {
-            toast({
-              title: newNotification.title,
-              description: newNotification.message,
-              onClick: newNotification.link
-                ? () => navigate(newNotification.link!)
-                : undefined,
-            } as any);
-          }
-
-          // 2) Soft chime
-          if (getPref(PREF_KEYS.sound)) playChime();
-
-          // 3) Native browser push (background tab)
-          if (getPref(PREF_KEYS.push)) showBrowserNotification(newNotification);
+    const handler: InsertHandler = (newNotification) => {
+      queryClient.setQueryData<Notification[]>(
+        ['notifications', userId],
+        (old) => {
+          // Guard against duplicate rows if a refetch already added it.
+          if (old?.some((n) => n.id === newNotification.id)) return old;
+          return old ? [newNotification, ...old] : [newNotification];
         }
-      )
-      .subscribe();
+      );
 
-    return () => {
-      supabase.removeChannel(channel);
+      // 1) In-app toast (foreground)
+      if (getPref(PREF_KEYS.toast)) {
+        toast({
+          title: newNotification.title,
+          description: newNotification.message,
+          onClick: newNotification.link
+            ? () => navigate(newNotification.link!)
+            : undefined,
+        } as any);
+      }
+
+      // 2) Soft chime
+      if (getPref(PREF_KEYS.sound)) playChime();
+
+      // 3) Native browser push (background tab)
+      if (getPref(PREF_KEYS.push)) showBrowserNotification(newNotification);
     };
+
+    return acquireNotificationChannel(userId, handler);
   }, [user?.id, queryClient, toast, navigate]);
 
   return query;
 }
+
 
 export function useUnreadCount() {
   const { data: notifications } = useNotifications();
