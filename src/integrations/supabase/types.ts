@@ -1402,10 +1402,14 @@ export type Database = {
       }
       practice_submissions: {
         Row: {
+          admin_feedback: string | null
+          admin_score: number | null
           ai_feedback: string | null
           ai_feedback_at: string | null
           created_at: string
           file_urls: string[] | null
+          graded_at: string | null
+          graded_by: string | null
           id: string
           practice_lab_id: string
           score: number | null
@@ -1416,10 +1420,14 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          admin_feedback?: string | null
+          admin_score?: number | null
           ai_feedback?: string | null
           ai_feedback_at?: string | null
           created_at?: string
           file_urls?: string[] | null
+          graded_at?: string | null
+          graded_by?: string | null
           id?: string
           practice_lab_id: string
           score?: number | null
@@ -1430,10 +1438,14 @@ export type Database = {
           user_id: string
         }
         Update: {
+          admin_feedback?: string | null
+          admin_score?: number | null
           ai_feedback?: string | null
           ai_feedback_at?: string | null
           created_at?: string
           file_urls?: string[] | null
+          graded_at?: string | null
+          graded_by?: string | null
           id?: string
           practice_lab_id?: string
           score?: number | null
@@ -1503,10 +1515,14 @@ export type Database = {
       }
       project_milestone_submissions: {
         Row: {
+          admin_feedback: string | null
+          admin_score: number | null
           ai_feedback: string | null
           ai_feedback_at: string | null
           created_at: string
           file_urls: string[] | null
+          graded_at: string | null
+          graded_by: string | null
           id: string
           milestone_id: string
           status: string
@@ -1516,10 +1532,14 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          admin_feedback?: string | null
+          admin_score?: number | null
           ai_feedback?: string | null
           ai_feedback_at?: string | null
           created_at?: string
           file_urls?: string[] | null
+          graded_at?: string | null
+          graded_by?: string | null
           id?: string
           milestone_id: string
           status?: string
@@ -1529,10 +1549,14 @@ export type Database = {
           user_id: string
         }
         Update: {
+          admin_feedback?: string | null
+          admin_score?: number | null
           ai_feedback?: string | null
           ai_feedback_at?: string | null
           created_at?: string
           file_urls?: string[] | null
+          graded_at?: string | null
+          graded_by?: string | null
           id?: string
           milestone_id?: string
           status?: string
