@@ -21,6 +21,7 @@
  * 2. If not authenticated → redirect to /auth with return URL
  * 3. If authenticated → render children
  */
+import { useMemo } from 'react';
 import { Navigate, useLocation } from '@/lib/router-compat';
 import { useAuth } from '@/hooks/useAuth';
 import { NeonSpinner } from '@/components/ui/neon-spinner';
@@ -32,6 +33,13 @@ interface ProtectedRouteProps {
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { isAuthenticated, isLoading } = useAuth();
   const location = useLocation();
+
+  // Stable redirect state — an inline `{ from: location }` object would be
+  // recreated on every render and make <Navigate> re-fire in a loop.
+  const redirectState = useMemo(
+    () => ({ from: { pathname: location.pathname } }),
+    [location.pathname],
+  );
 
   // Show loading spinner during initial auth check
   if (isLoading) {
@@ -48,8 +56,9 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
 
   // Redirect to auth page, preserving the intended destination
   if (!isAuthenticated) {
-    return <Navigate to="/auth" state={{ from: location }} replace />;
+    return <Navigate to="/auth" state={redirectState} replace />;
   }
+
 
   // User is authenticated — render the protected content
   return <>{children}</>;

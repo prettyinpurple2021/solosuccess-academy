@@ -13,7 +13,7 @@ import {
   Navigate as TSNavigate,
   Outlet as TSOutlet,
 } from "@tanstack/react-router";
-import { useMemo, useCallback, forwardRef, type ComponentProps, type ReactNode } from "react";
+import { useMemo, useCallback, useEffect, useRef, forwardRef, type ComponentProps, type ReactNode } from "react";
 
 // ---------- shared URL parsing ----------
 
@@ -144,10 +144,37 @@ export const Link = forwardRef<HTMLAnchorElement, LinkProps>(function Link(
 
 // ---------- Navigate ----------
 
+/**
+ * react-router-style declarative redirect.
+ *
+ * WHY NOT TanStack's own <Navigate>: it re-commits the location on every
+ * render of the parent. Guards like AppLayout re-render while the redirect is
+ * in flight, so the router kept committing `/auth` over and over and React
+ * threw "Maximum update depth exceeded".
+ *
+ * Instead we fire the navigation exactly once per mount, guarded by a ref,
+ * and render nothing.
+ */
 export function Navigate({ to, replace, state }: { to: string; replace?: boolean; state?: unknown }) {
-  const { pathname, search, hash } = parseTo(to);
-  return <TSNavigate to={pathname as never} search={search as never} hash={hash} state={state as never} replace={replace} />;
+  const navigate = useNavigate();
+  const fired = useRef(false);
+
+  // Keep the latest args in a ref so the effect can stay mount-only.
+  const args = useRef({ to, replace, state });
+  args.current = { to, replace, state };
+
+  useEffect(() => {
+    if (fired.current) return;
+    fired.current = true;
+    const { to: target, replace: shouldReplace, state: navState } = args.current;
+    navigate(target, { replace: shouldReplace ?? true, state: navState });
+    // Mount-only on purpose — see the note above.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return null;
 }
+
 
 // ---------- Outlet ----------
 
