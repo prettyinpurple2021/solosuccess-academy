@@ -43,6 +43,11 @@ export function PublicHeader() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
   const navOpacity = useScrollOpacity();
+  // The active theme is only known in the browser, so we render a stable icon
+  // until after hydration to keep server and client HTML identical.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  const isDark = mounted ? theme === 'dark' : true;
 
   return (
     <header
