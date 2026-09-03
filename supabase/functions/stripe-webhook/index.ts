@@ -74,6 +74,27 @@ serve(async (req) => {
       });
     }
 
+    // ── RELEVANCE FILTER ───────────────────────────────────────────
+    // Stripe sends every event type the endpoint is subscribed to, including
+    // high-volume noise like `reporting.report_type.updated` (which fired
+    // 23k+ times and filled the database disk). We only need the three
+    // payment events below, so anything else is acknowledged and dropped
+    // WITHOUT writing a ledger row.
+    const HANDLED_EVENT_TYPES = new Set<string>([
+      "checkout.session.completed",
+      "charge.refunded",
+      "payment_intent.payment_failed",
+    ]);
+
+    if (!HANDLED_EVENT_TYPES.has(event.type)) {
+      console.log(`[stripe-webhook] Ignoring unhandled event type: ${event.type}`);
+      return new Response(JSON.stringify({ received: true, ignored: true }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+
     // ── IDEMPOTENCY GATE ───────────────────────────────────────────
     // Stripe may retry the same event (network blips, our 5xxs). The unique
     // index on stripe_webhook_events.stripe_event_id guarantees we only
