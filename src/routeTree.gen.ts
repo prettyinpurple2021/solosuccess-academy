@@ -47,6 +47,7 @@ import { Route as AppAdminBlogAutoPostRouteImport } from './routes/_app.admin.bl
 import { Route as AppAdminContentGeneratorRouteImport } from './routes/_app.admin.content-generator'
 import { Route as AppAdminExamEssayRouteImport } from './routes/_app.admin.exam-essay'
 import { Route as AppAdminGradebookRouteImport } from './routes/_app.admin.gradebook'
+import { Route as AppAdminGradingRouteImport } from './routes/_app.admin.grading'
 import { Route as AppAdminMigrationRouteImport } from './routes/_app.admin.migration'
 import { Route as AppAdminPlatformSettingsRouteImport } from './routes/_app.admin.platform-settings'
 import { Route as AppAdminProjectsRouteImport } from './routes/_app.admin.projects'
@@ -257,6 +258,11 @@ const AppAdminGradebookRoute = AppAdminGradebookRouteImport.update({
   path: '/gradebook',
   getParentRoute: () => AppAdminRoute,
 } as any)
+const AppAdminGradingRoute = AppAdminGradingRouteImport.update({
+  id: '/grading',
+  path: '/grading',
+  getParentRoute: () => AppAdminRoute,
+} as any)
 const AppAdminMigrationRoute = AppAdminMigrationRouteImport.update({
   id: '/migration',
   path: '/migration',
@@ -407,6 +413,7 @@ export interface FileRoutesByFullPath {
   '/admin/content-generator': typeof AppAdminContentGeneratorRoute
   '/admin/exam-essay': typeof AppAdminExamEssayRoute
   '/admin/gradebook': typeof AppAdminGradebookRoute
+  '/admin/grading': typeof AppAdminGradingRoute
   '/admin/migration': typeof AppAdminMigrationRoute
   '/admin/platform-settings': typeof AppAdminPlatformSettingsRoute
   '/admin/projects': typeof AppAdminProjectsRoute
@@ -464,6 +471,7 @@ export interface FileRoutesByTo {
   '/admin/content-generator': typeof AppAdminContentGeneratorRoute
   '/admin/exam-essay': typeof AppAdminExamEssayRoute
   '/admin/gradebook': typeof AppAdminGradebookRoute
+  '/admin/grading': typeof AppAdminGradingRoute
   '/admin/migration': typeof AppAdminMigrationRoute
   '/admin/platform-settings': typeof AppAdminPlatformSettingsRoute
   '/admin/projects': typeof AppAdminProjectsRoute
@@ -526,6 +534,7 @@ export interface FileRoutesById {
   '/_app/admin/content-generator': typeof AppAdminContentGeneratorRoute
   '/_app/admin/exam-essay': typeof AppAdminExamEssayRoute
   '/_app/admin/gradebook': typeof AppAdminGradebookRoute
+  '/_app/admin/grading': typeof AppAdminGradingRoute
   '/_app/admin/migration': typeof AppAdminMigrationRoute
   '/_app/admin/platform-settings': typeof AppAdminPlatformSettingsRoute
   '/_app/admin/projects': typeof AppAdminProjectsRoute
@@ -586,6 +595,7 @@ export interface FileRouteTypes {
     | '/admin/content-generator'
     | '/admin/exam-essay'
     | '/admin/gradebook'
+    | '/admin/grading'
     | '/admin/migration'
     | '/admin/platform-settings'
     | '/admin/projects'
@@ -643,6 +653,7 @@ export interface FileRouteTypes {
     | '/admin/content-generator'
     | '/admin/exam-essay'
     | '/admin/gradebook'
+    | '/admin/grading'
     | '/admin/migration'
     | '/admin/platform-settings'
     | '/admin/projects'
@@ -704,6 +715,7 @@ export interface FileRouteTypes {
     | '/_app/admin/content-generator'
     | '/_app/admin/exam-essay'
     | '/_app/admin/gradebook'
+    | '/_app/admin/grading'
     | '/_app/admin/migration'
     | '/_app/admin/platform-settings'
     | '/_app/admin/projects'
@@ -1011,6 +1023,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAdminGradebookRouteImport
       parentRoute: typeof AppAdminRoute
     }
+    '/_app/admin/grading': {
+      id: '/_app/admin/grading'
+      path: '/grading'
+      fullPath: '/admin/grading'
+      preLoaderRoute: typeof AppAdminGradingRouteImport
+      parentRoute: typeof AppAdminRoute
+    }
     '/_app/admin/migration': {
       id: '/_app/admin/migration'
       path: '/migration'
@@ -1200,6 +1219,7 @@ interface AppAdminRouteChildren {
   AppAdminContentGeneratorRoute: typeof AppAdminContentGeneratorRoute
   AppAdminExamEssayRoute: typeof AppAdminExamEssayRoute
   AppAdminGradebookRoute: typeof AppAdminGradebookRoute
+  AppAdminGradingRoute: typeof AppAdminGradingRoute
   AppAdminMigrationRoute: typeof AppAdminMigrationRoute
   AppAdminPlatformSettingsRoute: typeof AppAdminPlatformSettingsRoute
   AppAdminProjectsRoute: typeof AppAdminProjectsRoute
@@ -1217,6 +1237,7 @@ const AppAdminRouteChildren: AppAdminRouteChildren = {
   AppAdminContentGeneratorRoute: AppAdminContentGeneratorRoute,
   AppAdminExamEssayRoute: AppAdminExamEssayRoute,
   AppAdminGradebookRoute: AppAdminGradebookRoute,
+  AppAdminGradingRoute: AppAdminGradingRoute,
   AppAdminMigrationRoute: AppAdminMigrationRoute,
   AppAdminPlatformSettingsRoute: AppAdminPlatformSettingsRoute,
   AppAdminProjectsRoute: AppAdminProjectsRoute,
