@@ -22,6 +22,7 @@
  * - Consider adding a top notification banner slot
  * - Add breadcrumb navigation for deeply nested routes
  */
+import { useMemo } from 'react';
 import { Navigate, Outlet, useLocation, useParams } from '@/lib/router-compat';
 import { useAuth } from '@/hooks/useAuth';
 import { SidebarProvider } from '@/components/ui/sidebar';
@@ -37,6 +38,17 @@ import { AnnouncementBanner } from './AnnouncementBanner';
 export function AppLayout() {
   const { isAuthenticated, isLoading, profile } = useAuth();
   const location = useLocation();
+
+  // Where to send the user back to after they log in.
+  // IMPORTANT: this must be a STABLE object. Building `{ from: location }`
+  // inline creates a brand-new object on every render, and <Navigate> then
+  // re-fires the redirect each time — which produced a
+  // "Maximum update depth exceeded" crash on signed-out visits.
+  const redirectState = useMemo(
+    () => ({ from: { pathname: location.pathname } }),
+    [location.pathname],
+  );
+
 
   // ── Loading state: Show spinner while checking auth ──
   if (isLoading) {
