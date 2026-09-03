@@ -103,7 +103,7 @@ export function PublicHeader() {
                 className="h-9 w-9 hover:bg-primary/10"
                 aria-label="Toggle theme"
               >
-                {theme === 'dark' ? (
+                {isDark ? (
                   <Sun className="h-4 w-4 text-warning" />
                 ) : (
                   <Moon className="h-4 w-4 text-primary" />
@@ -111,7 +111,7 @@ export function PublicHeader() {
               </Button>
             </TooltipTrigger>
             <TooltipContent side="bottom">
-              <p className="text-xs">{theme === 'dark' ? 'Switch to Pastel Goth' : 'Switch to Cyberpunk'}</p>
+              <p className="text-xs">{isDark ? 'Switch to Pastel Goth' : 'Switch to Cyberpunk'}</p>
             </TooltipContent>
           </Tooltip>
 
